@@ -22,7 +22,10 @@ export function Hero() {
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-3">
+          {/* `dark` scope forces the dark glass tint (like the metric tiles below):
+              the aurora backdrop is always dark, so a dark frosted button keeps the
+              white label text legible in all four theme x palette combos. */}
+          <div className="dark flex flex-wrap gap-3">
             <GlassButton tone="primary" size="lg" render={<a href="#summary" />}>
               <CheckSquare />
               Caregiver Checklist

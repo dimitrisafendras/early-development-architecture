@@ -9,7 +9,7 @@ export function Footer() {
           Synthesized from peer-reviewed early infant psychology publications, Harvard Center on the
           Developing Child research, AAP guidelines, and contemporary developmental neuroscience.
         </p>
-        <div className="border-t border-border pt-4 text-muted-foreground/80">
+        <div className="border-t border-border pt-4 text-muted-foreground">
           Designed for Caregivers, Pediatric Educators, and Early Interventionists.
         </div>
       </div>

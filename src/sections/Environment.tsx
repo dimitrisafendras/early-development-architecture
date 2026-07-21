@@ -37,9 +37,10 @@ const reasons: Reason[] = [
 
 /** Fixed status semantics for the developmental-efficiency meters. */
 const scoreStyles: Record<StatusTone, { label: string; bar: string }> = {
-  success: { label: 'text-emerald-600 dark:text-emerald-400', bar: 'bg-emerald-500' },
-  warning: { label: 'text-amber-600 dark:text-amber-400', bar: 'bg-amber-500' },
-  danger: { label: 'text-rose-600 dark:text-rose-400', bar: 'bg-rose-500' },
+  // Score labels are text on the muted panel — light uses -700 to clear AA.
+  success: { label: 'text-emerald-700 dark:text-emerald-400', bar: 'bg-emerald-500' },
+  warning: { label: 'text-amber-700 dark:text-amber-400', bar: 'bg-amber-500' },
+  danger: { label: 'text-rose-700 dark:text-rose-400', bar: 'bg-rose-500' },
 }
 
 export function Environment() {

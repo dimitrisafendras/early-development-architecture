@@ -207,7 +207,9 @@ export function ComponentsSection() {
       </DocBlock>
 
       <DocBlock title="Glass family" description="The material components — shown over an aurora so the lensing reads.">
-        <div className="ds-aurora relative overflow-hidden rounded-3xl p-6 sm:p-10">
+        {/* `dark` scope: the aurora backdrop is vivid in both themes, so the glass
+            uses the dark tint to keep the GlassSurface white text legible. */}
+        <div className="ds-aurora dark relative overflow-hidden rounded-3xl p-6 sm:p-10">
           <div className="relative z-10 space-y-6">
             <div className="flex flex-wrap items-center gap-4">
               <GlassButton tone="primary">

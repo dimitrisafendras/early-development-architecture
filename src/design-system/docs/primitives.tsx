@@ -72,7 +72,7 @@ export function DoDont({ dos, donts }: { dos: string[]; donts: string[] }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/5 p-5">
-        <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+        <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-emerald-700 dark:text-emerald-400">
           <span aria-hidden>✓</span> Do
         </p>
         <ul className="space-y-2 text-sm text-foreground/80">
@@ -85,7 +85,7 @@ export function DoDont({ dos, donts }: { dos: string[]; donts: string[] }) {
         </ul>
       </div>
       <div className="rounded-2xl border border-rose-500/25 bg-rose-500/5 p-5">
-        <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-rose-600 dark:text-rose-400">
+        <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-rose-700 dark:text-rose-400">
           <span aria-hidden>✕</span> Don't
         </p>
         <ul className="space-y-2 text-sm text-foreground/80">

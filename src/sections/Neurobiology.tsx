@@ -26,7 +26,7 @@ export function Neurobiology() {
                 <div className="font-bold text-foreground">25%</div>
               </div>
               <div className="rounded-lg bg-accent p-2">
-                <div className="text-xs text-accent-foreground/80">1 Year</div>
+                <div className="text-xs text-accent-foreground">1 Year</div>
                 <div className="font-bold text-accent-foreground">70%</div>
               </div>
               <div className="rounded-lg bg-muted p-2">

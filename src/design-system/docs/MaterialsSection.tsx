@@ -19,18 +19,24 @@ function GlassDemoCard({ variant }: { variant: 'regular' | 'clear' }) {
       variant={variant}
       interactive
       radius={24}
-      className="w-full p-6 text-white"
+      className="relative w-full p-6 text-white"
     >
-      <p className="text-xs font-semibold tracking-[0.16em] text-white/70 uppercase">{variant}</p>
-      <p className="mt-2 font-heading text-2xl font-semibold tracking-tight text-white drop-shadow">
+      {/* Clear glass is intentionally very transparent; over the vivid aurora it
+          needs a dimming scrim (as the material guidance states) for its white
+          text to clear AA at the brightest backdrop regions. */}
+      {isClear && (
+        <span aria-hidden className="pointer-events-none absolute inset-0 z-0 rounded-[inherit] bg-black/35" />
+      )}
+      <p className="relative z-10 text-xs font-semibold tracking-[0.16em] text-white/70 uppercase">{variant}</p>
+      <p className="relative z-10 mt-2 font-heading text-2xl font-semibold tracking-tight text-white drop-shadow">
         {isClear ? 'Clear glass' : 'Regular glass'}
       </p>
-      <p className="mt-2 text-sm leading-relaxed text-white/85 drop-shadow-sm">
+      <p className="relative z-10 mt-2 text-sm leading-relaxed text-white/85 drop-shadow-sm">
         {isClear
           ? 'Thinner and more transparent — notice more of the backdrop bleeds through. For bright media only.'
           : 'Adaptive and legible over anything. Watch the color behind it concentrate through the material.'}
       </p>
-      <div className="mt-4 flex gap-2">
+      <div className="relative z-10 mt-4 flex gap-2">
         <GlassButton variant={variant} size="sm" tone="primary">
           Action
         </GlassButton>
@@ -51,7 +57,9 @@ export function MaterialsSection() {
       intro="Translucency and lensing only mean something over real content. Both variants are shown floating above a vivid, animated backdrop — hover to feel the lensing shift."
     >
       <DocBlock title="Regular vs Clear" description="Side by side over the same animated aurora backdrop.">
-        <div className="ds-aurora relative overflow-hidden rounded-3xl p-6 sm:p-10">
+        {/* `dark` scope: the aurora backdrop is vivid regardless of app theme, so
+            the floating glass uses the dark tint to keep its white text legible. */}
+        <div className="ds-aurora dark relative overflow-hidden rounded-3xl p-6 sm:p-10">
           <div className="relative z-10 grid gap-6 sm:grid-cols-2">
             <GlassDemoCard variant="regular" />
             <GlassDemoCard variant="clear" />
@@ -63,14 +71,17 @@ export function MaterialsSection() {
         title="Clear over bright media"
         description="Clear glass needs bright, busy content behind it — and often a scrim."
       >
-        <div className="ds-photo relative overflow-hidden rounded-3xl p-6 sm:p-10">
+        <div className="ds-photo dark relative overflow-hidden rounded-3xl p-6 sm:p-10">
           <div className="relative z-10 mx-auto max-w-md">
-            <GlassSurface variant="clear" radius={24} className="p-6 text-white">
-              <p className="font-heading text-xl font-semibold drop-shadow">Now Playing</p>
-              <p className="mt-1 text-sm text-white/85 drop-shadow-sm">
+            <GlassSurface variant="clear" radius={24} className="relative p-6 text-white">
+              {/* Clear glass over bright media: a scrim is required (per guidance)
+                  so the white label/body text clears AA over the brightest pixels. */}
+              <span aria-hidden className="pointer-events-none absolute inset-0 z-0 rounded-[inherit] bg-black/35" />
+              <p className="relative z-10 font-heading text-xl font-semibold drop-shadow">Now Playing</p>
+              <p className="relative z-10 mt-1 text-sm text-white/85 drop-shadow-sm">
                 Over saturated imagery, clear glass keeps the media the hero while the controls float in front.
               </p>
-              <div className="mt-4 flex items-center gap-3">
+              <div className="relative z-10 mt-4 flex items-center gap-3">
                 <GlassButton variant="clear" size="icon" tone="primary" aria-label="Play">
                   ▶
                 </GlassButton>

@@ -95,8 +95,16 @@ export default function DesignSystem() {
         }
       />
 
-      {/* Hero */}
-      <header className="ds-aurora relative overflow-hidden">
+      {/* Hero — `dark` scope forces the dark glass tint on the floating glass
+          card/buttons (the aurora backdrop is vivid in both themes, so a dark
+          frosted surface keeps their white text legible). A soft scrim darkens
+          the backdrop under the on-aurora heading/subtitle for worst-case
+          (animated) legibility while keeping the aurora vivid to the right. */}
+      <header className="ds-aurora dark relative overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-black/55 via-black/15 to-transparent"
+        />
         <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-start px-5 py-24 sm:px-8 sm:py-32">
           <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-[0.16em] text-white uppercase backdrop-blur">
             Design System

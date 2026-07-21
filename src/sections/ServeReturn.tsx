@@ -10,25 +10,29 @@ const modes: LatencyMode[] = ['optimal', 'delayed', 'none']
 
 /** Soft, theme-aware phase tints — mirrors the DS chip aesthetic. */
 const stepStyles: Record<StepTone, { card: string; badge: string }> = {
-  slate: { card: 'border-slate-500/20 bg-slate-500/5', badge: 'bg-slate-500' },
-  amber: { card: 'border-amber-500/25 bg-amber-500/10', badge: 'bg-amber-500' },
-  sky: { card: 'border-sky-500/25 bg-sky-500/10', badge: 'bg-sky-500' },
-  emerald: { card: 'border-emerald-500/25 bg-emerald-500/10', badge: 'bg-emerald-500' },
+  // Badge fills carry white text, so they use -700 (light) shades that clear the
+  // 4.5:1 AA text contrast; the soft -500/10 card tints are unchanged.
+  slate: { card: 'border-slate-500/20 bg-slate-500/5', badge: 'bg-slate-600' },
+  amber: { card: 'border-amber-500/25 bg-amber-500/10', badge: 'bg-amber-700' },
+  sky: { card: 'border-sky-500/25 bg-sky-500/10', badge: 'bg-sky-700' },
+  emerald: { card: 'border-emerald-500/25 bg-emerald-500/10', badge: 'bg-emerald-700' },
 }
 
-/** Status semantics for the responsiveness simulator (good / caution / harmful). */
+/** Status semantics for the responsiveness simulator (good / caution / harmful).
+ *  Light shades use -700 so tone text on white and white text on the fills both
+ *  clear AA; dark theme keeps the lighter -400 text on its dark surfaces. */
 const statusStyles: Record<StatusTone, { title: string; button: string }> = {
   success: {
-    title: 'text-emerald-600 dark:text-emerald-400',
-    button: 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-600',
+    title: 'text-emerald-700 dark:text-emerald-400',
+    button: 'bg-emerald-700 border-emerald-700 text-white hover:bg-emerald-700',
   },
   warning: {
-    title: 'text-amber-600 dark:text-amber-400',
-    button: 'bg-amber-500 border-amber-500 text-white hover:bg-amber-500',
+    title: 'text-amber-700 dark:text-amber-400',
+    button: 'bg-amber-700 border-amber-700 text-white hover:bg-amber-700',
   },
   danger: {
-    title: 'text-rose-600 dark:text-rose-400',
-    button: 'bg-rose-600 border-rose-600 text-white hover:bg-rose-600',
+    title: 'text-rose-700 dark:text-rose-400',
+    button: 'bg-rose-700 border-rose-700 text-white hover:bg-rose-700',
   },
 }
 

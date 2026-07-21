@@ -5,33 +5,35 @@ import { scheduleBlocks, type ScheduleTone } from '../data'
 
 /** Soft, theme-aware per-block tints — distinct hues on the DS opaque card. */
 const toneStyles: Record<ScheduleTone, { label: string; chip: string; check: string }> = {
+  // Time labels are small text on the opaque card — light uses -700 to clear AA;
+  // dark keeps -400 on the dark card. Chips already use accessible -700 text.
   amber: {
-    label: 'text-amber-600 dark:text-amber-400',
+    label: 'text-amber-700 dark:text-amber-400',
     chip: 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
     check: 'text-amber-500',
   },
   emerald: {
-    label: 'text-emerald-600 dark:text-emerald-400',
+    label: 'text-emerald-700 dark:text-emerald-400',
     chip: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
     check: 'text-emerald-500',
   },
   sky: {
-    label: 'text-sky-600 dark:text-sky-400',
+    label: 'text-sky-700 dark:text-sky-400',
     chip: 'bg-sky-500/10 text-sky-700 dark:text-sky-300',
     check: 'text-sky-500',
   },
   cyan: {
-    label: 'text-cyan-600 dark:text-cyan-400',
+    label: 'text-cyan-700 dark:text-cyan-400',
     chip: 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-300',
     check: 'text-cyan-500',
   },
   fuchsia: {
-    label: 'text-fuchsia-600 dark:text-fuchsia-400',
+    label: 'text-fuchsia-700 dark:text-fuchsia-400',
     chip: 'bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300',
     check: 'text-fuchsia-500',
   },
   indigo: {
-    label: 'text-indigo-600 dark:text-indigo-400',
+    label: 'text-indigo-700 dark:text-indigo-400',
     chip: 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-300',
     check: 'text-indigo-500',
   },

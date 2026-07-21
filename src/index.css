@@ -22,10 +22,14 @@
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  /* Darkened from 0.556 so secondary text clears WCAG AA (4.5:1) on white cards
+     and on the soft tinted step/schedule cards (worst case ~4.73:1). */
+  --muted-foreground: oklch(0.53 0 0);
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
+  /* Darkened from 0.577 so `text-destructive` on the `bg-destructive/10` tint
+     (destructive Button/Badge variants) clears AA (~5.3:1) in the light theme. */
+  --destructive: oklch(0.51 0.21 27.5);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.87 0 0);
