@@ -60,8 +60,8 @@ export default function DesignSystem() {
         links={SECTIONS}
         brand={
           <>
-            <Baby className="size-4 text-primary" aria-hidden />
-            <span>Liquid Glass</span>
+            <Baby className="size-4 shrink-0 text-primary" aria-hidden />
+            <span className="hidden truncate sm:inline">Liquid Glass</span>
           </>
         }
         actions={
@@ -88,8 +88,9 @@ export default function DesignSystem() {
                 { value: 'red', label: 'Girl' },
               ]}
             />
-            <GlassButton size="sm" className="hidden sm:inline-flex" render={<Link to="/" />}>
-              <ArrowLeft className="size-3.5" /> Infographic
+            <GlassButton size="sm" aria-label="Back to infographic" render={<Link to="/" />}>
+              <ArrowLeft className="size-3.5" />
+              <span className="hidden sm:inline">Infographic</span>
             </GlassButton>
           </>
         }

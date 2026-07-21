@@ -12,6 +12,7 @@ import {
 } from 'chart.js'
 import { Doughnut, Bar, Line } from 'react-chartjs-2'
 import { useAppStore } from '../store'
+import { useT } from '../i18n'
 
 ChartJS.register(
   ArcElement,
@@ -25,7 +26,7 @@ ChartJS.register(
   Tooltip,
 )
 
-ChartJS.defaults.font.family = "'Geist Variable', system-ui, sans-serif"
+ChartJS.defaults.font.family = "'Comfortaa Variable', ui-rounded, system-ui, sans-serif"
 
 /**
  * Palette + theme aware chart colors. `primary` tracks the active accent palette
@@ -60,11 +61,12 @@ function useChartColors() {
 
 export function BrainGrowthChart() {
   const c = useChartColors()
+  const t = useT()
   return (
     <div style={{ position: 'relative', height: 256 }}>
       <Doughnut
         data={{
-          labels: ['Newborn Brain Mass (25%)', 'First Year Growth (+45%)', 'Remaining Adult Growth (+30%)'],
+          labels: [...t.charts.brainGrowth],
           datasets: [
             {
               data: [25, 45, 30],
@@ -98,20 +100,21 @@ export function BrainGrowthChart() {
 
 export function ParenteseChart() {
   const c = useChartColors()
+  const t = useT()
   return (
     <div style={{ position: 'relative', height: 256 }}>
       <Bar
         data={{
-          labels: ['Pitch Variance', 'Vowel Elongation', 'Infant Attention Span', 'Word Retention'],
+          labels: [...t.charts.parenteseAxis],
           datasets: [
             {
-              label: 'Standard Adult Speech',
+              label: t.charts.parenteseSeries[0],
               data: [30, 25, 35, 40],
               backgroundColor: c.neutral,
               borderRadius: 6,
             },
             {
-              label: 'Parentese Acoustic Profile',
+              label: t.charts.parenteseSeries[1],
               data: [90, 85, 92, 88],
               backgroundColor: c.primary,
               borderRadius: 6,
@@ -144,14 +147,15 @@ export function ParenteseChart() {
 
 export function TummyTimeChart() {
   const c = useChartColors()
+  const t = useT()
   return (
     <div style={{ position: 'relative', height: 256 }}>
       <Line
         data={{
-          labels: ['Birth (Week 1)', '1 Month', '2 Months', '3 Months', '4 Months+'],
+          labels: [...t.charts.tummyAxis],
           datasets: [
             {
-              label: 'Target Daily Minutes',
+              label: t.charts.tummySeries,
               data: [5, 15, 30, 45, 60],
               borderColor: c.primary,
               backgroundColor: `${c.primary}26`,
@@ -169,7 +173,7 @@ export function TummyTimeChart() {
             y: {
               beginAtZero: true,
               max: 70,
-              title: { display: true, text: 'Cumulative Minutes / Day', font: { size: 11 }, color: c.text },
+              title: { display: true, text: t.charts.tummyYTitle, font: { size: 11 }, color: c.text },
               ticks: { color: c.text },
               grid: { color: c.grid },
             },

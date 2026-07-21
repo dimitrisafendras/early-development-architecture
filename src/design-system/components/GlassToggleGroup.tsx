@@ -55,6 +55,9 @@ export function GlassToggleGroup<T extends string>({
   const pad = size === 'sm' ? 3 : 4
   const height = size === 'sm' ? 'h-8' : 'h-10'
   const textSize = size === 'sm' ? 'text-xs' : 'text-sm'
+  // Tighter horizontal padding on the small (nav) size so the segmented
+  // controls fit alongside the brand + menu on the narrowest phones.
+  const padX = size === 'sm' ? 'px-2.5' : 'px-3'
 
   return (
     <div
@@ -94,8 +97,9 @@ export function GlassToggleGroup<T extends string>({
               tabIndex={selected ? 0 : -1}
               onClick={() => onChange(opt.value)}
               className={cn(
-                'relative z-10 inline-flex items-center justify-center gap-1.5 rounded-full px-3 font-medium whitespace-nowrap outline-none transition-colors',
+                'relative z-10 inline-flex items-center justify-center gap-1.5 rounded-full font-medium whitespace-nowrap outline-none transition-colors',
                 'focus-visible:ring-2 focus-visible:ring-ring/70',
+                padX,
                 textSize,
                 selected ? 'text-primary-foreground' : 'text-foreground/70 hover:text-foreground'
               )}

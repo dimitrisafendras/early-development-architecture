@@ -177,13 +177,13 @@ export interface FontFamilyToken {
 export const fontFamilies: FontFamilyToken[] = [
   {
     role: 'Sans / UI',
-    stack: "'Geist Variable', system-ui, sans-serif",
-    note: 'Primary UI + body. Variable weight axis loaded.',
+    stack: "'Comfortaa Variable', ui-rounded, system-ui, sans-serif",
+    note: 'Primary UI + body. Rounded, friendly; full Greek + Latin coverage.',
   },
   {
     role: 'Heading',
-    stack: "'Geist Variable', system-ui, sans-serif",
-    note: 'Shares the Geist family; separated by weight + tracking.',
+    stack: "'Comfortaa Variable', ui-rounded, system-ui, sans-serif",
+    note: 'Shares the Comfortaa family; separated by weight + tracking.',
   },
 ]
 

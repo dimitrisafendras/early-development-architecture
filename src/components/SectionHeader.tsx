@@ -1,3 +1,5 @@
+import { useT } from '../i18n'
+
 interface Props {
   module: number
   title: string
@@ -5,10 +7,11 @@ interface Props {
 }
 
 export function SectionHeader({ module, title, description }: Props) {
+  const t = useT()
   return (
     <div className="mb-8 max-w-3xl">
       <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-        Module {module}
+        {t.common.module} {module}
       </p>
       <h2 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
         {title}

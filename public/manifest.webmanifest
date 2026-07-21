@@ -1,0 +1,33 @@
+{
+  "name": "The Architecture of Early Development",
+  "short_name": "Early Dev",
+  "description": "An evidence-based visual infographic mapping early infant neurodevelopment, serve-and-return interaction, acoustic language scaffolding, tummy time, and daily caregiver routines.",
+  "id": "/early-development-architecture/",
+  "start_url": "/early-development-architecture/",
+  "scope": "/early-development-architecture/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#cc3744",
+  "categories": ["education", "health", "parenting"],
+  "icons": [
+    {
+      "src": "/early-development-architecture/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/early-development-architecture/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/early-development-architecture/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

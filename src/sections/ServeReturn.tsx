@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils'
 import { SectionHeader } from '../components/SectionHeader'
 import { serveReturnSteps, latencyOutcomes, type StepTone, type StatusTone } from '../data'
 import { useAppStore, type LatencyMode } from '../store'
+import { useT } from '../i18n'
 
 const modes: LatencyMode[] = ['optimal', 'delayed', 'none']
 
@@ -39,20 +40,19 @@ const statusStyles: Record<StatusTone, { title: string; button: string }> = {
 export function ServeReturn() {
   const latency = useAppStore((s) => s.latency)
   const setLatency = useAppStore((s) => s.setLatency)
+  const t = useT()
+  const tr = t.serveReturn
   const outcome = latencyOutcomes[latency]
 
   return (
     <section id="serve-return">
-      <SectionHeader
-        module={2}
-        title='The "Serve and Return" Interaction Loop'
-        description="Harvard Center on the Developing Child highlights that social interactions function like a game of tennis. The infant serves a cue; the caregiver immediately returns it."
-      />
+      <SectionHeader module={2} title={tr.title} description={tr.description} />
       <Card>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {serveReturnSteps.map((step) => {
+            {serveReturnSteps.map((step, i) => {
               const s = stepStyles[step.tone]
+              const st = tr.steps[i]
               return (
                 <div
                   key={step.num}
@@ -68,10 +68,10 @@ export function ServeReturn() {
                       {step.num}
                     </span>
                   </div>
-                  <p className="mb-1 font-semibold text-foreground">{step.title}</p>
-                  <p className="m-0 text-xs text-muted-foreground">{step.desc}</p>
+                  <p className="mb-1 font-semibold text-foreground">{st.title}</p>
+                  <p className="m-0 text-xs text-muted-foreground">{st.desc}</p>
                   <div className="mt-3 border-t border-border pt-3 text-[11px] text-muted-foreground">
-                    {step.foot}
+                    {st.foot}
                   </div>
                 </div>
               )
@@ -81,12 +81,9 @@ export function ServeReturn() {
           <div className="mt-8 rounded-2xl border border-border bg-muted p-5">
             <p className="mb-2 flex items-center gap-2 font-semibold text-foreground">
               <SlidersHorizontal className="size-4 text-primary" aria-hidden />
-              Interactive Responsiveness Simulator
+              {tr.simulatorTitle}
             </p>
-            <p className="mb-4 text-xs text-muted-foreground">
-              Select a caregiver response delay to see how timing impacts neural alertness &amp;
-              stress hormones:
-            </p>
+            <p className="mb-4 text-xs text-muted-foreground">{tr.simulatorPrompt}</p>
             <div className="mb-4 flex flex-wrap gap-2">
               {modes.map((mode) => {
                 const active = latency === mode
@@ -97,16 +94,16 @@ export function ServeReturn() {
                     onClick={() => setLatency(mode)}
                     className={active ? statusStyles[latencyOutcomes[mode].tone].button : undefined}
                   >
-                    {latencyOutcomes[mode].buttonLabel}
+                    {tr.outcomes[mode].buttonLabel}
                   </Button>
                 )
               })}
             </div>
             <div className="rounded-lg border border-border bg-card p-4">
               <div className={cn('mb-1 font-bold', statusStyles[outcome.tone].title)}>
-                {outcome.title}
+                {tr.outcomes[latency].title}
               </div>
-              <p className="m-0 text-[13px] text-muted-foreground">{outcome.desc}</p>
+              <p className="m-0 text-[13px] text-muted-foreground">{tr.outcomes[latency].desc}</p>
             </div>
           </div>
         </CardContent>

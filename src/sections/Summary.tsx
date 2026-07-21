@@ -5,23 +5,21 @@ import { cn } from '@/lib/utils'
 import { SectionHeader } from '../components/SectionHeader'
 import { checklistItems } from '../data'
 import { useAppStore } from '../store'
+import { useT } from '../i18n'
 
 export function Summary() {
   const checkedItems = useAppStore((s) => s.checkedItems)
   const toggleItem = useAppStore((s) => s.toggleItem)
   const resetChecklist = useAppStore((s) => s.resetChecklist)
+  const t = useT()
 
   return (
     <section id="summary">
-      <SectionHeader
-        module={7}
-        title="💡 Summary of Key Action Items for Caregivers"
-        description="Interactive master checklist to track your daily implementation of science-backed infant development practices."
-      />
+      <SectionHeader module={7} title={t.summary.title} description={t.summary.description} />
       <Card>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {checklistItems.map((item) => {
+            {checklistItems.map((item, i) => {
               const checked = checkedItems.includes(item.id)
               return (
                 <label
@@ -40,9 +38,9 @@ export function Summary() {
                   />
                   <div>
                     <span className="mb-0.5 block font-semibold text-foreground">
-                      {item.title}
+                      {t.summary.items[i].title}
                     </span>
-                    <span className="text-xs text-muted-foreground">{item.desc}</span>
+                    <span className="text-xs text-muted-foreground">{t.summary.items[i].desc}</span>
                   </div>
                 </label>
               )
@@ -50,12 +48,12 @@ export function Summary() {
           </div>
           <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
             <span className="text-xs text-muted-foreground">
-              Progress:{' '}
+              {t.common.progress}:{' '}
               <span className="font-bold text-primary">{checkedItems.length}</span> /{' '}
-              {checklistItems.length} Completed
+              {checklistItems.length} {t.common.completed}
             </span>
             <Button variant="link" size="sm" onClick={resetChecklist} className="text-muted-foreground">
-              Reset Checklist
+              {t.common.reset}
             </Button>
           </div>
         </CardContent>

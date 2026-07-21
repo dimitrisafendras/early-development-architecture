@@ -1,22 +1,23 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Calendar, CheckSquare, Monitor, Music, Network, RefreshCw, Baby, Sun, Moon, Palette } from 'lucide-react'
+import { Sun, Moon, Palette } from 'lucide-react'
 import { GlassNav, GlassToggleGroup } from '@/design-system/components'
 import '@/design-system/ds.css'
 import { useAppStore } from '../store'
+import { useT } from '../i18n'
 
-const items = [
-  { href: '#neurobiology', label: 'Brain Growth', Icon: Network },
-  { href: '#serve-return', label: 'Serve & Return', Icon: RefreshCw },
-  { href: '#language-music', label: 'Parentese & Music', Icon: Music },
-  { href: '#tummy-time', label: 'Tummy Time', Icon: Baby },
-  { href: '#routine', label: 'Daily Schedule', Icon: Calendar },
-  { href: '#environment', label: 'Video Deficit', Icon: Monitor },
-  { href: '#summary', label: 'Action Items', Icon: CheckSquare },
-]
+const NAV_HREFS = [
+  '#neurobiology',
+  '#serve-return',
+  '#language-music',
+  '#tummy-time',
+  '#routine',
+  '#environment',
+  '#summary',
+] as const
 
 /** Tracks which section anchor is currently in view, for nav link highlighting. */
-function useActiveSection(hrefs: string[]) {
+function useActiveSection(hrefs: readonly string[]) {
   const [active, setActive] = useState<string>(hrefs[0] ?? '')
   useEffect(() => {
     const ids = hrefs.map((h) => h.slice(1))
@@ -43,16 +44,31 @@ export function NavBar() {
   const toggleTheme = useAppStore((s) => s.toggleTheme)
   const palette = useAppStore((s) => s.palette)
   const setPalette = useAppStore((s) => s.setPalette)
-  const activeHref = useActiveSection(items.map((i) => i.href))
+  const locale = useAppStore((s) => s.locale)
+  const setLocale = useAppStore((s) => s.setLocale)
+  const t = useT()
+  const activeHref = useActiveSection(NAV_HREFS)
+
+  const labels = [
+    t.nav.links.neurobiology,
+    t.nav.links.serveReturn,
+    t.nav.links.languageMusic,
+    t.nav.links.tummyTime,
+    t.nav.links.routine,
+    t.nav.links.environment,
+    t.nav.links.summary,
+  ]
 
   return (
     <GlassNav
       activeHref={activeHref}
-      links={items.map(({ href, label }) => ({ href, label }))}
+      menuLabelOpen={t.nav.menuOpen}
+      menuLabelClose={t.nav.menuClose}
+      links={NAV_HREFS.map((href, i) => ({ href, label: labels[i] }))}
       brand={
         <>
           <span aria-hidden>🧠</span>
-          <span className="hidden sm:inline">Early Development</span>
+          <span className="hidden truncate sm:inline">{t.nav.brand}</span>
         </>
       }
       actions={
@@ -79,12 +95,23 @@ export function NavBar() {
               { value: 'dark', label: <Moon className="size-3.5" />, ariaLabel: 'Dark theme' },
             ]}
           />
+          <GlassToggleGroup
+            ariaLabel={t.nav.language}
+            size="sm"
+            value={locale}
+            onChange={setLocale}
+            options={[
+              { value: 'en', label: 'EN' },
+              { value: 'el', label: 'ΕΛ' },
+            ]}
+          />
           <Link
             to="/design-system"
-            className="hidden items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-foreground/70 transition-colors hover:bg-foreground/5 hover:text-foreground sm:inline-flex"
+            aria-label={t.nav.designSystem}
+            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium text-foreground/70 transition-colors hover:bg-foreground/5 hover:text-foreground sm:px-3"
           >
             <Palette className="size-4" aria-hidden />
-            <span className="hidden lg:inline">Design System</span>
+            <span className="hidden lg:inline">{t.nav.designSystem}</span>
           </Link>
         </>
       }

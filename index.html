@@ -2,8 +2,45 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>The Architecture of Early Development</title>
+    <meta
+      name="description"
+      content="An evidence-based visual infographic mapping the neurobiological foundations, acoustic language scaffolding, tummy-time optimization, and daily caregiver routines of early infant development."
+    />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/early-development-architecture/manifest.webmanifest" />
+    <meta name="theme-color" content="#cc3744" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Early Dev" />
+    <link rel="apple-touch-icon" href="/early-development-architecture/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/early-development-architecture/icon-512.png" />
+
+    <!-- Pre-hydration theme bootstrap: apply the persisted (or default light+rose)
+         theme to <html> before React mounts so there is no flash of the wrong theme. -->
+    <script>
+      (function () {
+        try {
+          var choice = { dark: false, palette: 'red' }
+          var raw = localStorage.getItem('eda-theme')
+          if (raw) {
+            var s = (JSON.parse(raw) || {}).state
+            if (s) {
+              if (typeof s.dark === 'boolean') choice.dark = s.dark
+              if (s.palette === 'blue' || s.palette === 'red') choice.palette = s.palette
+            }
+          }
+          var root = document.documentElement
+          root.setAttribute('data-theme', choice.dark ? 'dark' : 'light')
+          root.classList.toggle('dark', choice.dark)
+          root.setAttribute('data-palette', choice.palette)
+          var tc = document.querySelector('meta[name="theme-color"]')
+          if (tc) tc.setAttribute('content', choice.dark ? '#0a0a0a' : '#ffffff')
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
