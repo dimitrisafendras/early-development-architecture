@@ -1,79 +1,11 @@
-import { Link } from 'react-router-dom'
-import { CheckSquare, Clock, FlaskConical, Moon, Palette, Sun } from 'lucide-react'
-import { Switch } from '@/components/ui/switch'
-import { buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { CheckSquare, Clock, FlaskConical } from 'lucide-react'
+import { GlassButton } from '@/design-system/components'
 import { heroMetrics } from '../data'
-import { useAppStore } from '../store'
 
 export function Hero() {
-  const dark = useAppStore((s) => s.dark)
-  const toggleTheme = useAppStore((s) => s.toggleTheme)
-  const palette = useAppStore((s) => s.palette)
-  const setPalette = useAppStore((s) => s.setPalette)
-
   return (
     <header className="gradient-hero relative overflow-hidden pb-16 pt-8 text-white">
       <div className="relative z-10 mx-auto w-full max-w-7xl px-6">
-        {/* Top control bar */}
-        <div className="mb-6 flex flex-wrap items-center justify-end gap-4">
-          <Link
-            to="/design-system"
-            className={cn(
-              buttonVariants({ variant: 'ghost', size: 'sm' }),
-              'text-slate-200 hover:bg-white/10 hover:text-white',
-            )}
-          >
-            <Palette />
-            Design System
-          </Link>
-
-          {/* Palette (Boy / Girl) segmented control */}
-          <div
-            className="inline-flex items-center rounded-full border border-white/20 bg-white/10 p-0.5"
-            role="group"
-            aria-label="Accent palette"
-          >
-            <button
-              type="button"
-              onClick={() => setPalette('blue')}
-              aria-pressed={palette === 'blue'}
-              className={cn(
-                'rounded-full px-3 py-1 text-xs font-semibold transition-colors',
-                palette === 'blue'
-                  ? 'bg-sky-400 text-slate-900'
-                  : 'text-slate-200 hover:text-white',
-              )}
-            >
-              Boy
-            </button>
-            <button
-              type="button"
-              onClick={() => setPalette('red')}
-              aria-pressed={palette === 'red'}
-              className={cn(
-                'rounded-full px-3 py-1 text-xs font-semibold transition-colors',
-                palette === 'red'
-                  ? 'bg-rose-400 text-slate-900'
-                  : 'text-slate-200 hover:text-white',
-              )}
-            >
-              Girl
-            </button>
-          </div>
-
-          {/* Theme toggle */}
-          <div className="flex items-center gap-2">
-            <Sun className="size-4 text-slate-300" aria-hidden />
-            <Switch
-              checked={dark}
-              onCheckedChange={toggleTheme}
-              aria-label="Toggle dark mode"
-            />
-            <Moon className="size-4 text-slate-300" aria-hidden />
-          </div>
-        </div>
-
         {/* Headline row */}
         <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
           <div className="max-w-2xl">
@@ -91,26 +23,14 @@ export function Hero() {
           </div>
 
           <div className="flex flex-wrap gap-3">
-            <a
-              href="#summary"
-              className={cn(
-                buttonVariants({ size: 'lg' }),
-                'h-11 gap-2 bg-amber-400 px-5 text-sm font-bold text-slate-900 hover:bg-amber-300',
-              )}
-            >
+            <GlassButton tone="primary" size="lg" render={<a href="#summary" />}>
               <CheckSquare />
               Caregiver Checklist
-            </a>
-            <a
-              href="#routine"
-              className={cn(
-                buttonVariants({ variant: 'outline', size: 'lg' }),
-                'h-11 gap-2 border-slate-500 bg-slate-800 px-5 text-sm text-white hover:bg-slate-700 hover:text-white dark:border-slate-500 dark:bg-slate-800 dark:hover:bg-slate-700',
-              )}
-            >
+            </GlassButton>
+            <GlassButton size="lg" className="text-white" render={<a href="#routine" />}>
               <Clock />
               Daily Schedule
-            </a>
+            </GlassButton>
           </div>
         </div>
 
