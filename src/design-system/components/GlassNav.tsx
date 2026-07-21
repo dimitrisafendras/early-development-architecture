@@ -19,6 +19,8 @@ export interface GlassNavProps {
   /** Accessible label for the mobile menu button. */
   menuLabelOpen?: string
   menuLabelClose?: string
+  /** Accessible label for the section-links nav landmark. */
+  sectionsLabel?: string
   className?: string
 }
 
@@ -38,6 +40,7 @@ export function GlassNav({
   activeHref,
   menuLabelOpen = 'Open menu',
   menuLabelClose = 'Close menu',
+  sectionsLabel = 'Sections',
   className,
 }: GlassNavProps) {
   const [open, setOpen] = React.useState(false)
@@ -64,8 +67,9 @@ export function GlassNav({
   return (
     <div ref={rootRef} className={cn('sticky top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-4', className)}>
       <div className="relative mx-auto max-w-6xl">
-        <GlassSurface radius={9999} className="px-3 py-2 sm:px-4" role="banner">
-          {/* Inner flex row: GlassSurface nests children in `.ds-glass__content`. */}
+        <GlassSurface radius={26} className="px-3 py-2 sm:px-5" role="banner">
+          {/* Tier 1: brand (left) + controls (right). GlassSurface nests
+              children in `.ds-glass__content`. */}
           <div className="flex items-center gap-2 sm:gap-4">
             {collapsible && (
               <button
@@ -85,32 +89,6 @@ export function GlassNav({
               {brand}
             </div>
 
-            {hasLinks && (
-              <nav aria-label="Sections" className="hidden min-w-0 flex-1 items-center justify-center xl:flex">
-                <ul className="flex items-center gap-0.5">
-                  {links.map((link) => {
-                    const active = activeHref === link.href
-                    return (
-                      <li key={link.href}>
-                        <a
-                          href={link.href}
-                          aria-current={active ? 'true' : undefined}
-                          className={cn(
-                            'block whitespace-nowrap rounded-full px-2.5 py-1.5 text-[0.8rem] font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/70',
-                            active
-                              ? 'bg-primary/15 text-foreground'
-                              : 'text-foreground/60 hover:bg-foreground/5 hover:text-foreground'
-                          )}
-                        >
-                          {link.label}
-                        </a>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </nav>
-            )}
-
             {/* Controls: inline on desktop, collapsed into the dropdown on mobile. */}
             {actions && (
               <div className="ml-auto hidden shrink-0 items-center gap-1.5 sm:gap-2 xl:flex">
@@ -119,6 +97,35 @@ export function GlassNav({
             )}
             {!actions && hasLinks && <div className="ml-auto" />}
           </div>
+
+          {/* Tier 2 (desktop): centered section links under a hairline divider.
+              Deliberate second row — long localized labels (e.g. Greek) wrap
+              symmetrically instead of distorting the bar. */}
+          {hasLinks && (
+            <nav aria-label={sectionsLabel} className="hidden xl:block">
+              <ul className="mt-2 flex flex-wrap items-center justify-center gap-x-0.5 gap-y-1 border-t border-foreground/10 pt-2">
+                {links.map((link) => {
+                  const active = activeHref === link.href
+                  return (
+                    <li key={link.href}>
+                      <a
+                        href={link.href}
+                        aria-current={active ? 'true' : undefined}
+                        className={cn(
+                          'block whitespace-nowrap rounded-full px-3 py-1.5 text-[0.8rem] font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/70',
+                          active
+                            ? 'bg-primary/15 text-foreground'
+                            : 'text-foreground/60 hover:bg-foreground/5 hover:text-foreground'
+                        )}
+                      >
+                        {link.label}
+                      </a>
+                    </li>
+                  )
+                })}
+              </ul>
+            </nav>
+          )}
         </GlassSurface>
 
         {/* Mobile / tablet dropdown — opaque popover for guaranteed legibility. */}

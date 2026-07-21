@@ -64,6 +64,7 @@ export function NavBar() {
       activeHref={activeHref}
       menuLabelOpen={t.nav.menuOpen}
       menuLabelClose={t.nav.menuClose}
+      sectionsLabel={t.nav.sections}
       links={NAV_HREFS.map((href, i) => ({ href, label: labels[i] }))}
       brand={
         <>
@@ -74,25 +75,25 @@ export function NavBar() {
       actions={
         <>
           <GlassToggleGroup
-            ariaLabel="Accent palette"
+            ariaLabel={t.nav.palette}
             size="sm"
             value={palette}
             onChange={setPalette}
             options={[
-              { value: 'blue', label: 'Boy' },
-              { value: 'red', label: 'Girl' },
+              { value: 'blue', label: t.nav.boy },
+              { value: 'red', label: t.nav.girl },
             ]}
           />
           <GlassToggleGroup
-            ariaLabel="Color theme"
+            ariaLabel={t.nav.theme}
             size="sm"
             value={dark ? 'dark' : 'light'}
             onChange={(v) => {
               if ((v === 'dark') !== dark) toggleTheme()
             }}
             options={[
-              { value: 'light', label: <Sun className="size-3.5" />, ariaLabel: 'Light theme' },
-              { value: 'dark', label: <Moon className="size-3.5" />, ariaLabel: 'Dark theme' },
+              { value: 'light', label: <Sun className="size-3.5" />, ariaLabel: t.nav.lightTheme },
+              { value: 'dark', label: <Moon className="size-3.5" />, ariaLabel: t.nav.darkTheme },
             ]}
           />
           <GlassToggleGroup
