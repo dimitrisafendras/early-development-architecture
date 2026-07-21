@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { LogIn, LogOut, Mail, UserRound } from 'lucide-react'
+import { LogIn, LogOut, UserRound } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,50 +9,60 @@ import { supabase, isSupabaseEnabled } from '@/lib/supabase'
 import { useSession, authRedirectUrl } from '@/lib/use-session'
 import { useT } from '../i18n'
 
-/** Google brand mark (lucide carries no brand icons). */
-function GoogleMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="size-4 shrink-0" aria-hidden>
-      <path fill="#4285F4" d="M23.5 12.27c0-.85-.08-1.66-.22-2.45H12v4.64h6.45a5.52 5.52 0 0 1-2.39 3.62v3h3.86c2.26-2.09 3.58-5.17 3.58-8.81Z" />
-      <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.86-3c-1.08.72-2.45 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09A11.99 11.99 0 0 0 12 24Z" />
-      <path fill="#FBBC05" d="M5.27 14.28A7.19 7.19 0 0 1 4.89 12c0-.79.14-1.56.38-2.28V6.63H1.29a12.01 12.01 0 0 0 0 10.74l3.98-3.09Z" />
-      <path fill="#EA4335" d="M12 4.76c1.76 0 3.34.61 4.59 1.8l3.42-3.42C17.94 1.19 15.23 0 12 0 7.31 0 3.26 2.69 1.29 6.63l3.98 3.09C6.22 6.87 8.87 4.76 12 4.76Z" />
-    </svg>
-  )
-}
-
-type EmailState = 'idle' | 'sending' | 'sent' | 'error'
+type Mode = 'signin' | 'signup'
+type Status = 'idle' | 'working' | 'confirm-sent' | 'error'
 
 /**
- * Sign-in / account control for the nav. Signed out: popover with Google
- * OAuth and an email magic-link form. Signed in: popover with the account
- * identity and sign-out. Renders nothing when Supabase is not configured.
+ * Sign-in / account control for the nav. Signed out: popover with an
+ * email + password form (sign in, or create an account — Supabase sends a
+ * confirmation email before the first sign-in). Signed in: identity +
+ * sign-out. Renders nothing when Supabase is not configured.
  */
 export function AccountControl() {
   const t = useT()
   const { session, loading } = useSession()
   const [open, setOpen] = useState(false)
+  const [mode, setMode] = useState<Mode>('signin')
   const [email, setEmail] = useState('')
-  const [emailState, setEmailState] = useState<EmailState>('idle')
+  const [password, setPassword] = useState('')
+  const [status, setStatus] = useState<Status>('idle')
+  const [errorText, setErrorText] = useState('')
 
   if (!isSupabaseEnabled || !supabase) return null
   const sb = supabase
 
-  const signInWithGoogle = () =>
-    sb.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: authRedirectUrl() },
-    })
-
-  const sendMagicLink = async (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email.trim()) return
-    setEmailState('sending')
-    const { error } = await sb.auth.signInWithOtp({
-      email: email.trim(),
-      options: { emailRedirectTo: authRedirectUrl() },
-    })
-    setEmailState(error ? 'error' : 'sent')
+    if (!email.trim() || !password) return
+    setStatus('working')
+    if (mode === 'signin') {
+      const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password })
+      if (error) {
+        setErrorText(error.message)
+        setStatus('error')
+      } else {
+        setStatus('idle')
+        setOpen(false)
+        setPassword('')
+      }
+    } else {
+      const { data, error } = await sb.auth.signUp({
+        email: email.trim(),
+        password,
+        options: { emailRedirectTo: authRedirectUrl() },
+      })
+      if (error) {
+        setErrorText(error.message)
+        setStatus('error')
+      } else if (data.session) {
+        // Email confirmation disabled server-side — signed in immediately.
+        setStatus('idle')
+        setOpen(false)
+        setPassword('')
+      } else {
+        setStatus('confirm-sent')
+      }
+    }
   }
 
   const signOut = async () => {
@@ -67,7 +77,11 @@ export function AccountControl() {
       open={open}
       onOpenChange={(next) => {
         setOpen(next)
-        if (!next) setEmailState('idle')
+        if (!next) {
+          setStatus('idle')
+          setMode('signin')
+          setPassword('')
+        }
       }}
     >
       <PopoverTrigger
@@ -95,39 +109,52 @@ export function AccountControl() {
               {t.auth.signOut}
             </Button>
           </div>
+        ) : status === 'confirm-sent' ? (
+          <p className="rounded-lg bg-primary/10 p-3 text-sm text-foreground">{t.auth.confirmSent}</p>
         ) : (
           <div className="flex flex-col gap-3">
-            <p className="text-sm font-semibold">{t.auth.title}</p>
-            <Button variant="outline" onClick={signInWithGoogle} className="justify-center gap-2">
-              <GoogleMark />
-              {t.auth.continueWithGoogle}
-            </Button>
-            <div className="flex items-center gap-2 text-[11px] tracking-wide text-muted-foreground uppercase">
-              <Separator className="flex-1" /> {t.auth.or} <Separator className="flex-1" />
-            </div>
-            {emailState === 'sent' ? (
-              <p className="rounded-lg bg-primary/10 p-3 text-sm text-foreground">{t.auth.linkSent}</p>
-            ) : (
-              <form onSubmit={sendMagicLink} className="flex flex-col gap-2">
-                <Label htmlFor="account-email" className="text-xs">
-                  {t.auth.emailLabel}
-                </Label>
-                <Input
-                  id="account-email"
-                  type="email"
-                  required
-                  autoComplete="email"
-                  placeholder={t.auth.emailPlaceholder}
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-                <Button type="submit" size="sm" disabled={emailState === 'sending'} className="gap-2">
-                  <Mail className="size-4" aria-hidden />
-                  {emailState === 'sending' ? t.auth.sending : t.auth.sendLink}
-                </Button>
-                {emailState === 'error' && <p className="text-xs text-destructive">{t.auth.error}</p>}
-              </form>
-            )}
+            <p className="text-sm font-semibold">{mode === 'signin' ? t.auth.title : t.auth.titleSignUp}</p>
+            <form onSubmit={submit} className="flex flex-col gap-2">
+              <Label htmlFor="account-email" className="text-xs">
+                {t.auth.emailLabel}
+              </Label>
+              <Input
+                id="account-email"
+                type="email"
+                required
+                autoComplete="email"
+                placeholder={t.auth.emailPlaceholder}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              <Label htmlFor="account-password" className="text-xs">
+                {t.auth.passwordLabel}
+              </Label>
+              <Input
+                id="account-password"
+                type="password"
+                required
+                minLength={6}
+                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <Button type="submit" size="sm" disabled={status === 'working'} className="mt-1">
+                {status === 'working' ? t.auth.working : mode === 'signin' ? t.auth.submitSignIn : t.auth.submitSignUp}
+              </Button>
+              {status === 'error' && <p className="text-xs text-destructive">{errorText || t.auth.error}</p>}
+            </form>
+            <button
+              type="button"
+              onClick={() => {
+                setMode(mode === 'signin' ? 'signup' : 'signin')
+                setStatus('idle')
+              }}
+              className="text-left text-xs font-medium text-primary underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/70"
+            >
+              {mode === 'signin' ? t.auth.toggleToSignUp : t.auth.toggleToSignIn}
+            </button>
           </div>
         )}
       </PopoverContent>
