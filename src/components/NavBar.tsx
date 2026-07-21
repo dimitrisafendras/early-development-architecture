@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { Sun, Moon, Palette } from 'lucide-react'
 import { GlassNav, GlassToggleGroup } from '@/design-system/components'
 import '@/design-system/ds.css'
+import { AccountControl } from './AccountControl'
 import { useAppStore } from '../store'
 import { useT } from '../i18n'
 
@@ -114,6 +115,7 @@ export function NavBar() {
             <Palette className="size-4" aria-hidden />
             <span className="hidden lg:inline">{t.nav.designSystem}</span>
           </Link>
+          <AccountControl />
         </>
       }
     />

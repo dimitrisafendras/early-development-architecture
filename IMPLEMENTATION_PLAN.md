@@ -97,11 +97,20 @@ everything still AA in all 4 theme×palette combos; `npm run build` green.
 
 ## P2 — Depth
 
-- **2.1 Baby profile & age-aware targets** — onboarding Sheet (name, birth
-  date); all targets (tummy time, milestones) derive from age; profile switcher
-  if multiple babies.
-- **2.2 History & insights** — weekly/monthly charts (tummy minutes, checklist
-  streaks) from Supabase queries; empty/loading/error states with Skeleton/Alert.
+- **2.1 Baby profiles & progress monitoring** — onboarding Sheet (name, birth
+  date, palette; optional photo via Supabase Storage later). All targets
+  (tummy-time minutes, milestone windows) derive from the baby's age; profile
+  switcher when multiple babies. Progress model per baby: age-banded milestone
+  checklist (0–3/3–6/6–9/9–12 months: head control, rolling, sitting, first
+  words...), tummy-time progression vs. the age target, daily-checklist
+  adherence — each stored per baby (`milestones(owner, baby_id, milestone_id,
+  achieved_on)`), each RLS-guarded.
+- **2.2 Stats dashboard** — a per-baby `/stats` view (or a Stats tab on
+  `/tracker`): weekly/monthly tummy-time bar charts vs. target line, checklist
+  streaks + adherence %, milestone timeline (achieved vs. typical window),
+  totals and trends — all via the existing palette-aware chart.js setup and DS
+  cards; empty/loading/error states with Skeleton/Alert. Queries aggregate in
+  Postgres (views or `rpc`) so the client stays thin.
 - **2.3 Serve & Return response trainer** — playful reaction-window exercise
   using the existing latency simulator content (educational mini-game, local
   only; log attempts to `sr_attempts` if signed in).
