@@ -213,6 +213,49 @@
   }
 }
 
+/* ============================================================================
+   Infographic hero backdrop — a variant of .ds-aurora tuned to the active
+   accent palette. It re-tints when Boy/Girl (blue/red) is switched by reading
+   the semantic --primary / --accent tokens. The base gradient stays dark in
+   both light and dark themes so white foreground text is legible in all four
+   theme x palette combinations. Additive: does not touch the reference .ds-aurora.
+   ============================================================================ */
+.ds-aurora-brand {
+  position: relative;
+  overflow: hidden;
+  /* Accent radials are built from --primary only. --accent is deliberately not
+     used here: in the light theme it resolves to a near-white tint that would
+     wash out the backdrop and hurt white-text legibility. The dark base keeps
+     the surface dark in both themes so the foreground stays readable. */
+  background:
+    radial-gradient(60% 80% at 16% 18%, color-mix(in oklab, var(--primary) 82%, transparent) 0%, transparent 62%),
+    radial-gradient(54% 68% at 88% 12%, color-mix(in oklab, var(--primary) 48%, transparent) 0%, transparent 58%),
+    radial-gradient(70% 78% at 82% 94%, color-mix(in oklab, var(--primary) 60%, transparent) 0%, transparent 64%),
+    linear-gradient(135deg, #182238 0%, #0e1729 55%, #070c18 100%);
+}
+.ds-aurora-brand::before {
+  content: '';
+  position: absolute;
+  inset: -35%;
+  pointer-events: none;
+  background: conic-gradient(
+    from 0deg at 50% 50%,
+    color-mix(in oklab, var(--primary) 66%, transparent),
+    color-mix(in oklab, var(--primary) 30%, transparent),
+    transparent,
+    color-mix(in oklab, var(--primary) 50%, transparent),
+    color-mix(in oklab, var(--primary) 66%, transparent)
+  );
+  opacity: 0.42;
+  filter: blur(70px);
+  animation: ds-aurora-spin 26s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-aurora-brand::before {
+    animation: none;
+  }
+}
+
 /* ---- Segmented control (GlassToggleGroup) sliding thumb ------------------ */
 .ds-seg-thumb {
   transition: transform 0.42s cubic-bezier(0.22, 1, 0.36, 1), width 0.42s cubic-bezier(0.22, 1, 0.36, 1);

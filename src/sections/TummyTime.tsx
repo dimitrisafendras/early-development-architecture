@@ -25,7 +25,7 @@ export function TummyTime() {
                   Cumulative minutes per day from birth to 4 months
                 </div>
               </div>
-              <Badge className="shrink-0 bg-emerald-100 text-emerald-700 border-transparent dark:bg-emerald-500/15 dark:text-emerald-300">
+              <Badge className="shrink-0 border-transparent bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
                 Physical Milestone
               </Badge>
             </div>
@@ -48,7 +48,7 @@ export function TummyTime() {
             </CardContent>
           </Card>
 
-          <Alert className="border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200 [&>svg]:text-amber-600 dark:[&>svg]:text-amber-400">
+          <Alert className="border-amber-500/25 bg-amber-500/10 text-amber-800 dark:text-amber-200 [&>svg]:text-amber-600 dark:[&>svg]:text-amber-400">
             <TriangleAlert />
             <AlertTitle className="text-amber-800 dark:text-amber-200">
               Crucial Safety Directive

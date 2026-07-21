@@ -25,13 +25,36 @@ ChartJS.register(
   Tooltip,
 )
 
-ChartJS.defaults.font.family = "'Plus Jakarta Sans', sans-serif"
+ChartJS.defaults.font.family = "'Geist Variable', system-ui, sans-serif"
+
+/**
+ * Palette + theme aware chart colors. `primary` tracks the active accent palette
+ * (blue "Boy" / red "Girl") and lightens for dark theme; `primarySoft` is the
+ * lighter ramp step used for secondary segments. Values mirror the ramps in
+ * src/design-system/tokens.ts. Neutrals come from the DS neutral ramp.
+ */
+const paletteHex = {
+  blue: {
+    primary: { light: '#2172c6', dark: '#5da3ed' }, // 600 / 400
+    soft: { light: '#97c6f9', dark: '#3a89da' }, //     300 / 500
+  },
+  red: {
+    primary: { light: '#cc3744', dark: '#f48289' }, // 600 / 400
+    soft: { light: '#fcb0b3', dark: '#e25a63' }, //     300 / 500
+  },
+} as const
 
 function useChartColors() {
   const dark = useAppStore((s) => s.dark)
+  const palette = useAppStore((s) => s.palette)
+  const mode = dark ? 'dark' : 'light'
   return {
     text: dark ? '#cbd5e1' : '#475569',
     grid: dark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(100, 116, 139, 0.15)',
+    neutral: dark ? '#64748b' : '#cbd5e1',
+    surface: dark ? '#262626' : '#ffffff',
+    primary: paletteHex[palette].primary[mode],
+    primarySoft: paletteHex[palette].soft[mode],
   }
 }
 
@@ -45,9 +68,9 @@ export function BrainGrowthChart() {
           datasets: [
             {
               data: [25, 45, 30],
-              backgroundColor: ['#0284c7', '#f59e0b', '#cbd5e1'],
+              backgroundColor: [c.primary, c.primarySoft, c.neutral],
               borderWidth: 2,
-              borderColor: '#ffffff',
+              borderColor: c.surface,
               hoverOffset: 6,
             },
           ],
@@ -84,13 +107,13 @@ export function ParenteseChart() {
             {
               label: 'Standard Adult Speech',
               data: [30, 25, 35, 40],
-              backgroundColor: '#94a3b8',
+              backgroundColor: c.neutral,
               borderRadius: 6,
             },
             {
               label: 'Parentese Acoustic Profile',
               data: [90, 85, 92, 88],
-              backgroundColor: '#c026d3',
+              backgroundColor: c.primary,
               borderRadius: 6,
             },
           ],
@@ -130,11 +153,11 @@ export function TummyTimeChart() {
             {
               label: 'Target Daily Minutes',
               data: [5, 15, 30, 45, 60],
-              borderColor: '#10b981',
-              backgroundColor: 'rgba(16, 185, 129, 0.15)',
+              borderColor: c.primary,
+              backgroundColor: `${c.primary}26`,
               fill: true,
               tension: 0.35,
-              pointBackgroundColor: '#059669',
+              pointBackgroundColor: c.primary,
               pointRadius: 5,
             },
           ],

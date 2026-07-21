@@ -14,19 +14,19 @@ interface InfoCard {
 const cards: InfoCard[] = [
   {
     Icon: Music2,
-    iconClass: 'bg-fuchsia-100 text-fuchsia-700 dark:bg-fuchsia-500/15 dark:text-fuchsia-300',
+    iconClass: 'bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-300',
     title: 'Role of Music & Singing',
     text: 'Soft lullabies and rhythmic tunes activate auditory-motor networks simultaneously. Studies show live singing by caregivers reduces infant heart rate and cortisol levels more effectively than spoken voice alone.',
   },
   {
     Icon: Volume1,
-    iconClass: 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300',
+    iconClass: 'bg-amber-500/10 text-amber-600 dark:text-amber-300',
     title: 'Acoustic Safety Rules',
     text: 'Keep music and environment sound below 60 decibels (about conversational volume). Continuous loud background audio disrupts phoneme discrimination and creates sensory fatigue.',
   },
   {
     Icon: Ear,
-    iconClass: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
+    iconClass: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-300',
     title: 'Phonetic Discrimination',
     text: 'Newborns are born "citizens of the world," able to distinguish all 800+ human language sounds. Parentese elongates vowel formants, allowing the brain to map native phonetic categories quickly.',
   },
@@ -52,7 +52,7 @@ export function LanguageMusic() {
                   Standard Adult Speech vs. Parentese Speech Profile
                 </div>
               </div>
-              <Badge className="shrink-0 bg-fuchsia-100 text-fuchsia-700 border-transparent dark:bg-fuchsia-500/15 dark:text-fuchsia-300">
+              <Badge className="shrink-0 border-transparent bg-fuchsia-500/10 text-fuchsia-700 dark:text-fuchsia-300">
                 Language Acquisition
               </Badge>
             </div>

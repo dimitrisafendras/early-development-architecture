@@ -40,7 +40,7 @@ export function Neurobiology() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-7">
           <Card className="h-full">
             <CardContent>
-              <span className="inline-flex rounded-xl bg-amber-100 p-2.5 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400">
+              <span className="inline-flex rounded-xl bg-amber-500/10 p-2.5 text-amber-600 dark:text-amber-400">
                 <Zap className="size-5" aria-hidden />
               </span>
               <p className="mt-3 mb-1 text-[15px] font-semibold text-foreground">
@@ -51,7 +51,7 @@ export function Neurobiology() {
                 inputs (eye contact, gentle touch, rhythmic voice) determine which synapses are
                 preserved.
               </p>
-              <div className="mt-3 rounded-lg bg-amber-50 p-2 text-xs font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">
+              <div className="mt-3 rounded-lg bg-amber-500/10 p-2 text-xs font-semibold text-amber-700 dark:text-amber-300">
                 ⚡ Action: High-quality engagement reinforces synapses.
               </div>
             </CardContent>
@@ -59,7 +59,7 @@ export function Neurobiology() {
 
           <Card className="h-full">
             <CardContent>
-              <span className="inline-flex rounded-xl bg-sky-100 p-2.5 text-sky-600 dark:bg-sky-500/15 dark:text-sky-400">
+              <span className="inline-flex rounded-xl bg-sky-500/10 p-2.5 text-sky-600 dark:text-sky-400">
                 <Scissors className="size-5" aria-hidden />
               </span>
               <p className="mt-3 mb-1 text-[15px] font-semibold text-foreground">
@@ -70,7 +70,7 @@ export function Neurobiology() {
                 "lights up" specific pathways, converting temporary brain activity into permanent
                 structure.
               </p>
-              <div className="mt-3 rounded-lg bg-sky-50 p-2 text-xs font-semibold text-sky-700 dark:bg-sky-500/10 dark:text-sky-300">
+              <div className="mt-3 rounded-lg bg-sky-500/10 p-2 text-xs font-semibold text-sky-700 dark:text-sky-300">
                 💡 "Neurons that fire together, wire together."
               </div>
             </CardContent>
@@ -79,7 +79,7 @@ export function Neurobiology() {
           <Card className="sm:col-span-2">
             <CardContent>
               <div className="flex items-start gap-4">
-                <span className="inline-flex rounded-xl bg-emerald-100 p-3 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400">
+                <span className="inline-flex rounded-xl bg-emerald-500/10 p-3 text-emerald-600 dark:text-emerald-400">
                   <HeartPulse className="size-6" aria-hidden />
                 </span>
                 <div>

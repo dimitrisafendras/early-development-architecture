@@ -14,7 +14,7 @@ export default function Home() {
     <>
       <Hero />
       <NavBar />
-      <main className="mx-auto flex max-w-7xl flex-col gap-12 px-6 py-10">
+      <main className="mx-auto flex max-w-7xl flex-col gap-16 px-6 py-12">
         <Neurobiology />
         <ServeReturn />
         <LanguageMusic />

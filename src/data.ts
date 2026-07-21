@@ -27,80 +27,84 @@ export const heroMetrics = [
   },
 ]
 
-export const serveReturnSteps = [
+/** Distinct per-phase accent hue. Rendered through soft, theme-aware tints. */
+export type StepTone = 'slate' | 'amber' | 'sky' | 'emerald'
+
+export interface ServeReturnStep {
+  num: number
+  title: string
+  desc: string
+  foot: string
+  tone: StepTone
+}
+
+export const serveReturnSteps: ServeReturnStep[] = [
   {
     num: 1,
     title: 'Infant "Serve"',
     desc: 'Baby makes eye contact, babbles, reaches out, coos, or changes facial expression.',
     foot: 'Initiated by infant curiosity or need.',
-    bg: '#f8fafc',
-    border: '#e2e8f0',
-    badge: '#0369a1',
+    tone: 'slate',
   },
   {
     num: 2,
     title: '1–4 Sec Window',
     desc: 'Caregiver notices the signal and pauses adult task to direct full focus to the baby.',
     foot: '⏱️ Contingent timing is key!',
-    bg: '#fffbeb',
-    border: '#fde68a',
-    badge: '#f59e0b',
+    tone: 'amber',
   },
   {
     num: 3,
     title: 'Caregiver "Return"',
     desc: 'Respond with warm facial expression, vocal imitation, gentle touch, or word labeling.',
     foot: 'Validates infant agency & focus.',
-    bg: '#f0f9ff',
-    border: '#bae6fd',
-    badge: '#0284c7',
+    tone: 'sky',
   },
   {
     num: 4,
     title: 'Neural Fortification',
     desc: 'Synaptic circuits for trust, language, and emotional regulation lock into place.',
     foot: '✨ Circuit completed.',
-    bg: '#ecfdf5',
-    border: '#a7f3d0',
-    badge: '#059669',
+    tone: 'emerald',
   },
 ]
 
+/** Response quality maps to a fixed status semantic (good / caution / harmful). */
+export type StatusTone = 'success' | 'warning' | 'danger'
+
 export const latencyOutcomes: Record<
   LatencyMode,
-  { title: string; desc: string; color: string; buttonColor: string; buttonLabel: string }
+  { title: string; desc: string; tone: StatusTone; buttonLabel: string }
 > = {
   optimal: {
     title: 'High Contingency (1–4s)',
     desc: "The infant's prefrontal cortex connects the action with caregiver response. Synaptic strengthening is maximized, releasing oxytocin and stabilizing heart rate.",
-    color: '#10b981',
-    buttonColor: '#0284c7',
+    tone: 'success',
     buttonLabel: 'Fast Contingent (1–4 Seconds)',
   },
   delayed: {
     title: 'Moderate Latency (>10s)',
     desc: 'The infant loses the temporal association between their serve and the return. Attention drifts, and neural mapping efficiency drops by ~60%.',
-    color: '#f59e0b',
-    buttonColor: '#d97706',
+    tone: 'warning',
     buttonLabel: 'Delayed Response (>10 Seconds)',
   },
   none: {
     title: 'Still Face / Non-Responsive',
     desc: 'Triggers an immediate cortisol spike in the baby. Repeated non-responsiveness causes the infant to withdraw, reducing overall vocalization attempts.',
-    color: '#ef4444',
-    buttonColor: '#dc2626',
+    tone: 'danger',
     buttonLabel: 'Non-Responsive (Still Face)',
   },
 }
+
+/** Each schedule block keeps a distinct hue; rendered as soft, theme-aware tints. */
+export type ScheduleTone = 'amber' | 'emerald' | 'sky' | 'cyan' | 'fuchsia' | 'indigo'
 
 export interface ScheduleBlock {
   time: string
   title: string
   items: { strong: string; text: string }[]
   focus: string
-  color: string
-  bg: string
-  dark?: boolean
+  tone: ScheduleTone
 }
 
 export const scheduleBlocks: ScheduleBlock[] = [
@@ -112,8 +116,7 @@ export const scheduleBlocks: ScheduleBlock[] = [
       { strong: 'Contingent Eye Contact:', text: 'Respond swiftly (1–4s) to morning coos or gazes.' },
     ],
     focus: 'Focus: High linguistic input & emotional reconnect',
-    color: '#b45309',
-    bg: '#fffbeb',
+    tone: 'amber',
   },
   {
     time: '09:00 – 11:30',
@@ -123,8 +126,7 @@ export const scheduleBlocks: ScheduleBlock[] = [
       { strong: 'Face-to-Face Engagement:', text: 'Get down to eye level with high-contrast visual cards.' },
     ],
     focus: 'Focus: Core muscle building & visual scanning',
-    color: '#047857',
-    bg: '#ecfdf5',
+    tone: 'emerald',
   },
   {
     time: '12:00 – 14:30',
@@ -134,8 +136,7 @@ export const scheduleBlocks: ScheduleBlock[] = [
       { strong: 'Environmental Control:', text: 'Keep screens OFF and background noise minimal.' },
     ],
     focus: 'Focus: Sensory reset & nervous system calming',
-    color: '#0369a1',
-    bg: '#f0f9ff',
+    tone: 'sky',
   },
   {
     time: '15:00 – 17:30',
@@ -145,8 +146,7 @@ export const scheduleBlocks: ScheduleBlock[] = [
       { strong: 'Active Serve & Return:', text: 'Respond to leg kicks and babbling with warm touch & speech.' },
     ],
     focus: 'Focus: Dynamic mobility & tactile exploration',
-    color: '#075985',
-    bg: '#e0f2fe',
+    tone: 'cyan',
   },
   {
     time: '18:00 – 20:30',
@@ -156,8 +156,7 @@ export const scheduleBlocks: ScheduleBlock[] = [
       { strong: 'Caregiver Self-Care Buffer:', text: 'Rotate parenting duties to prevent caregiver burnout.' },
     ],
     focus: 'Focus: Melatonin onset & emotional grounding',
-    color: '#a21caf',
-    bg: '#fdf4ff',
+    tone: 'fuchsia',
   },
   {
     time: '21:00 Onward',
@@ -167,9 +166,7 @@ export const scheduleBlocks: ScheduleBlock[] = [
       { strong: 'Neural Consolidation:', text: 'Deep slow-wave sleep converts daily synapses into long-term memory.' },
     ],
     focus: 'Focus: Airway safety & memory wiring',
-    color: '#a5b4fc',
-    bg: '#1e293b',
-    dark: true,
+    tone: 'indigo',
   },
 ]
 
@@ -206,8 +203,13 @@ export const checklistItems = [
   },
 ]
 
-export const efficiencyScores = [
-  { label: 'Live Human Interaction', value: 100, text: '100% Neural Activation', color: '#10b981' },
-  { label: 'Interactive Audio / Live Singing', value: 85, text: '85% Neural Activation', color: '#f59e0b' },
-  { label: '2D Video / Baby Media', value: 15, text: '<15% Neural Activation', color: '#f87171' },
+export const efficiencyScores: {
+  label: string
+  value: number
+  text: string
+  tone: StatusTone
+}[] = [
+  { label: 'Live Human Interaction', value: 100, text: '100% Neural Activation', tone: 'success' },
+  { label: 'Interactive Audio / Live Singing', value: 85, text: '85% Neural Activation', tone: 'warning' },
+  { label: '2D Video / Baby Media', value: 15, text: '<15% Neural Activation', tone: 'danger' },
 ]

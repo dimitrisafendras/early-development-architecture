@@ -1,11 +1,36 @@
 import { SlidersHorizontal } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { SectionHeader } from '../components/SectionHeader'
-import { serveReturnSteps, latencyOutcomes } from '../data'
+import { serveReturnSteps, latencyOutcomes, type StepTone, type StatusTone } from '../data'
 import { useAppStore, type LatencyMode } from '../store'
 
 const modes: LatencyMode[] = ['optimal', 'delayed', 'none']
+
+/** Soft, theme-aware phase tints — mirrors the DS chip aesthetic. */
+const stepStyles: Record<StepTone, { card: string; badge: string }> = {
+  slate: { card: 'border-slate-500/20 bg-slate-500/5', badge: 'bg-slate-500' },
+  amber: { card: 'border-amber-500/25 bg-amber-500/10', badge: 'bg-amber-500' },
+  sky: { card: 'border-sky-500/25 bg-sky-500/10', badge: 'bg-sky-500' },
+  emerald: { card: 'border-emerald-500/25 bg-emerald-500/10', badge: 'bg-emerald-500' },
+}
+
+/** Status semantics for the responsiveness simulator (good / caution / harmful). */
+const statusStyles: Record<StatusTone, { title: string; button: string }> = {
+  success: {
+    title: 'text-emerald-600 dark:text-emerald-400',
+    button: 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-600',
+  },
+  warning: {
+    title: 'text-amber-600 dark:text-amber-400',
+    button: 'bg-amber-500 border-amber-500 text-white hover:bg-amber-500',
+  },
+  danger: {
+    title: 'text-rose-600 dark:text-rose-400',
+    button: 'bg-rose-600 border-rose-600 text-white hover:bg-rose-600',
+  },
+}
 
 export function ServeReturn() {
   const latency = useAppStore((s) => s.latency)
@@ -22,35 +47,36 @@ export function ServeReturn() {
       <Card>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {serveReturnSteps.map((step) => (
-              <div
-                key={step.num}
-                className="flex h-full flex-col rounded-2xl border p-5"
-                style={{ background: step.bg, borderColor: step.border }}
-              >
-                <div className="mb-3 flex items-center justify-between">
-                  <span
-                    className="flex size-7 items-center justify-center rounded-full text-xs font-bold text-white"
-                    style={{ background: step.badge }}
-                  >
-                    {step.num}
-                  </span>
-                </div>
-                <p className="mb-1 font-semibold text-slate-800">{step.title}</p>
-                <p className="m-0 text-xs text-slate-600">{step.desc}</p>
+            {serveReturnSteps.map((step) => {
+              const s = stepStyles[step.tone]
+              return (
                 <div
-                  className="mt-3 border-t pt-3 text-[11px] text-slate-500"
-                  style={{ borderColor: step.border }}
+                  key={step.num}
+                  className={cn('flex h-full flex-col rounded-2xl border p-5', s.card)}
                 >
-                  {step.foot}
+                  <div className="mb-3 flex items-center justify-between">
+                    <span
+                      className={cn(
+                        'flex size-7 items-center justify-center rounded-full text-xs font-bold text-white',
+                        s.badge,
+                      )}
+                    >
+                      {step.num}
+                    </span>
+                  </div>
+                  <p className="mb-1 font-semibold text-foreground">{step.title}</p>
+                  <p className="m-0 text-xs text-muted-foreground">{step.desc}</p>
+                  <div className="mt-3 border-t border-border pt-3 text-[11px] text-muted-foreground">
+                    {step.foot}
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           <div className="mt-8 rounded-2xl border border-border bg-muted p-5">
             <p className="mb-2 flex items-center gap-2 font-semibold text-foreground">
-              <SlidersHorizontal className="size-4 text-sky-500" aria-hidden />
+              <SlidersHorizontal className="size-4 text-primary" aria-hidden />
               Interactive Responsiveness Simulator
             </p>
             <p className="mb-4 text-xs text-muted-foreground">
@@ -65,15 +91,7 @@ export function ServeReturn() {
                     key={mode}
                     variant={active ? 'default' : 'outline'}
                     onClick={() => setLatency(mode)}
-                    style={
-                      active
-                        ? {
-                            background: latencyOutcomes[mode].buttonColor,
-                            borderColor: latencyOutcomes[mode].buttonColor,
-                            color: '#fff',
-                          }
-                        : undefined
-                    }
+                    className={active ? statusStyles[latencyOutcomes[mode].tone].button : undefined}
                   >
                     {latencyOutcomes[mode].buttonLabel}
                   </Button>
@@ -81,7 +99,7 @@ export function ServeReturn() {
               })}
             </div>
             <div className="rounded-lg border border-border bg-card p-4">
-              <div className="mb-1 font-bold" style={{ color: outcome.color }}>
+              <div className={cn('mb-1 font-bold', statusStyles[outcome.tone].title)}>
                 {outcome.title}
               </div>
               <p className="m-0 text-[13px] text-muted-foreground">{outcome.desc}</p>

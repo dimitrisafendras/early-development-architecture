@@ -1,5 +1,3 @@
-import { Badge } from '@/components/ui/badge'
-
 interface Props {
   module: number
   title: string
@@ -8,14 +6,14 @@ interface Props {
 
 export function SectionHeader({ module, title, description }: Props) {
   return (
-    <div className="mb-6">
-      <Badge className="bg-accent text-accent-foreground border-transparent text-[11px] font-bold uppercase tracking-[0.15em]">
+    <div className="mb-8 max-w-3xl">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
         Module {module}
-      </Badge>
-      <h2 className="mt-3 mb-1 font-heading text-2xl font-extrabold tracking-tight text-foreground md:text-3xl">
+      </p>
+      <h2 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
         {title}
       </h2>
-      <p className="m-0 max-w-3xl text-muted-foreground">{description}</p>
+      <p className="mt-4 text-base leading-relaxed text-muted-foreground">{description}</p>
     </div>
   )
 }

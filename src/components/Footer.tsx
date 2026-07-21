@@ -1,15 +1,15 @@
 export function Footer() {
   return (
-    <footer className="mt-16 bg-slate-900 py-10 text-center text-xs text-slate-400">
+    <footer className="mt-16 border-t border-border bg-card py-10 text-center text-xs text-muted-foreground">
       <div className="mx-auto w-full max-w-7xl px-6">
-        <div className="mb-3 text-[15px] font-bold text-white">
+        <div className="mb-3 font-heading text-[15px] font-semibold tracking-tight text-foreground">
           🧠 The Architecture of Early Development
         </div>
-        <p className="mx-auto mb-4 max-w-xl text-slate-400">
+        <p className="mx-auto mb-4 max-w-xl text-muted-foreground">
           Synthesized from peer-reviewed early infant psychology publications, Harvard Center on the
           Developing Child research, AAP guidelines, and contemporary developmental neuroscience.
         </p>
-        <div className="border-t border-slate-800 pt-4 text-slate-500">
+        <div className="border-t border-border pt-4 text-muted-foreground/80">
           Designed for Caregivers, Pediatric Educators, and Early Interventionists.
         </div>
       </div>
