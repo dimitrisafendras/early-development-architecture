@@ -11,9 +11,10 @@ const glassButtonVariants = cva(
       tone: {
         /** Neutral glass — inherits body foreground text. */
         neutral: 'text-foreground',
-        /** Primary-tinted glass — reads as the active accent. */
-        primary:
-          'text-primary-foreground [background-color:color-mix(in_oklch,var(--primary)_82%,transparent)]',
+        /** Primary-tinted glass — tint applied via .ds-glass[data-tone='primary']
+         *  in ds.css (unlayered, so a Tailwind utility can't win against the
+         *  material's own background declaration). */
+        primary: 'text-primary-foreground',
       },
       size: {
         sm: 'h-8 px-3.5 text-xs',
@@ -58,6 +59,7 @@ export const GlassButton = React.forwardRef<HTMLButtonElement, GlassButtonProps>
     const sharedProps = {
       'data-slot': 'glass-button',
       'data-variant': variant,
+      'data-tone': tone ?? 'neutral',
       'data-interactive': 'true',
       className: cn(glassButtonVariants({ tone, size }), className),
     }

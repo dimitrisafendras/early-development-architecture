@@ -57,6 +57,16 @@
   --ds-glass-glow: rgba(150, 180, 255, 0.1);
 }
 
+/* Tinted (primary) glass — near-solid so the primary / primary-foreground AA
+   contrast pair holds no matter how dark the content behind the glass is.
+   Declared after the theme adaptations so it wins in both light and dark. */
+.ds-glass[data-tone='primary'],
+.dark .ds-glass[data-tone='primary'],
+[data-theme='dark'] .ds-glass[data-tone='primary'] {
+  --ds-glass-tint: color-mix(in oklch, var(--primary) 94%, transparent);
+  --ds-glass-glow: color-mix(in oklch, var(--primary) 55%, white);
+}
+
 /* ---- Layer 1: Highlight (specular light casting on the top edge) --------- */
 .ds-glass__highlight {
   position: absolute;
@@ -192,6 +202,11 @@
     box-shadow:
       0 10px 30px rgb(0 0 0 / 0.5),
       inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+  .ds-glass[data-tone='primary'],
+  .dark .ds-glass[data-tone='primary'],
+  [data-theme='dark'] .ds-glass[data-tone='primary'] {
+    background-color: var(--primary);
   }
   .ds-glass__highlight,
   .ds-glass__illumination {
