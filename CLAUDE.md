@@ -66,6 +66,7 @@ npm run preview   # preview the production build
 
 ## Deployment
 
-- Hosted on **Vercel**.
-- `vercel.json` has a SPA fallback rewrite (`/(.*) → /index.html`), required for the `/design-system` deep link to work.
-- Deploy via the Vercel MCP tool or the Vercel CLI. A production URL already exists for this project.
+- Hosted on **GitHub Pages** at `https://dimitrisafendras.github.io/early-development-architecture/`.
+- Deploys automatically on every push to `main` via `.github/workflows/deploy.yml` (build → upload → deploy-pages).
+- `vite.config.ts` sets `base: '/early-development-architecture/'` and the router gets `basename={import.meta.env.BASE_URL}` in `src/main.tsx` — keep both in sync if the repo is ever renamed.
+- SPA deep links (e.g. `/design-system`) work via the `404.html` fallback the workflow copies from `index.html`.
