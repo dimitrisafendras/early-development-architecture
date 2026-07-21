@@ -34,7 +34,7 @@ function Ramp({ palette, active }: { palette: Palette; active: boolean }) {
 function SemanticSwatch({ cssVar, name, description, dep }: { cssVar: string; name: string; description: string; dep: string }) {
   const value = useCssVar(cssVar, [dep])
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
+    <div className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card p-3">
       <span
         className="size-10 shrink-0 rounded-lg ring-1 ring-black/10 dark:ring-white/15"
         style={{ backgroundColor: `var(${cssVar})` }}
