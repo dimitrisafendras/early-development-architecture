@@ -171,7 +171,8 @@ section {
 }
 
 :root[data-palette='blue'].dark,
-:root[data-palette='blue'][data-theme='dark'] {
+:root[data-palette='blue'][data-theme='dark'],
+:root[data-palette='blue'] .dark {
   --primary: oklch(0.72 0.11 248);
   --primary-foreground: oklch(0.22 0.05 255);
   --ring: oklch(0.72 0.11 248);
@@ -188,7 +189,8 @@ section {
 }
 
 :root[data-palette='red'].dark,
-:root[data-palette='red'][data-theme='dark'] {
+:root[data-palette='red'][data-theme='dark'],
+:root[data-palette='red'] .dark {
   --primary: oklch(0.72 0.14 16);
   --primary-foreground: oklch(0.22 0.06 18);
   --ring: oklch(0.72 0.14 16);
