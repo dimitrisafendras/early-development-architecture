@@ -1,6 +1,4 @@
-import { Tag, Typography } from 'antd'
-
-const { Title, Paragraph } = Typography
+import { Badge } from '@/components/ui/badge'
 
 interface Props {
   module: number
@@ -10,14 +8,14 @@ interface Props {
 
 export function SectionHeader({ module, title, description }: Props) {
   return (
-    <div style={{ marginBottom: 24 }}>
-      <Tag color="blue" style={{ fontWeight: 800, textTransform: 'uppercase', letterSpacing: 2, fontSize: 11 }}>
+    <div className="mb-6">
+      <Badge className="bg-accent text-accent-foreground border-transparent text-[11px] font-bold uppercase tracking-[0.15em]">
         Module {module}
-      </Tag>
-      <Title level={2} style={{ marginTop: 8, marginBottom: 4, fontWeight: 800, color: 'var(--text-primary)' }}>
+      </Badge>
+      <h2 className="mt-3 mb-1 font-heading text-2xl font-extrabold tracking-tight text-foreground md:text-3xl">
         {title}
-      </Title>
-      <Paragraph style={{ color: 'var(--text-secondary)', margin: 0 }}>{description}</Paragraph>
+      </h2>
+      <p className="m-0 max-w-3xl text-muted-foreground">{description}</p>
     </div>
   )
 }

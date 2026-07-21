@@ -1,9 +1,9 @@
-import { Card, Col, Row, Tag, Typography } from 'antd'
-import { WarningOutlined } from '@ant-design/icons'
+import { TriangleAlert } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { SectionHeader } from '../components/SectionHeader'
 import { TummyTimeChart } from '../components/charts'
-
-const { Text, Paragraph } = Typography
 
 export function TummyTime() {
   return (
@@ -13,63 +13,70 @@ export function TummyTime() {
         title="Physical Optimization: Daily Tummy Time"
         description="Supervised tummy time while awake is essential for neck, back, and shoulder core strength, motor milestone progression, and preventing flat spots (plagiocephaly)."
       />
-      <Row gutter={[24, 24]}>
-        <Col xs={24} lg={14}>
-          <Card>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
+        <Card className="lg:col-span-7">
+          <CardContent>
+            <div className="mb-4 flex items-start justify-between gap-4">
               <div>
-                <Text strong style={{ fontSize: 15 }}>Tummy Time Progression Target</Text>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Cumulative minutes per day from birth to 4 months</div>
+                <p className="text-[15px] font-semibold text-foreground">
+                  Tummy Time Progression Target
+                </p>
+                <div className="text-xs text-muted-foreground">
+                  Cumulative minutes per day from birth to 4 months
+                </div>
               </div>
-              <Tag color="green">Physical Milestone</Tag>
+              <Badge className="shrink-0 bg-emerald-100 text-emerald-700 border-transparent dark:bg-emerald-500/15 dark:text-emerald-300">
+                Physical Milestone
+              </Badge>
             </div>
             <TummyTimeChart />
+          </CardContent>
+        </Card>
+
+        <div className="flex flex-col gap-4 lg:col-span-5">
+          <Card>
+            <CardContent>
+              <p className="m-0 font-semibold text-foreground">🦴 Biomechanical Benefits</p>
+              <ul className="mt-2 list-disc pl-[18px] text-[13px] text-muted-foreground">
+                <li>Strengthens extensor muscles in neck, spine, and trunk.</li>
+                <li>Prepares upper limbs for pushing up, rolling, and crawling.</li>
+                <li>
+                  Prevents <em>positional plagiocephaly</em> (flat spots on skull).
+                </li>
+                <li>Enhances spatial perception and visual-motor integration.</li>
+              </ul>
+            </CardContent>
           </Card>
-        </Col>
-        <Col xs={24} lg={10}>
-          <Row gutter={[0, 16]}>
-            <Col xs={24}>
-              <Card>
-                <Text strong>🦴 Biomechanical Benefits</Text>
-                <ul style={{ color: 'var(--text-secondary)', fontSize: 13, margin: '8px 0 0', paddingLeft: 18 }}>
-                  <li>Strengthens extensor muscles in neck, spine, and trunk.</li>
-                  <li>Prepares upper limbs for pushing up, rolling, and crawling.</li>
-                  <li>Prevents <em>positional plagiocephaly</em> (flat spots on skull).</li>
-                  <li>Enhances spatial perception and visual-motor integration.</li>
-                </ul>
-              </Card>
-            </Col>
-            <Col xs={24}>
-              <Card style={{ background: '#fffbeb', borderColor: '#fde68a' }}>
-                <Text strong style={{ color: '#92400e' }}>
-                  <WarningOutlined /> Crucial Safety Directive
-                </Text>
-                <Paragraph style={{ color: '#92400e', fontSize: 13, margin: '4px 0 0' }}>
-                  Tummy time is exclusively for when the infant is <strong>awake and 100% supervised by an adult</strong>.
-                  For sleep, infants must ALWAYS be placed strictly on their back on a flat, firm surface.
-                </Paragraph>
-              </Card>
-            </Col>
-            <Col xs={24}>
-              <Card>
-                <Text strong>Pro-Tips for Content Tummy Time</Text>
-                <Row gutter={8} style={{ marginTop: 8 }}>
-                  <Col span={12}>
-                    <div style={{ background: 'var(--surface-subtle)', padding: 10, borderRadius: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
-                      <strong>Chest-to-Chest:</strong> Lay on your back with baby on your chest for comfort.
-                    </div>
-                  </Col>
-                  <Col span={12}>
-                    <div style={{ background: 'var(--surface-subtle)', padding: 10, borderRadius: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
-                      <strong>High Contrast:</strong> Place black-and-white cards at eye level.
-                    </div>
-                  </Col>
-                </Row>
-              </Card>
-            </Col>
-          </Row>
-        </Col>
-      </Row>
+
+          <Alert className="border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200 [&>svg]:text-amber-600 dark:[&>svg]:text-amber-400">
+            <TriangleAlert />
+            <AlertTitle className="text-amber-800 dark:text-amber-200">
+              Crucial Safety Directive
+            </AlertTitle>
+            <AlertDescription className="text-amber-700 dark:text-amber-300/90">
+              Tummy time is exclusively for when the infant is{' '}
+              <strong>awake and 100% supervised by an adult</strong>. For sleep, infants must ALWAYS
+              be placed strictly on their back on a flat, firm surface.
+            </AlertDescription>
+          </Alert>
+
+          <Card>
+            <CardContent>
+              <p className="m-0 font-semibold text-foreground">Pro-Tips for Content Tummy Time</p>
+              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <div className="rounded-lg bg-muted p-2.5 text-xs text-muted-foreground">
+                  <strong className="text-foreground">Chest-to-Chest:</strong> Lay on your back with
+                  baby on your chest for comfort.
+                </div>
+                <div className="rounded-lg bg-muted p-2.5 text-xs text-muted-foreground">
+                  <strong className="text-foreground">High Contrast:</strong> Place black-and-white
+                  cards at eye level.
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </section>
   )
 }

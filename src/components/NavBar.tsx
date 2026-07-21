@@ -1,29 +1,50 @@
-import { Anchor } from 'antd'
+import { Link } from 'react-router-dom'
 import {
-  ApartmentOutlined,
-  CalendarOutlined,
-  CheckSquareOutlined,
-  CustomerServiceOutlined,
-  DesktopOutlined,
-  SmileOutlined,
-  SyncOutlined,
-} from '@ant-design/icons'
+  Calendar,
+  CheckSquare,
+  Monitor,
+  Music,
+  Network,
+  Palette,
+  RefreshCw,
+  Baby,
+} from 'lucide-react'
 
 const items = [
-  { key: 'neurobiology', href: '#neurobiology', title: <><ApartmentOutlined /> Brain Growth</> },
-  { key: 'serve-return', href: '#serve-return', title: <><SyncOutlined /> Serve & Return</> },
-  { key: 'language-music', href: '#language-music', title: <><CustomerServiceOutlined /> Parentese & Music</> },
-  { key: 'tummy-time', href: '#tummy-time', title: <><SmileOutlined /> Tummy Time</> },
-  { key: 'routine', href: '#routine', title: <><CalendarOutlined /> Daily Schedule</> },
-  { key: 'environment', href: '#environment', title: <><DesktopOutlined /> Video Deficit</> },
-  { key: 'summary', href: '#summary', title: <><CheckSquareOutlined /> Action Items</> },
+  { href: '#neurobiology', label: 'Brain Growth', Icon: Network },
+  { href: '#serve-return', label: 'Serve & Return', Icon: RefreshCw },
+  { href: '#language-music', label: 'Parentese & Music', Icon: Music },
+  { href: '#tummy-time', label: 'Tummy Time', Icon: Baby },
+  { href: '#routine', label: 'Daily Schedule', Icon: Calendar },
+  { href: '#environment', label: 'Video Deficit', Icon: Monitor },
+  { href: '#summary', label: 'Action Items', Icon: CheckSquare },
 ]
 
 export function NavBar() {
   return (
     <nav className="sticky-nav">
-      <div className="container">
-        <Anchor direction="horizontal" targetOffset={80} items={items} />
+      <div className="mx-auto w-full max-w-7xl px-6">
+        <div className="flex items-center gap-1 overflow-x-auto py-2">
+          <div className="flex items-center gap-1">
+            {items.map(({ href, label, Icon }) => (
+              <a
+                key={href}
+                href={href}
+                className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+              >
+                <Icon className="size-4" aria-hidden />
+                {label}
+              </a>
+            ))}
+          </div>
+          <Link
+            to="/design-system"
+            className="ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-accent"
+          >
+            <Palette className="size-4" aria-hidden />
+            Design System
+          </Link>
+        </div>
       </div>
     </nav>
   )

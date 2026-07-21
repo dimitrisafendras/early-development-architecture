@@ -1,10 +1,10 @@
-import { Button, Card, Checkbox, Col, Row, Typography } from 'antd'
-import type { CheckboxChangeEvent } from 'antd/es/checkbox'
+import { Card, CardContent } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { SectionHeader } from '../components/SectionHeader'
 import { checklistItems } from '../data'
 import { useAppStore } from '../store'
-
-const { Text } = Typography
 
 export function Summary() {
   const checkedItems = useAppStore((s) => s.checkedItems)
@@ -19,46 +19,46 @@ export function Summary() {
         description="Interactive master checklist to track your daily implementation of science-backed infant development practices."
       />
       <Card>
-        <Row gutter={[16, 16]}>
-          {checklistItems.map((item) => {
-            const checked = checkedItems.includes(item.id)
-            return (
-              <Col xs={24} md={12} key={item.id}>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {checklistItems.map((item) => {
+              const checked = checkedItems.includes(item.id)
+              return (
                 <label
-                  style={{
-                    display: 'flex',
-                    gap: 12,
-                    padding: 16,
-                    borderRadius: 12,
-                    cursor: 'pointer',
-                    background: checked ? 'rgba(16, 185, 129, 0.12)' : 'var(--surface-subtle)',
-                    border: `1px solid ${checked ? '#34d399' : 'var(--border)'}`,
-                    transition: 'all 0.2s',
-                  }}
+                  key={item.id}
+                  className={cn(
+                    'flex cursor-pointer gap-3 rounded-2xl border p-4 transition-colors',
+                    checked
+                      ? 'border-emerald-400 bg-emerald-500/10 dark:border-emerald-500/50'
+                      : 'border-border bg-muted hover:bg-accent',
+                  )}
                 >
                   <Checkbox
                     checked={checked}
-                    onChange={(_: CheckboxChangeEvent) => toggleItem(item.id)}
-                    style={{ marginTop: 2 }}
+                    onCheckedChange={() => toggleItem(item.id)}
+                    className="mt-0.5"
                   />
                   <div>
-                    <Text strong style={{ display: 'block', marginBottom: 2 }}>{item.title}</Text>
-                    <Text style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{item.desc}</Text>
+                    <span className="mb-0.5 block font-semibold text-foreground">
+                      {item.title}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{item.desc}</span>
                   </div>
                 </label>
-              </Col>
-            )
-          })}
-        </Row>
-        <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ fontSize: 12, color: 'var(--text-muted)' }}>
-            Progress:{' '}
-            <Text strong style={{ color: '#0ea5e9' }}>{checkedItems.length}</Text> / {checklistItems.length} Completed
-          </Text>
-          <Button type="link" size="small" onClick={resetChecklist} style={{ color: '#94a3b8' }}>
-            Reset Checklist
-          </Button>
-        </div>
+              )
+            })}
+          </div>
+          <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
+            <span className="text-xs text-muted-foreground">
+              Progress:{' '}
+              <span className="font-bold text-primary">{checkedItems.length}</span> /{' '}
+              {checklistItems.length} Completed
+            </span>
+            <Button variant="link" size="sm" onClick={resetChecklist} className="text-muted-foreground">
+              Reset Checklist
+            </Button>
+          </div>
+        </CardContent>
       </Card>
     </section>
   )

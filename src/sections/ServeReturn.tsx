@@ -1,10 +1,9 @@
-import { Button, Card, Col, Row, Typography } from 'antd'
-import { SlidersOutlined } from '@ant-design/icons'
+import { SlidersHorizontal } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { SectionHeader } from '../components/SectionHeader'
 import { serveReturnSteps, latencyOutcomes } from '../data'
 import { useAppStore, type LatencyMode } from '../store'
-
-const { Text, Paragraph } = Typography
 
 const modes: LatencyMode[] = ['optimal', 'delayed', 'none']
 
@@ -21,49 +20,74 @@ export function ServeReturn() {
         description="Harvard Center on the Developing Child highlights that social interactions function like a game of tennis. The infant serves a cue; the caregiver immediately returns it."
       />
       <Card>
-        <Row gutter={[16, 16]}>
-          {serveReturnSteps.map((step) => (
-            <Col xs={24} md={6} key={step.num}>
-              <div style={{ background: step.bg, border: `1px solid ${step.border}`, borderRadius: 12, padding: 20, height: '100%' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                  <span style={{ width: 28, height: 28, borderRadius: '50%', background: step.badge, color: '#fff', fontWeight: 700, fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <CardContent>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {serveReturnSteps.map((step) => (
+              <div
+                key={step.num}
+                className="flex h-full flex-col rounded-2xl border p-5"
+                style={{ background: step.bg, borderColor: step.border }}
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <span
+                    className="flex size-7 items-center justify-center rounded-full text-xs font-bold text-white"
+                    style={{ background: step.badge }}
+                  >
                     {step.num}
                   </span>
                 </div>
-                <Text strong style={{ display: 'block', marginBottom: 4, color: '#1e293b' }}>{step.title}</Text>
-                <Paragraph style={{ color: '#475569', fontSize: 12, margin: 0 }}>{step.desc}</Paragraph>
-                <div style={{ marginTop: 12, paddingTop: 12, borderTop: `1px solid ${step.border}`, fontSize: 11, color: '#64748b' }}>
+                <p className="mb-1 font-semibold text-slate-800">{step.title}</p>
+                <p className="m-0 text-xs text-slate-600">{step.desc}</p>
+                <div
+                  className="mt-3 border-t pt-3 text-[11px] text-slate-500"
+                  style={{ borderColor: step.border }}
+                >
                   {step.foot}
                 </div>
               </div>
-            </Col>
-          ))}
-        </Row>
-
-        <div style={{ marginTop: 32, background: 'var(--surface-subtle)', border: '1px solid var(--border)', padding: 20, borderRadius: 12 }}>
-          <Text strong style={{ display: 'block', marginBottom: 8 }}>
-            <SlidersOutlined style={{ color: '#0ea5e9' }} /> Interactive Responsiveness Simulator
-          </Text>
-          <Paragraph style={{ color: 'var(--text-secondary)', fontSize: 12 }}>
-            Select a caregiver response delay to see how timing impacts neural alertness & stress hormones:
-          </Paragraph>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
-            {modes.map((mode) => (
-              <Button
-                key={mode}
-                type={latency === mode ? 'primary' : 'default'}
-                onClick={() => setLatency(mode)}
-                style={latency === mode ? { background: latencyOutcomes[mode].buttonColor, borderColor: latencyOutcomes[mode].buttonColor } : undefined}
-              >
-                {latencyOutcomes[mode].buttonLabel}
-              </Button>
             ))}
           </div>
-          <div style={{ background: 'var(--surface)', padding: 16, borderRadius: 8, border: '1px solid var(--border)' }}>
-            <div style={{ fontWeight: 700, color: outcome.color, marginBottom: 4 }}>{outcome.title}</div>
-            <Paragraph style={{ color: 'var(--text-secondary)', fontSize: 13, margin: 0 }}>{outcome.desc}</Paragraph>
+
+          <div className="mt-8 rounded-2xl border border-border bg-muted p-5">
+            <p className="mb-2 flex items-center gap-2 font-semibold text-foreground">
+              <SlidersHorizontal className="size-4 text-sky-500" aria-hidden />
+              Interactive Responsiveness Simulator
+            </p>
+            <p className="mb-4 text-xs text-muted-foreground">
+              Select a caregiver response delay to see how timing impacts neural alertness &amp;
+              stress hormones:
+            </p>
+            <div className="mb-4 flex flex-wrap gap-2">
+              {modes.map((mode) => {
+                const active = latency === mode
+                return (
+                  <Button
+                    key={mode}
+                    variant={active ? 'default' : 'outline'}
+                    onClick={() => setLatency(mode)}
+                    style={
+                      active
+                        ? {
+                            background: latencyOutcomes[mode].buttonColor,
+                            borderColor: latencyOutcomes[mode].buttonColor,
+                            color: '#fff',
+                          }
+                        : undefined
+                    }
+                  >
+                    {latencyOutcomes[mode].buttonLabel}
+                  </Button>
+                )
+              })}
+            </div>
+            <div className="rounded-lg border border-border bg-card p-4">
+              <div className="mb-1 font-bold" style={{ color: outcome.color }}>
+                {outcome.title}
+              </div>
+              <p className="m-0 text-[13px] text-muted-foreground">{outcome.desc}</p>
+            </div>
           </div>
-        </div>
+        </CardContent>
       </Card>
     </section>
   )

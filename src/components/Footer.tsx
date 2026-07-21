@@ -1,19 +1,15 @@
-import { Typography } from 'antd'
-
-const { Paragraph } = Typography
-
 export function Footer() {
   return (
-    <footer style={{ background: '#0f172a', color: '#94a3b8', padding: '40px 0', marginTop: 64, textAlign: 'center', fontSize: 12 }}>
-      <div className="container">
-        <div style={{ color: '#fff', fontWeight: 700, fontSize: 15, marginBottom: 12 }}>
+    <footer className="mt-16 bg-slate-900 py-10 text-center text-xs text-slate-400">
+      <div className="mx-auto w-full max-w-7xl px-6">
+        <div className="mb-3 text-[15px] font-bold text-white">
           🧠 The Architecture of Early Development
         </div>
-        <Paragraph style={{ color: '#94a3b8', maxWidth: 560, margin: '0 auto 16px' }}>
-          Synthesized from peer-reviewed early infant psychology publications, Harvard Center on the Developing
-          Child research, AAP guidelines, and contemporary developmental neuroscience.
-        </Paragraph>
-        <div style={{ color: '#64748b', paddingTop: 16, borderTop: '1px solid #1e293b' }}>
+        <p className="mx-auto mb-4 max-w-xl text-slate-400">
+          Synthesized from peer-reviewed early infant psychology publications, Harvard Center on the
+          Developing Child research, AAP guidelines, and contemporary developmental neuroscience.
+        </p>
+        <div className="border-t border-slate-800 pt-4 text-slate-500">
           Designed for Caregivers, Pediatric Educators, and Early Interventionists.
         </div>
       </div>

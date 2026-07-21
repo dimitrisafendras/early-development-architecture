@@ -1,10 +1,13 @@
 import { create } from 'zustand'
 
 export type LatencyMode = 'optimal' | 'delayed' | 'none'
+export type Palette = 'blue' | 'red'
 
 interface AppState {
   dark: boolean
   toggleTheme: () => void
+  palette: Palette
+  setPalette: (palette: Palette) => void
   latency: LatencyMode
   setLatency: (mode: LatencyMode) => void
   checkedItems: string[]
@@ -15,6 +18,8 @@ interface AppState {
 export const useAppStore = create<AppState>((set) => ({
   dark: true,
   toggleTheme: () => set((state) => ({ dark: !state.dark })),
+  palette: 'blue',
+  setPalette: (palette) => set({ palette }),
   latency: 'optimal',
   setLatency: (latency) => set({ latency }),
   checkedItems: [],
