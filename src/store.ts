@@ -22,6 +22,9 @@ interface AppState {
   /** Replace today's checked set outright (used to merge a server pull). */
   setCheckedForToday: (ids: string[]) => void
   resetChecklist: () => void
+  /** User's preferred hub card order (topic slugs). Empty = registry order. */
+  cardOrder: string[]
+  setCardOrder: (order: string[]) => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -56,16 +59,19 @@ export const useAppStore = create<AppState>()(
         set((state) => ({
           checklistHistory: { ...state.checklistHistory, [todayKey()]: [] },
         })),
+      cardOrder: [],
+      setCardOrder: (cardOrder) => set({ cardOrder }),
     }),
     {
       name: 'eda-theme',
-      // Theming + language choices and the checklist history persist; the
-      // latency simulator stays ephemeral.
+      // Theming + language choices, checklist history, and the hub card order
+      // persist; the latency simulator stays ephemeral.
       partialize: (state) => ({
         dark: state.dark,
         palette: state.palette,
         locale: state.locale,
         checklistHistory: state.checklistHistory,
+        cardOrder: state.cardOrder,
       }),
     },
   ),

@@ -156,8 +156,14 @@ everything still AA in all 4 theme×palette combos; `npm run build` green.
 
 ## P3 — Later
 
-- **3.1 Household sharing** — `households`, `household_members`, invite by
-  email; RLS switches from `owner = auth.uid()` to membership subquery.
+- **3.1 Household sharing** — ✅ DONE (2026-07-24, migration 0004). `households`,
+  `household_members`, `household_invites`; membership RLS via SECURITY DEFINER
+  `is_member()`; `accept_invite()` RPC; `household_id` on babies/measurements/
+  tummy_sessions with owner-OR-member policies. `/family` page: create family,
+  invite by email + accept, members list, share babies, leave. (Email is stored,
+  not sent — the invitee accepts from their own Family page after signing in.)
+- **Extra:** hub cards are drag-reorderable within each theme group; order
+  persists per browser (`cardOrder` in the zustand store).
 - **3.2 Reminders** — in-app scheduled toasts while open (simple); real Web
   Push needs a push server → Supabase Edge Function + VAPID (evaluate then).
 - **3.3 Offline write queue** — SW/IndexedDB outbox replaying mutations

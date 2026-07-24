@@ -95,6 +95,7 @@ const en = {
       rhythm: 'Daily rhythm — the care routine',
       practice: 'Put it into practice',
     },
+    reorderHint: 'Drag cards to reorder',
   },
   routineLive: {
     nowBadge: 'NOW',
@@ -649,6 +650,7 @@ const el: Messages = {
       rhythm: 'Καθημερινός ρυθμός — η ρουτίνα φροντίδας',
       practice: 'Εφαρμογή στην πράξη',
     },
+    reorderHint: 'Σύρετε τις κάρτες για αναδιάταξη',
   },
   routineLive: {
     nowBadge: 'ΤΩΡΑ',
