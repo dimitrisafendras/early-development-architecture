@@ -34,6 +34,8 @@ const en = {
       routine: 'Daily Schedule',
       environment: 'Video Deficit',
       summary: 'Action Items',
+      interaction: 'Interaction Time',
+      sleepFeeding: 'Sleep & Feeding',
     },
   },
   auth: {
@@ -84,6 +86,12 @@ const en = {
     back: 'All topics',
     prev: 'Previous',
     next: 'Next',
+    groups: {
+      foundations: 'Foundations — why it matters',
+      connection: 'Connection — bond, respond & talk',
+      rhythm: 'Daily rhythm — the care routine',
+      practice: 'Put it into practice',
+    },
   },
   routineLive: {
     nowBadge: 'NOW',
@@ -387,6 +395,76 @@ const en = {
       },
     ],
   },
+  interaction: {
+    title: 'How Much, When & How to Interact',
+    description:
+      'An evidence-based daily "dose" of interaction — from AAP, ZERO TO THREE, and the Harvard serve-and-return research. Responsiveness matters more than hitting any single number.',
+    howMuchTitle: 'How much — a daily dose',
+    stats: [
+      { label: 'Words heard', unit: '/ day', note: 'Talk through everything; word-rich days close the "30-million-word gap".' },
+      { label: 'Reading', unit: 'min / day', note: '5 min ≈ 800k words a year; even a minute or two counts.' },
+      { label: 'Tummy time', unit: 'sessions', note: 'Short, supervised, awake — building to 60 min/day by 4 months.' },
+      { label: 'Response window', unit: 'seconds', note: 'Answer a coo or gaze within 1–4s to complete the loop.' },
+    ],
+    whenTitle: 'When — follow the awake windows',
+    whenNote:
+      "Interact during the short awake windows between sleeps, and fold it into everyday care (feeding, changes, bath). See the live Daily Schedule for the day's rhythm.",
+    windowHeaders: { age: 'Age', window: 'Awake window', play: 'What to do' },
+    windows: [
+      { age: '0–1 month', window: '30–45 min', play: 'Cuddle, feed, gentle eye contact, brief tummy time, slow face tracking.' },
+      { age: '1–3 months', window: '~1 hour', play: 'Face-to-face "chats", copy coos, high-contrast cards, sing.' },
+      { age: '3–4 months', window: '1–2 hours', play: 'Floor play, reach-and-bat toys, mirror play, longer tummy time.' },
+      { age: '4–6 months', window: '1.5–2.5 hours', play: 'Mostly floor play under a gym, reading, textures, back-and-forth babble.' },
+    ],
+    howTitle: 'How — make the minutes count',
+    how: [
+      { title: 'Serve & return', text: "Notice the baby's cue and answer within 1–4 seconds — the single most important habit." },
+      { title: 'Narrate in Parentese', text: 'Talk through the day in slow, warm, higher-pitched real words. Aim for a word-rich day (~21k).' },
+      { title: 'Read & sing daily', text: 'At least 15 minutes of reading, plus lullabies and rhymes — every day from birth.' },
+      { title: 'Get face-to-face', text: "Down to eye level, ~20–30 cm away; follow the baby's gaze and joint attention." },
+      { title: "Follow the baby's lead", text: 'Watch for engagement vs. overload (gaze aversion, fussing) and pause to let them reset.' },
+      { title: 'Keep it screen-free', text: 'No screens under ~18–24 months; live human interaction is what wires language.' },
+    ],
+    sourcesLabel:
+      'Sources: AAP (Power of Play; media guidance), ZERO TO THREE, Harvard Center on the Developing Child.',
+  },
+  sleepFeeding: {
+    title: 'Sleep & Feeding by Age',
+    description:
+      'Typical sleep totals and feeding rhythms in the first six months, plus the non-negotiable safe-sleep rules. Every baby varies — feed and settle on demand, watching your baby, not the clock.',
+    sleepTitle: 'Sleep — how much',
+    sleepStats: [
+      { label: 'Newborn (0–3 mo)', unit: '/ 24h', note: 'In 1–2h stretches; night-and-day not yet sorted out.' },
+      { label: 'Infant (4–12 mo)', unit: '/ 24h', note: 'Longer night stretches; ~2/3 sleep through by 6 months.' },
+      { label: 'Naps at 4–6 mo', unit: 'per day', note: 'Consolidating into a more predictable daytime rhythm.' },
+      { label: 'Back to sleep', unit: 'until', note: 'On the back for every sleep until the first birthday.' },
+    ],
+    safeSleepTitle: 'Safe sleep — every sleep, every time',
+    safeSleep: [
+      { title: 'Back to sleep', text: 'Always place baby on their back for naps and night — the single biggest SIDS protection.' },
+      { title: 'Firm, flat, alone', text: 'A firm flat crib/bassinet mattress with a fitted sheet; baby sleeps alone in their own space.' },
+      { title: 'Room-share 6–12 mo', text: "Keep the baby's crib in your room, but not your bed, for at least the first 6 months." },
+      { title: 'Clear the space', text: 'No pillows, loose blankets, bumpers, or soft toys. Use a sleep sack instead of a blanket.' },
+    ],
+    feedingTitle: 'Feeding — how often & how much',
+    feedingNote:
+      'Feed on demand and watch hunger/fullness cues. Amounts are formula guides; breastfed babies feed more often. Never force a bottle — let baby stop when full. Introduce solids around 6 months.',
+    feedHeaders: { age: 'Age', frequency: 'How often', amount: 'Per feed (formula)' },
+    feeding: [
+      { age: 'Newborn (0–1 mo)', frequency: 'Every 2–3h · 8–12×/day', amount: '1–2 oz (30–60 ml)' },
+      { age: '1–2 months', frequency: 'Every 3–4h', amount: '3–5 oz (90–150 ml)' },
+      { age: '2–4 months', frequency: 'Every 3–4h', amount: '4–6 oz (120–180 ml)' },
+      { age: '4–6 months', frequency: '4–5 feeds/day', amount: '6–8 oz (180–240 ml)' },
+    ],
+    feedMax: 'Cap formula at about 32 oz (960 ml) per 24 hours.',
+    cuesTitle: 'Read the cues',
+    hungerLabel: 'Hungry',
+    fullLabel: 'Full',
+    hungerCues: ['Rooting / turning to the breast', 'Hands to mouth, sucking', 'Lip-smacking, stirring', 'Fussing (crying is a late sign)'],
+    fullCues: ['Turns head away', 'Closes mouth, slows sucking', 'Relaxes hands and body', 'Loses interest / pushes away'],
+    sourcesLabel:
+      'Sources: AAP HealthyChildren.org (sleep & feeding), AAP Safe Sleep 2022, American Academy of Sleep Medicine.',
+  },
   footer: {
     title: '🧠 The Architecture of Early Development',
     body: 'Synthesized from peer-reviewed early infant psychology publications, Harvard Center on the Developing Child research, AAP guidelines, and contemporary developmental neuroscience.',
@@ -432,6 +510,8 @@ const el: Messages = {
       routine: 'Καθημερινό Πρόγραμμα',
       environment: 'Έλλειμμα Βίντεο',
       summary: 'Ενέργειες',
+      interaction: 'Χρόνος Αλληλεπίδρασης',
+      sleepFeeding: 'Ύπνος & Τάισμα',
     },
   },
   auth: {
@@ -482,6 +562,12 @@ const el: Messages = {
     back: 'Όλες οι ενότητες',
     prev: 'Προηγούμενο',
     next: 'Επόμενο',
+    groups: {
+      foundations: 'Θεμέλια — γιατί μετράει',
+      connection: 'Σύνδεση — δέσιμο, απόκριση & ομιλία',
+      rhythm: 'Καθημερινός ρυθμός — η ρουτίνα φροντίδας',
+      practice: 'Εφαρμογή στην πράξη',
+    },
   },
   routineLive: {
     nowBadge: 'ΤΩΡΑ',
@@ -784,6 +870,76 @@ const el: Messages = {
         desc: 'Τοποθετείτε πάντα τα βρέφη αυστηρά ανάσκελα σε επίπεδη, σταθερή επιφάνεια για την προστασία του αεραγωγού και την παγίωση της μνήμης.',
       },
     ],
+  },
+  interaction: {
+    title: 'Πόσος, Πότε & Πώς Χρόνος Αλληλεπίδρασης',
+    description:
+      'Μια τεκμηριωμένη ημερήσια «δόση» αλληλεπίδρασης — από AAP, ZERO TO THREE και την έρευνα «σερβίρισμα & επιστροφή» του Harvard. Η ανταπόκριση μετρά περισσότερο από οποιονδήποτε αριθμό.',
+    howMuchTitle: 'Πόσος — η ημερήσια δόση',
+    stats: [
+      { label: 'Λέξεις που ακούει', unit: '/ ημέρα', note: 'Μιλήστε για τα πάντα· οι πλούσιες σε λέξεις μέρες κλείνουν το «χάσμα των 30 εκατ. λέξεων».' },
+      { label: 'Ανάγνωση', unit: 'λεπτά / ημέρα', note: '5 λεπτά ≈ 800 χιλ. λέξεις τον χρόνο· ακόμη και ένα-δύο λεπτά μετρούν.' },
+      { label: 'Χρόνος μπρούμυτα', unit: 'συνεδρίες', note: 'Σύντομες, εποπτευόμενες, σε εγρήγορση — έως 60 λεπτά/ημέρα στους 4 μήνες.' },
+      { label: 'Παράθυρο απόκρισης', unit: 'δευτ.', note: 'Απαντήστε σε γουργούρισμα ή βλέμμα μέσα σε 1–4 δευτ.' },
+    ],
+    whenTitle: 'Πότε — ακολουθήστε τα παράθυρα εγρήγορσης',
+    whenNote:
+      'Αλληλεπιδράστε στα σύντομα παράθυρα εγρήγορσης ανάμεσα στους ύπνους, και εντάξτε το στην καθημερινή φροντίδα (τάισμα, αλλαγές, μπάνιο). Δείτε το ζωντανό Καθημερινό Πρόγραμμα για τον ρυθμό της ημέρας.',
+    windowHeaders: { age: 'Ηλικία', window: 'Παράθυρο εγρήγορσης', play: 'Τι να κάνετε' },
+    windows: [
+      { age: '0–1 μηνών', window: '30–45 λεπτά', play: 'Αγκαλιά, τάισμα, βλεμματική επαφή, σύντομο μπρούμυτα, αργή παρακολούθηση προσώπου.' },
+      { age: '1–3 μηνών', window: '~1 ώρα', play: 'Πρόσωπο-με-πρόσωπο «κουβέντες», μίμηση γουργουρισμάτων, κάρτες αντίθεσης, τραγούδι.' },
+      { age: '3–4 μηνών', window: '1–2 ώρες', play: 'Παιχνίδι στο πάτωμα, άπλωμα & χτύπημα παιχνιδιών, καθρέφτης, περισσότερο μπρούμυτα.' },
+      { age: '4–6 μηνών', window: '1,5–2,5 ώρες', play: 'Κυρίως πάτωμα κάτω από γυμναστήριο, ανάγνωση, υφές, εναλλαγή ψελλισμάτων.' },
+    ],
+    howTitle: 'Πώς — αξιοποιήστε τα λεπτά',
+    how: [
+      { title: 'Σερβίρισμα & επιστροφή', text: 'Αντιληφθείτε το σήμα του μωρού και απαντήστε μέσα σε 1–4 δευτ. — η πιο σημαντική συνήθεια.' },
+      { title: 'Αφήγηση σε Παιδική Ομιλία', text: 'Μιλήστε για την ημέρα με αργές, ζεστές, υψίτονες πραγματικές λέξεις. Στοχεύστε σε πλούσια μέρα (~21 χιλ.).' },
+      { title: 'Ανάγνωση & τραγούδι καθημερινά', text: 'Τουλάχιστον 15 λεπτά ανάγνωσης, μαζί με νανουρίσματα και ρίμες — κάθε μέρα από τη γέννηση.' },
+      { title: 'Πρόσωπο με πρόσωπο', text: 'Στο ύψος των ματιών, ~20–30 εκ.· ακολουθήστε το βλέμμα και την από κοινού προσοχή.' },
+      { title: 'Ακολουθήστε το μωρό', text: 'Παρατηρήστε ενδιαφέρον vs. υπερφόρτωση (αποστροφή βλέμματος, γκρίνια) και κάντε παύση.' },
+      { title: 'Χωρίς οθόνες', text: 'Καμία οθόνη κάτω από ~18–24 μηνών· η ζωντανή επαφή χτίζει τη γλώσσα.' },
+    ],
+    sourcesLabel:
+      'Πηγές: AAP (Power of Play· οδηγίες μέσων), ZERO TO THREE, Harvard Center on the Developing Child.',
+  },
+  sleepFeeding: {
+    title: 'Ύπνος & Τάισμα ανά Ηλικία',
+    description:
+      'Τυπικά σύνολα ύπνου και ρυθμοί ταΐσματος στους πρώτους έξι μήνες, μαζί με τους αδιαπραγμάτευτους κανόνες ασφαλούς ύπνου. Κάθε μωρό διαφέρει — ταΐστε και κοιμίστε όποτε το ζητά, παρατηρώντας το μωρό, όχι το ρολόι.',
+    sleepTitle: 'Ύπνος — πόσος',
+    sleepStats: [
+      { label: 'Νεογνό (0–3 μην.)', unit: '/ 24ω', note: 'Σε διαστήματα 1–2ω· μέρα-νύχτα δεν έχουν ξεχωρίσει ακόμη.' },
+      { label: 'Βρέφος (4–12 μην.)', unit: '/ 24ω', note: 'Μεγαλύτερα νυχτερινά διαστήματα· ~2/3 κοιμούνται όλη νύχτα στους 6 μήνες.' },
+      { label: 'Ύπνοι στους 4–6 μην.', unit: 'ανά ημέρα', note: 'Παγιώνονται σε πιο προβλέψιμο ημερήσιο ρυθμό.' },
+      { label: 'Ανάσκελα για ύπνο', unit: 'έως', note: 'Ανάσκελα σε κάθε ύπνο έως τα πρώτα γενέθλια.' },
+    ],
+    safeSleepTitle: 'Ασφαλής ύπνος — κάθε ύπνο, κάθε φορά',
+    safeSleep: [
+      { title: 'Ανάσκελα για ύπνο', text: 'Πάντα ανάσκελα σε ύπνους ημέρας και νύχτας — η μεγαλύτερη προστασία από SIDS.' },
+      { title: 'Σταθερό, επίπεδο, μόνο', text: 'Σταθερό επίπεδο στρώμα κούνιας με εφαρμοστό σεντόνι· το μωρό κοιμάται μόνο στον δικό του χώρο.' },
+      { title: 'Ίδιο δωμάτιο 6–12 μην.', text: 'Κρατήστε την κούνια στο δωμάτιό σας, αλλά όχι στο κρεβάτι σας, για τουλάχιστον 6 μήνες.' },
+      { title: 'Καθαρός χώρος', text: 'Χωρίς μαξιλάρια, χαλαρές κουβέρτες, προστατευτικά ή λούτρινα. Χρησιμοποιήστε υπνόσακο.' },
+    ],
+    feedingTitle: 'Τάισμα — πόσο συχνά & πόσο',
+    feedingNote:
+      'Ταΐστε όποτε το ζητά και παρατηρήστε σημάδια πείνας/κορεσμού. Οι ποσότητες αφορούν φόρμουλα· τα θηλάζοντα μωρά τρώνε πιο συχνά. Μην πιέζετε το μπιμπερό. Στερεές τροφές γύρω στους 6 μήνες.',
+    feedHeaders: { age: 'Ηλικία', frequency: 'Πόσο συχνά', amount: 'Ανά γεύμα (φόρμουλα)' },
+    feeding: [
+      { age: 'Νεογνό (0–1 μην.)', frequency: 'Κάθε 2–3ω · 8–12×/ημέρα', amount: '30–60 ml' },
+      { age: '1–2 μηνών', frequency: 'Κάθε 3–4ω', amount: '90–150 ml' },
+      { age: '2–4 μηνών', frequency: 'Κάθε 3–4ω', amount: '120–180 ml' },
+      { age: '4–6 μηνών', frequency: '4–5 γεύματα/ημέρα', amount: '180–240 ml' },
+    ],
+    feedMax: 'Όριο φόρμουλας περίπου 960 ml ανά 24 ώρες.',
+    cuesTitle: 'Διαβάστε τα σημάδια',
+    hungerLabel: 'Πεινάει',
+    fullLabel: 'Χόρτασε',
+    hungerCues: ['Στρέφεται προς το στήθος', 'Χέρια στο στόμα, πιπίλισμα', 'Κινήσεις χειλιών, ανησυχία', 'Γκρίνια (το κλάμα είναι όψιμο σημάδι)'],
+    fullCues: ['Γυρίζει το κεφάλι', 'Κλείνει το στόμα, αργεί το πιπίλισμα', 'Χαλαρώνει χέρια και σώμα', 'Χάνει ενδιαφέρον / σπρώχνει'],
+    sourcesLabel:
+      'Πηγές: AAP HealthyChildren.org (ύπνος & τάισμα), AAP Safe Sleep 2022, American Academy of Sleep Medicine.',
   },
   footer: {
     title: '🧠 Η Αρχιτεκτονική της Πρώιμης Ανάπτυξης',

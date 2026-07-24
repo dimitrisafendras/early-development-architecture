@@ -8,9 +8,11 @@ Guidance for Claude Code sessions working in this repo.
 
 - `/` — landing hub: a card grid linking to the seven infographic topics
 - `/topic/:slug` — one infographic topic per page (registry in `src/sections/registry.tsx`), with a prev/next pager
+- `/tracker` — tummy-time session tracker (local-first, syncs to Supabase when signed in)
+- `/baby` — baby profile + weight/height/head growth monitoring (Supabase-backed)
 - `/design-system` — a Liquid Glass design system documentation page
 
-The seven topics are defined once in `src/sections/registry.tsx` (slug, module, icon, i18n label/blurb getters, section component). That registry drives the hub grid, the routes, the nav links, and the pager — add or reorder topics there.
+The nine topics are defined once in `src/sections/registry.tsx` (slug, module, `group`, icon, i18n label/blurb getters, section component). That registry drives the hub grid (grouped by theme via `group` / `groupOrder`), the routes, the nav links, and the pager — add or reorder topics there. Topic content/data lives in `src/data.ts` + `src/i18n.ts` (en + el must stay in sync — `Messages = typeof en`).
 
 ## Stack
 
