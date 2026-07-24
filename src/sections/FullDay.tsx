@@ -1,22 +1,10 @@
-import { useEffect, useState, type ComponentType } from 'react'
-import { Milk, Moon, ToyBrick, Baby, Bath, Sparkles } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { SectionHeader } from '../components/SectionHeader'
-import { fullDaySchedule, type DayActivity } from '../data'
+import { dayActivityMeta as activity, dayActivityOrder as legendOrder } from '../components/dayActivity'
+import { fullDaySchedule } from '../data'
 import { activeTimeIndex } from '../lib/schedule'
 import { useT } from '../i18n'
-
-/** Per-activity icon + soft theme-aware accent (dot background + text). */
-const activity: Record<DayActivity, { icon: ComponentType<{ className?: string }>; dot: string; text: string }> = {
-  feed: { icon: Milk, dot: 'bg-sky-500/15 text-sky-600 dark:text-sky-400', text: 'text-sky-700 dark:text-sky-400' },
-  sleep: { icon: Moon, dot: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400', text: 'text-indigo-700 dark:text-indigo-400' },
-  play: { icon: ToyBrick, dot: 'bg-amber-500/15 text-amber-600 dark:text-amber-400', text: 'text-amber-700 dark:text-amber-400' },
-  tummy: { icon: Baby, dot: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400', text: 'text-emerald-700 dark:text-emerald-400' },
-  care: { icon: Bath, dot: 'bg-cyan-500/15 text-cyan-600 dark:text-cyan-400', text: 'text-cyan-700 dark:text-cyan-400' },
-  wind: { icon: Sparkles, dot: 'bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400', text: 'text-fuchsia-700 dark:text-fuchsia-400' },
-}
-
-const legendOrder: DayActivity[] = ['feed', 'sleep', 'play', 'tummy', 'care', 'wind']
 
 export function FullDay() {
   const t = useT()

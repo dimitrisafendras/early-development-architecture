@@ -105,9 +105,6 @@ export interface ScheduleBlock {
   items: { strong: string; text: string }[]
   focus: string
   tone: ScheduleTone
-  /** Which action the /daily "what's now" surfaces for this block:
-   *  a feed quick-log, the tummy-time tracker, or a passive calm/rest prompt. */
-  action: 'feed' | 'tummy' | 'rest'
 }
 
 export const scheduleBlocks: ScheduleBlock[] = [
@@ -120,7 +117,6 @@ export const scheduleBlocks: ScheduleBlock[] = [
     ],
     focus: 'Focus: High linguistic input & emotional reconnect',
     tone: 'amber',
-    action: 'feed',
   },
   {
     time: '09:00 – 11:30',
@@ -131,7 +127,6 @@ export const scheduleBlocks: ScheduleBlock[] = [
     ],
     focus: 'Focus: Core muscle building & visual scanning',
     tone: 'emerald',
-    action: 'tummy',
   },
   {
     time: '12:00 – 14:30',
@@ -142,7 +137,6 @@ export const scheduleBlocks: ScheduleBlock[] = [
     ],
     focus: 'Focus: Sensory reset & nervous system calming',
     tone: 'sky',
-    action: 'rest',
   },
   {
     time: '15:00 – 17:30',
@@ -153,7 +147,6 @@ export const scheduleBlocks: ScheduleBlock[] = [
     ],
     focus: 'Focus: Dynamic mobility & tactile exploration',
     tone: 'cyan',
-    action: 'tummy',
   },
   {
     time: '18:00 – 20:30',
@@ -164,7 +157,6 @@ export const scheduleBlocks: ScheduleBlock[] = [
     ],
     focus: 'Focus: Melatonin onset & emotional grounding',
     tone: 'fuchsia',
-    action: 'rest',
   },
   {
     time: '21:00 Onward',
@@ -175,7 +167,6 @@ export const scheduleBlocks: ScheduleBlock[] = [
     ],
     focus: 'Focus: Airway safety & memory wiring',
     tone: 'indigo',
-    action: 'rest',
   },
 ]
 

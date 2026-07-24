@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Play, Square, Radio, ArrowRight, CalendarDays, ListChecks, Milk, Moon } from 'lucide-react'
+import { Play, Square, Radio, ArrowRight, CalendarDays, ListChecks, Milk } from 'lucide-react'
 import { SectionHeader } from '../components/SectionHeader'
 import { AgeBadge } from '../components/AgeBadge'
 import { ProgressRing } from '../components/ProgressRing'
+import { dayActivityMeta } from '../components/dayActivity'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { scheduleBlocks, feedingRows, feedingUppers } from '../data'
+import { scheduleBlocks, fullDaySchedule, feedingRows, feedingUppers, type DayActivity } from '../data'
 import {
   activeBlockIndex,
+  activeTimeIndex,
   minutesUntilBlockStart,
   tummyTargetForAgeMonths,
   ageInMonths,
@@ -35,8 +37,12 @@ function useNow(): Date {
 export default function Daily() {
   const t = useT()
   const now = useNow()
-  const active = activeBlockIndex(now)
-  const action = scheduleBlocks[active].action
+  // Single source of truth for "what's happening now" — the SAME hour-by-hour
+  // schedule and index function the /full-day page uses, so the two never
+  // disagree. Feed/tummy slots get their interactive tracker; everything else
+  // mirrors the full-day row.
+  const slot = activeTimeIndex(fullDaySchedule.map((s) => s.time), now)
+  const activityType = fullDaySchedule[slot].type
 
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-10">
@@ -47,10 +53,14 @@ export default function Daily() {
 
       <NowWidget now={now} />
 
-      {/* The one action that fits the current block. */}
-      {action === 'tummy' && <TummyWidget />}
-      {action === 'feed' && <FeedWidget />}
-      {action === 'rest' && <RestWidget />}
+      {/* The one thing to do right now, in sync with the full-day timeline. */}
+      {activityType === 'feed' ? (
+        <FeedWidget />
+      ) : activityType === 'tummy' ? (
+        <TummyWidget />
+      ) : (
+        <ActivityWidget slot={slot} type={activityType} />
+      )}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <LinkCard to={topicPath('full-day')} icon={<CalendarDays className="size-5" />} label={t.daily.fullDayCta} />
@@ -248,17 +258,50 @@ function FeedWidget() {
   )
 }
 
-function RestWidget() {
+/** Relevant Learn topic for each passive (non-tracked) activity — powers the
+ *  "learn more" link on the current-activity card. */
+const activityTopic: Partial<Record<DayActivity, string>> = {
+  sleep: 'sleep',
+  play: 'serve-return',
+  care: 'daily-routine',
+  wind: 'sleep',
+}
+
+function ActivityWidget({ slot, type }: { slot: number; type: DayActivity }) {
   const t = useT()
+  const meta = dayActivityMeta[type]
+  const Icon = meta.icon
+  const topic = activityTopic[type]
   return (
     <Card>
       <CardContent className="flex items-start gap-4 py-6">
-        <span className="inline-flex shrink-0 rounded-xl bg-primary/10 p-2.5 text-primary">
-          <Moon className="size-5" />
+        <span className={cn('inline-flex size-12 shrink-0 items-center justify-center rounded-full', meta.dot)}>
+          <Icon className="size-5" />
         </span>
-        <div>
-          <p className="text-[15px] font-semibold text-foreground">{t.daily.restTitle}</p>
-          <p className="mt-1 text-sm text-muted-foreground">{t.daily.restText}</p>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-baseline gap-x-2.5">
+            <p className="text-[15px] font-semibold text-foreground">{t.fullDay.slots[slot].title}</p>
+            <span className={cn('text-[11px] font-semibold uppercase tracking-wider', meta.text)}>
+              {t.fullDay.types[type]}
+            </span>
+          </div>
+          <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{t.fullDay.slots[slot].detail}</p>
+          <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+            {topic && (
+              <Link
+                to={topicPath(topic)}
+                className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+              >
+                {t.daily.learnMore} <ArrowRight className="size-3.5" />
+              </Link>
+            )}
+            <Link
+              to={topicPath('full-day')}
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            >
+              {t.daily.fullDayCta} <ArrowRight className="size-3.5" />
+            </Link>
+          </div>
         </div>
       </CardContent>
     </Card>
