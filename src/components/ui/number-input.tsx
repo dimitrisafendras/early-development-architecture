@@ -15,10 +15,13 @@ import { cn } from '@/lib/utils'
  * renders the measure inline ("3.4 kg") instead of leaning on the label.
  */
 
+/**  Matches `Input`'s mobile-first sizing: a real touch target on phones,
+   the compact desktop height from `sm` up.
+ */
 const sizes = {
-  sm: { group: 'h-8', cap: 'w-8', text: 'text-sm', icon: 'size-3.5' },
-  default: { group: 'h-9', cap: 'w-9', text: 'text-base md:text-sm', icon: 'size-4' },
-  lg: { group: 'h-11', cap: 'w-11', text: 'text-lg', icon: 'size-5' },
+  sm: { group: 'h-9 sm:h-7', cap: 'w-9 sm:w-7', text: 'text-sm', icon: 'size-3.5' },
+  default: { group: 'h-11 sm:h-8', cap: 'w-11 sm:w-8', text: 'text-base md:text-sm', icon: 'size-4' },
+  lg: { group: 'h-12 sm:h-10', cap: 'w-12 sm:w-10', text: 'text-lg', icon: 'size-5' },
 } as const
 
 export interface NumberInputProps

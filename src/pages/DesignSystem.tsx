@@ -148,7 +148,10 @@ export default function DesignSystem() {
       <footer className="border-t border-border">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <p>Liquid Glass — design system for the early-development architecture.</p>
-          <Link to="/" className="font-medium text-foreground hover:text-primary">
+          <Link
+            to="/"
+            className="inline-flex min-h-11 w-fit items-center font-medium text-foreground hover:text-primary sm:min-h-0"
+          >
             ← Back to infographic
           </Link>
         </div>

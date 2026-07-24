@@ -15,10 +15,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
  * underneath, and the popover closes as soon as a day is picked.
  */
 
+/**  Matches `Input`'s mobile-first sizing: a real touch target on phones,
+   the compact desktop height from `sm` up.
+ */
 const sizes = {
-  sm: 'h-8 text-sm',
-  default: 'h-9 text-base md:text-sm',
-  lg: 'h-11 text-base',
+  sm: 'h-9 text-sm sm:h-7',
+  default: 'h-11 text-base sm:h-8 md:text-sm',
+  lg: 'h-12 text-base sm:h-10',
 } as const
 
 export interface DatePickerProps {

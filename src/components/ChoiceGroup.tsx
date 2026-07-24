@@ -30,6 +30,18 @@ export interface ChoiceGroupProps<T extends string> {
   className?: string
 }
 
+/**
+ * Mobile-first heights, matching `Input` and the pickers: a real touch target
+ * on phones, the tighter desktop height from `sm` up. These override the fixed
+ * heights in `toggleVariants`' size scale, which the rest of the app's toggles
+ * still use.
+ */
+const heights = {
+  sm: 'h-9 sm:h-7',
+  default: 'h-11 sm:h-8',
+  lg: 'h-11 sm:h-9',
+} as const
+
 export function ChoiceGroup<T extends string>({
   value,
   onChange,
@@ -51,7 +63,13 @@ export function ChoiceGroup<T extends string>({
       className={cn('flex-wrap gap-2', className)}
     >
       {options.map((o) => (
-        <ToggleGroupItem key={o.value} value={o.value} aria-label={o.ariaLabel} disabled={o.disabled}>
+        <ToggleGroupItem
+          key={o.value}
+          value={o.value}
+          aria-label={o.ariaLabel}
+          disabled={o.disabled}
+          className={heights[size]}
+        >
           {o.label}
         </ToggleGroupItem>
       ))}

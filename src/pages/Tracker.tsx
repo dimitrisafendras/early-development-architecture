@@ -62,7 +62,7 @@ export default function Tracker() {
 
   return (
     <>
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-10">
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 page-px py-10">
         <SectionHeader title={t.tracker.title} description={t.tracker.subtitle} />
 
         <Card>
@@ -161,14 +161,16 @@ export default function Tracker() {
                           <span className="font-semibold text-foreground">
                             {mins} {t.tracker.minutesShort}
                           </span>
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="icon"
                             aria-label={t.tracker.delete}
                             onClick={() => void tracker.remove(s.id)}
-                            className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                           >
                             <Trash2 className="size-4" />
-                          </button>
+                          </Button>
                         </span>
                       </li>
                     )
@@ -215,10 +217,10 @@ function StatTile({
     <Card>
       <CardContent className="py-4">
         <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
-          <span className="text-primary">{icon}</span>
-          {label}
+          <span className="shrink-0 text-primary">{icon}</span>
+          <span className="truncate">{label}</span>
         </div>
-        <div className="mt-1 font-heading text-2xl font-semibold text-foreground">
+        <div className="mt-1 truncate font-heading text-2xl font-semibold text-foreground">
           {value}
           {unit && <span className="ml-1 text-sm font-medium text-muted-foreground">{unit}</span>}
         </div>

@@ -46,7 +46,7 @@ export default function Baby() {
 
   return (
     <>
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-10">
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 page-px py-10">
         <SectionHeader title={t.baby.title} description={t.baby.subtitle} />
 
         {!ready ? (
@@ -259,7 +259,7 @@ function BabyDetail({
                   <Pencil className="mr-1.5 size-3.5" /> {t.baby.editProfile}
                 </Button>
                 {confirmDelete ? (
-                  <span className="flex items-center gap-2 text-sm">
+                  <span className="flex flex-wrap items-center gap-2 text-sm">
                     <span className="hidden text-muted-foreground sm:inline">{t.baby.deleteBabyConfirm}</span>
                     <Button size="sm" variant="destructive" onClick={() => void deleteBaby(baby.id)}>
                       {t.baby.deleteBaby}
@@ -327,14 +327,16 @@ function BabyDetail({
                       {r.height_cm != null && <span className="mr-3">{r.height_cm} cm</span>}
                       {r.head_cm != null && <span>{r.head_cm} cm ⌀</span>}
                     </span>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon"
                       aria-label={t.baby.delete}
                       onClick={() => void deleteMeasurement(r.id).then(refresh)}
-                      className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                      className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                     >
                       <Trash2 className="size-4" />
-                    </button>
+                    </Button>
                   </span>
                 </li>
               ))}
@@ -351,8 +353,8 @@ function Stat({ label, value, icon }: { label: string; value: string; icon: Reac
     <Card>
       <CardContent className="py-4">
         <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
-          <span className="text-primary">{icon}</span>
-          {label}
+          <span className="shrink-0 text-primary">{icon}</span>
+          <span className="truncate">{label}</span>
         </div>
         <div className="mt-1 truncate font-heading text-xl font-semibold text-foreground">{value}</div>
       </CardContent>

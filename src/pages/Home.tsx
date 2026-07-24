@@ -15,7 +15,7 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <main className="mx-auto w-full max-w-7xl px-6 py-14">
+      <main className="mx-auto w-full max-w-7xl page-px py-14">
         {/* Your day */}
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
           {t.hub.yourDay}
@@ -24,9 +24,9 @@ export default function Home() {
           to="/daily"
           className="group mb-12 block rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/15 to-primary/5 p-6 outline-none transition-[border-color,box-shadow] hover:border-primary/50 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring/70 sm:p-8"
         >
-          <div className="flex items-center gap-5">
-            <span className="inline-flex shrink-0 rounded-2xl bg-primary/15 p-3.5 text-primary">
-              <CalendarCheck className="size-7" />
+          <div className="flex items-center gap-4 sm:gap-5">
+            <span className="inline-flex shrink-0 rounded-2xl bg-primary/15 p-3 text-primary sm:p-3.5">
+              <CalendarCheck className="size-6 sm:size-7" />
             </span>
             <div className="min-w-0 flex-1">
               <p className="font-heading text-xl font-semibold text-foreground sm:text-2xl">
@@ -36,7 +36,7 @@ export default function Home() {
                 {t.hub.dailyCardBlurb}
               </p>
             </div>
-            <ArrowRight className="size-6 shrink-0 text-primary transition-transform group-hover:translate-x-1" />
+            <ArrowRight className="size-5 shrink-0 text-primary transition-transform group-hover:translate-x-1 sm:size-6" />
           </div>
         </Link>
 

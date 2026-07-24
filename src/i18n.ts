@@ -23,6 +23,15 @@ const en = {
     feed: 'Feed log',
     baby: 'Baby',
     family: 'Family',
+    /** Short forms for the mobile bottom tab bar, where each tab is ~64px wide. */
+    tabs: {
+      today: 'Today',
+      tracker: 'Tummy',
+      feed: 'Feed',
+      baby: 'Baby',
+      family: 'Family',
+    },
+    appAreas: 'App',
     palette: 'Accent palette',
     boy: 'Boy',
     girl: 'Girl',
@@ -62,6 +71,13 @@ const en = {
     signedInAs: 'Signed in as',
     anonymousUser: 'Guest',
     error: 'Something went wrong. Please try again.',
+    signUp: 'Create account',
+    subtitleSignIn:
+      'Your tracker, feed log, and baby profiles sync across every device you and your family use.',
+    subtitleSignUp:
+      'One account keeps your baby’s data backed up and shareable with the rest of your household.',
+    back: 'Back',
+    passwordHint: 'At least 6 characters.',
   },
   common: {
     module: 'Module',
@@ -138,7 +154,7 @@ const en = {
   },
   daily: {
     title: 'Your Day',
-    subtitle: "Everything you do today in one place — what's happening now, tummy-time, and your caregiver checklist.",
+    subtitle: "Everything you do today in one place — what's happening now and the one thing to do for it.",
     nowTitle: "What's now",
     suggestedNow: 'Try now',
     tummyTitle: 'Tummy time',
@@ -148,6 +164,11 @@ const en = {
     ofTarget: 'of target',
     checklistTitle: "Today's checklist",
     checklistDone: 'done',
+    feedTitle: 'Feeding',
+    logFeed: 'Log a feed',
+    openFeed: 'Open feed log',
+    learnMore: 'Learn more',
+    timeLeft: 'left',
     fullDayCta: 'See the full hour-by-hour day',
     learnRoutine: 'Learn about the daily routine',
   },
@@ -164,6 +185,7 @@ const en = {
     timeLabel: 'Time',
     noteLabel: 'Note (optional)',
     save: 'Log feed',
+    delete: 'Delete feed',
     copyLast: 'Copy last feed',
     todayTitle: "Today's feeds",
     none: 'No feeds logged today yet.',
@@ -432,6 +454,7 @@ const en = {
     title: '📅 Daily Routine Architecture (Caregiver & Infant)',
     description:
       'A predictable yet adaptable rhythm balancing direct engagement, physical tummy sessions, sensory regulation, and caregiver recovery.',
+    nowLink: 'See what’s happening now',
     blocks: [
       {
         title: 'Morning Awakening & Auditory Scaffolding',
@@ -691,6 +714,14 @@ const el: Messages = {
     feed: 'Καταγραφή Ταΐσματος',
     baby: 'Μωρό',
     family: 'Οικογένεια',
+    tabs: {
+      today: 'Σήμερα',
+      tracker: 'Μπρούμυτα',
+      feed: 'Τάισμα',
+      baby: 'Μωρό',
+      family: 'Οικογένεια',
+    },
+    appAreas: 'Εφαρμογή',
     palette: 'Χρωματική παλέτα',
     boy: 'Αγόρι',
     girl: 'Κορίτσι',
@@ -730,6 +761,13 @@ const el: Messages = {
     signedInAs: 'Συνδεδεμένοι ως',
     anonymousUser: 'Επισκέπτης',
     error: 'Κάτι πήγε στραβά. Δοκιμάστε ξανά.',
+    signUp: 'Δημιουργία λογαριασμού',
+    subtitleSignIn:
+      'Η παρακολούθηση, η καταγραφή ταΐσματος και τα προφίλ του μωρού συγχρονίζονται σε κάθε συσκευή που χρησιμοποιείτε εσείς και η οικογένειά σας.',
+    subtitleSignUp:
+      'Ένας λογαριασμός κρατά τα δεδομένα του μωρού σας ασφαλή και διαθέσιμα στο υπόλοιπο σπιτικό σας.',
+    back: 'Πίσω',
+    passwordHint: 'Τουλάχιστον 6 χαρακτήρες.',
   },
   common: {
     module: 'Ενότητα',
@@ -805,7 +843,7 @@ const el: Messages = {
   },
   daily: {
     title: 'Η Μέρα σας',
-    subtitle: 'Όλα όσα κάνετε σήμερα σε ένα μέρος — τι συμβαίνει τώρα, χρόνος μπρούμυτα και η λίστα φροντιστή.',
+    subtitle: 'Όλα όσα κάνετε σήμερα σε ένα μέρος — τι συμβαίνει τώρα και το ένα πράγμα που κάνετε γι’ αυτό.',
     nowTitle: 'Τώρα',
     suggestedNow: 'Δοκιμάστε τώρα',
     tummyTitle: 'Χρόνος μπρούμυτα',
@@ -815,6 +853,11 @@ const el: Messages = {
     ofTarget: 'του στόχου',
     checklistTitle: 'Σημερινή λίστα',
     checklistDone: 'ολοκληρωμένα',
+    feedTitle: 'Τάισμα',
+    logFeed: 'Καταγραφή ταΐσματος',
+    openFeed: 'Άνοιγμα καταγραφής',
+    learnMore: 'Μάθετε περισσότερα',
+    timeLeft: 'ακόμη',
     fullDayCta: 'Δείτε την πλήρη μέρα ώρα-ώρα',
     learnRoutine: 'Μάθετε για την καθημερινή ρουτίνα',
   },
@@ -831,6 +874,7 @@ const el: Messages = {
     timeLabel: 'Ώρα',
     noteLabel: 'Σημείωση (προαιρετικό)',
     save: 'Καταγραφή',
+    delete: 'Διαγραφή ταΐσματος',
     copyLast: 'Αντιγραφή τελευταίου',
     todayTitle: 'Σημερινά ταΐσματα',
     none: 'Δεν έχει καταγραφεί τάισμα σήμερα.',
@@ -1099,6 +1143,7 @@ const el: Messages = {
     title: '📅 Αρχιτεκτονική Καθημερινής Ρουτίνας (Φροντιστής & Βρέφος)',
     description:
       'Ένας προβλέψιμος αλλά προσαρμόσιμος ρυθμός που ισορροπεί την άμεση αλληλεπίδραση, τις σωματικές συνεδρίες μπρούμυτα, την αισθητηριακή ρύθμιση και την ανάκαμψη του φροντιστή.',
+    nowLink: 'Δείτε τι συμβαίνει τώρα',
     blocks: [
       {
         title: 'Πρωινό Ξύπνημα & Ακουστική Υποστήριξη',
