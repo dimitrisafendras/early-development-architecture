@@ -12,6 +12,11 @@ import type { Palette } from '../store'
 
 const CURRENT_BABY_KEY = 'eda-current-baby'
 
+// Module cache so navigating between routes shows the last-known babies
+// instantly and only shows a loading state on the very first fetch per user.
+let babyCache: Baby[] | null = null
+let cacheUserId: string | null = null
+
 /**
  * Babies for the signed-in user, plus the currently-selected baby. Baby data
  * is inherently per-account, so it only loads when Supabase is configured and
@@ -20,28 +25,43 @@ const CURRENT_BABY_KEY = 'eda-current-baby'
  */
 export function useBabies() {
   const { session, loading: sessionLoading } = useSession()
-  const [babies, setBabies] = useState<Baby[]>([])
-  const [loading, setLoading] = useState(false)
+  const userId = session?.user?.id ?? null
+  const cacheValid = babyCache !== null && cacheUserId === userId
+  const [babies, setBabies] = useState<Baby[]>(cacheValid ? (babyCache as Baby[]) : [])
+  // Only "loading" when we have no cached data for this user yet.
+  const [loading, setLoading] = useState(!cacheValid)
   const [currentBabyId, setCurrentBabyIdState] = useState<string | null>(
     () => localStorage.getItem(CURRENT_BABY_KEY),
   )
 
   const refresh = useCallback(async () => {
     if (!isSupabaseEnabled || !session) {
+      babyCache = []
+      cacheUserId = userId
       setBabies([])
+      setLoading(false)
       return
     }
-    setLoading(true)
     try {
-      setBabies(await listBabies())
+      const rows = await listBabies()
+      babyCache = rows
+      cacheUserId = userId
+      setBabies(rows)
     } finally {
       setLoading(false)
     }
-  }, [session])
+  }, [session, userId])
 
   useEffect(() => {
+    // Seed instantly from cache when it matches, then refresh in the background.
+    if (babyCache !== null && cacheUserId === userId) {
+      setBabies(babyCache)
+      setLoading(false)
+    } else {
+      setLoading(true)
+    }
     void refresh()
-  }, [refresh])
+  }, [refresh, userId])
 
   const setCurrentBabyId = useCallback((id: string | null) => {
     setCurrentBabyIdState(id)

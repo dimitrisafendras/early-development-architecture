@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { GrowthChart } from '../components/charts'
 import { useBabies } from '../lib/useBabies'
@@ -54,9 +55,15 @@ export default function Baby() {
             </CardContent>
           </Card>
         ) : loading && babies.length === 0 ? (
-          <Card>
-            <CardContent className="py-10 text-center text-muted-foreground">…</CardContent>
-          </Card>
+          <div className="flex flex-col gap-6">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-20" />
+              ))}
+            </div>
+            <Skeleton className="h-40" />
+            <Skeleton className="h-56" />
+          </div>
         ) : (
           <>
             {babies.length > 1 && (
@@ -316,7 +323,11 @@ function BabyDetail({
         <CardContent>
           <p className="mb-4 text-[15px] font-semibold text-foreground">{t.baby.measurementsTitle}</p>
           {loading ? (
-            <p className="text-sm text-muted-foreground">…</p>
+            <div className="space-y-2">
+              <Skeleton className="h-8" />
+              <Skeleton className="h-8" />
+              <Skeleton className="h-8" />
+            </div>
           ) : rows.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t.baby.noMeasurements}</p>
           ) : (

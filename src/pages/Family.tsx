@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   useHousehold,
   createHousehold,
@@ -83,9 +84,10 @@ export default function Family() {
             )}
 
             {loading && !household ? (
-              <Card>
-                <CardContent className="py-10 text-center text-muted-foreground">…</CardContent>
-              </Card>
+              <div className="flex flex-col gap-4">
+                <Skeleton className="h-32" />
+                <Skeleton className="h-40" />
+              </div>
             ) : !household ? (
               <CreateFamilyForm
                 busy={busy === 'create'}

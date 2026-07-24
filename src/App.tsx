@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import Topic from './pages/Topic'
 import LearnGroup from './pages/LearnGroup'
@@ -32,16 +32,28 @@ export default function App() {
   }, [dark, palette, locale])
 
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/topic/:slug" element={<Topic />} />
-      <Route path="/learn/:group" element={<LearnGroup />} />
-      <Route path="/daily" element={<Daily />} />
-      <Route path="/tracker" element={<Tracker />} />
-      <Route path="/baby" element={<Baby />} />
-      <Route path="/family" element={<Family />} />
-      <Route path="/design-system" element={<DesignSystem />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/topic/:slug" element={<Topic />} />
+        <Route path="/learn/:group" element={<LearnGroup />} />
+        <Route path="/daily" element={<Daily />} />
+        <Route path="/tracker" element={<Tracker />} />
+        <Route path="/baby" element={<Baby />} />
+        <Route path="/family" element={<Family />} />
+        <Route path="/design-system" element={<DesignSystem />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   )
+}
+
+/** Reset scroll to the top on every route change so pages don't open mid-scroll. */
+function ScrollToTop() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
+  return null
 }

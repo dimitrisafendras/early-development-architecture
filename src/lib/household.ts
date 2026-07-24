@@ -159,45 +159,67 @@ export async function shareOwnedBabies(householdId: string): Promise<void> {
  * The user's current household (first membership), its members and pending
  * invites, plus the invites addressed to the user. Loads only when signed in.
  */
+interface HouseholdSnapshot {
+  household: Household | null
+  members: Member[]
+  invites: Invite[]
+  pending: Invite[]
+}
+// Module cache keyed by user, so revisiting /family doesn't flash empty.
+let hhCache: HouseholdSnapshot | null = null
+let hhCacheUserId: string | null = null
+
 export function useHousehold() {
   const { session, loading: sessionLoading } = useSession()
   const ready = isSupabaseEnabled && Boolean(session)
-  const [household, setHousehold] = useState<Household | null>(null)
-  const [members, setMembers] = useState<Member[]>([])
-  const [invites, setInvites] = useState<Invite[]>([])
-  const [pending, setPending] = useState<Invite[]>([])
-  const [loading, setLoading] = useState(false)
+  const userId = session?.user?.id ?? null
+  const cacheValid = hhCache !== null && hhCacheUserId === userId
+  const [household, setHousehold] = useState<Household | null>(cacheValid ? hhCache!.household : null)
+  const [members, setMembers] = useState<Member[]>(cacheValid ? hhCache!.members : [])
+  const [invites, setInvites] = useState<Invite[]>(cacheValid ? hhCache!.invites : [])
+  const [pending, setPending] = useState<Invite[]>(cacheValid ? hhCache!.pending : [])
+  const [loading, setLoading] = useState(!cacheValid)
 
   const refresh = useCallback(async () => {
     if (!ready) {
+      hhCache = { household: null, members: [], invites: [], pending: [] }
+      hhCacheUserId = userId
       setHousehold(null)
       setMembers([])
       setInvites([])
       setPending([])
+      setLoading(false)
       return
     }
-    setLoading(true)
     try {
       const [households, myPending] = await Promise.all([listMyHouseholds(), myPendingInvites()])
-      setPending(myPending)
       const current = households[0] ?? null
+      let m: Member[] = []
+      let inv: Invite[] = []
+      if (current) [m, inv] = await Promise.all([listMembers(current.id), listInvites(current.id)])
+      hhCache = { household: current, members: m, invites: inv, pending: myPending }
+      hhCacheUserId = userId
       setHousehold(current)
-      if (current) {
-        const [m, inv] = await Promise.all([listMembers(current.id), listInvites(current.id)])
-        setMembers(m)
-        setInvites(inv)
-      } else {
-        setMembers([])
-        setInvites([])
-      }
+      setMembers(m)
+      setInvites(inv)
+      setPending(myPending)
     } finally {
       setLoading(false)
     }
-  }, [ready])
+  }, [ready, userId])
 
   useEffect(() => {
+    if (hhCache !== null && hhCacheUserId === userId) {
+      setHousehold(hhCache.household)
+      setMembers(hhCache.members)
+      setInvites(hhCache.invites)
+      setPending(hhCache.pending)
+      setLoading(false)
+    } else {
+      setLoading(true)
+    }
     void refresh()
-  }, [refresh])
+  }, [refresh, userId])
 
   return {
     ready,
