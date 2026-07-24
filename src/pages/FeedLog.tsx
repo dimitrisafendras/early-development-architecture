@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 import { useBabies } from '../lib/useBabies'
 import { useFeedLog } from '../lib/useFeedLog'
 import { bandIndex } from '../lib/schedule'
-import { feedingUppers } from '../data'
+import { feedingRows, feedingUppers } from '../data'
 import type { FeedMethod } from '../lib/db'
 import { useT } from '../i18n'
 
@@ -37,7 +37,9 @@ export default function FeedLog() {
         ? `${Math.floor(feed.minsSinceLast / 60)}${tf.hourShort} ${feed.minsSinceLast % 60}${tf.minShort}`
         : `${feed.minsSinceLast} ${tf.minShort}`
 
-  const guideAmount = baby ? t.feeding.rows[bandIndex(baby.months, feedingUppers)].amount : null
+  const band = baby ? bandIndex(baby.months, feedingUppers) : null
+  const guideAmount = band != null ? t.feeding.rows[band].amount : null
+  const feedsRange = band != null ? feedingRows[band].feedsPerDay : null
 
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-10">
@@ -57,6 +59,8 @@ export default function FeedLog() {
           value={feed.lastFeed ? fmtTime(feed.lastFeed.fed_at) : tf.never}
         />
       </div>
+
+      {feedsRange && <FeedProgress count={feed.todayFeeds.length} range={feedsRange} tf={tf} />}
 
       <AddFeedForm
         guide={guideAmount ? tf.guide.replace('{amount}', guideAmount) : null}
@@ -108,6 +112,62 @@ export default function FeedLog() {
         </CardContent>
       </Card>
     </main>
+  )
+}
+
+function FeedProgress({
+  count,
+  range,
+  tf,
+}: {
+  count: number
+  range: [number, number]
+  tf: ReturnType<typeof useT>['feed']
+}) {
+  const [min, max] = range
+  const state = count < min ? 'below' : count > max ? 'above' : 'on'
+  const status = state === 'below' ? tf.progressBelow : state === 'above' ? tf.progressAbove : tf.progressOnTrack
+  // Scale so the typical zone and current count always fit with headroom.
+  const scaleMax = Math.max(max + 2, count + 1, 1)
+  const p = (v: number) => Math.min(100, (v / scaleMax) * 100)
+
+  return (
+    <Card>
+      <CardContent className="py-4">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="flex items-center gap-2 text-[15px] font-semibold text-foreground">
+            <Utensils className="size-4 text-primary" /> {tf.progressTitle}
+          </p>
+          <p className="font-heading text-sm text-muted-foreground">
+            <span className="text-lg font-semibold tabular-nums text-foreground">{count}</span>
+            {' / ~'}
+            {min}–{max} {tf.progressFeeds}
+          </p>
+        </div>
+        <div className="relative mt-3 h-2.5 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="absolute inset-y-0 bg-primary/20"
+            style={{ left: `${p(min)}%`, width: `${p(max) - p(min)}%` }}
+          />
+          <div
+            className={cn(
+              'absolute inset-y-0 left-0 rounded-full',
+              state === 'on' ? 'bg-emerald-500' : state === 'above' ? 'bg-amber-500' : 'bg-primary',
+            )}
+            style={{ width: `${p(count)}%` }}
+          />
+        </div>
+        <p
+          className={cn(
+            'mt-2 text-sm',
+            state === 'on' ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground',
+          )}
+        >
+          {status}
+        </p>
+        <p className="mt-1 text-xs text-muted-foreground">{tf.progressNote}</p>
+      </CardContent>
+    </Card>
   )
 }
 

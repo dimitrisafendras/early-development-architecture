@@ -105,6 +105,9 @@ export interface ScheduleBlock {
   items: { strong: string; text: string }[]
   focus: string
   tone: ScheduleTone
+  /** Which action the /daily "what's now" surfaces for this block:
+   *  a feed quick-log, the tummy-time tracker, or a passive calm/rest prompt. */
+  action: 'feed' | 'tummy' | 'rest'
 }
 
 export const scheduleBlocks: ScheduleBlock[] = [
@@ -117,6 +120,7 @@ export const scheduleBlocks: ScheduleBlock[] = [
     ],
     focus: 'Focus: High linguistic input & emotional reconnect',
     tone: 'amber',
+    action: 'feed',
   },
   {
     time: '09:00 – 11:30',
@@ -127,6 +131,7 @@ export const scheduleBlocks: ScheduleBlock[] = [
     ],
     focus: 'Focus: Core muscle building & visual scanning',
     tone: 'emerald',
+    action: 'tummy',
   },
   {
     time: '12:00 – 14:30',
@@ -137,6 +142,7 @@ export const scheduleBlocks: ScheduleBlock[] = [
     ],
     focus: 'Focus: Sensory reset & nervous system calming',
     tone: 'sky',
+    action: 'rest',
   },
   {
     time: '15:00 – 17:30',
@@ -147,6 +153,7 @@ export const scheduleBlocks: ScheduleBlock[] = [
     ],
     focus: 'Focus: Dynamic mobility & tactile exploration',
     tone: 'cyan',
+    action: 'tummy',
   },
   {
     time: '18:00 – 20:30',
@@ -157,6 +164,7 @@ export const scheduleBlocks: ScheduleBlock[] = [
     ],
     focus: 'Focus: Melatonin onset & emotional grounding',
     tone: 'fuchsia',
+    action: 'rest',
   },
   {
     time: '21:00 Onward',
@@ -167,6 +175,7 @@ export const scheduleBlocks: ScheduleBlock[] = [
     ],
     focus: 'Focus: Airway safety & memory wiring',
     tone: 'indigo',
+    action: 'rest',
   },
 ]
 
@@ -252,12 +261,15 @@ export const safeSleepRules: { tone: StatusTone }[] = [
   { tone: 'danger' }, //  no soft bedding / bumpers / toys
 ]
 
-/** Feeding frequency/amount rows by age band; all text localized in i18n. */
-export const feedingRows: { tone: ScheduleTone }[] = [
-  { tone: 'amber' }, // newborn 0–1 mo
-  { tone: 'emerald' }, // 1–2 mo
-  { tone: 'sky' }, // 2–4 mo
-  { tone: 'fuchsia' }, // 4–6 mo
+/** Feeding frequency/amount rows by age band; all text localized in i18n.
+ *  `feedsPerDay` is the typical [min, max] number of feeds/24h for the band —
+ *  used to compare today's logged count against age guidance (a guide, not a
+ *  target). Monotonic-decreasing and consistent with the i18n frequency text. */
+export const feedingRows: { tone: ScheduleTone; feedsPerDay: [number, number] }[] = [
+  { tone: 'amber', feedsPerDay: [8, 12] }, // newborn 0–1 mo
+  { tone: 'emerald', feedsPerDay: [7, 9] }, // 1–2 mo
+  { tone: 'sky', feedsPerDay: [6, 8] }, // 2–4 mo
+  { tone: 'fuchsia', feedsPerDay: [4, 5] }, // 4–6 mo
 ]
 /** Exclusive upper age bound (months) per feeding band; last is open-ended. */
 export const feedingUppers = [1, 2, 4, 999]
