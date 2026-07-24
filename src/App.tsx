@@ -57,11 +57,13 @@ export default function App() {
   )
 }
 
-/** Reset scroll to the top on every route change so pages don't open mid-scroll. */
+/** Reset scroll to the top on every route change so pages don't open mid-scroll —
+ *  unless the URL carries a hash (a deep-link to an in-page anchor). */
 function ScrollToTop() {
-  const { pathname } = useLocation()
+  const { pathname, hash } = useLocation()
   useEffect(() => {
+    if (hash) return
     window.scrollTo(0, 0)
-  }, [pathname])
+  }, [pathname, hash])
   return null
 }

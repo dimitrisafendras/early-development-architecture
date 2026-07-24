@@ -33,9 +33,11 @@ function saveLocal(list: LocalSession[]) {
   localStorage.setItem(LOCAL_SESSIONS, JSON.stringify(list))
 }
 
-function sevenDaysAgoISO(): string {
+/** Start of the history window kept in memory (90 days). The week chart and
+ *  streak still derive their own 7-day slice from this set. */
+function historyStartISO(): string {
   const d = new Date()
-  d.setDate(d.getDate() - 6)
+  d.setDate(d.getDate() - 89)
   d.setHours(0, 0, 0, 0)
   return d.toISOString()
 }
@@ -55,14 +57,14 @@ export function useTummyTracker(babyId: string | null, householdId: string | nul
 
   const refreshSessions = useCallback(async () => {
     if (signedIn) {
-      const rows = await listSessionsSince(sevenDaysAgoISO())
+      const rows = await listSessionsSince(historyStartISO())
       setSessions(
         rows
           .filter((r): r is TummySession & { ended_at: string } => Boolean(r.ended_at))
           .map((r) => ({ id: r.id, started_at: r.started_at, ended_at: r.ended_at })),
       )
     } else {
-      const cutoff = new Date(sevenDaysAgoISO()).getTime()
+      const cutoff = new Date(historyStartISO()).getTime()
       setSessions(loadLocal().filter((s) => new Date(s.started_at).getTime() >= cutoff))
     }
   }, [signedIn])

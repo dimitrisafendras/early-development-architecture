@@ -7,7 +7,7 @@ import { TummyWeekChart } from '../components/charts'
 import { SectionHeader } from '../components/SectionHeader'
 import { useBabies } from '../lib/useBabies'
 import { useTummyTracker, useWeeklyMinutes } from '../lib/useTummyTracker'
-import { tummyTargetForAgeMonths, ageInMonths } from '../lib/schedule'
+import { tummyTargetForAgeMonths, ageInMonths, todayKey } from '../lib/schedule'
 import { formatDateKey, useDateLocale } from '../lib/dates'
 import { useT } from '../i18n'
 
@@ -56,6 +56,23 @@ export default function Tracker() {
     ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
     : 0
 
+  // Full history grouped by day, newest first.
+  const todayK = todayKey()
+  const yesterdayK = todayKey(new Date(Date.now() - 86_400_000))
+  const historyDays: [string, typeof tracker.sessions][] = []
+  for (const s of [...tracker.sessions].sort((a, b) => b.started_at.localeCompare(a.started_at))) {
+    const key = todayKey(new Date(s.started_at))
+    const group = historyDays.find(([k]) => k === key)
+    if (group) group[1].push(s)
+    else historyDays.push([key, [s]])
+  }
+  const dayLabel = (key: string) =>
+    key === todayK
+      ? t.tracker.todayLabel
+      : key === yesterdayK
+        ? t.tracker.yesterdayLabel
+        : formatDateKey(key, locale, { weekday: 'short', day: 'numeric', month: 'short' })
+
   const targetContext = currentBaby
     ? t.tracker.targetForBaby.replace('{name}', currentBaby.name).replace('{age}', String(ageM))
     : t.tracker.targetForNoBaby
@@ -67,7 +84,7 @@ export default function Tracker() {
 
         <Card>
           <CardContent className="flex flex-col items-center gap-6 py-8">
-            <ProgressRing progress={totalWithRunning / target}>
+            <ProgressRing progress={totalWithRunning / target} complete={metTarget}>
               <div>
                 {tracker.isRunning ? (
                   <div className="font-heading text-4xl font-semibold tabular-nums text-foreground">
@@ -79,8 +96,12 @@ export default function Tracker() {
                     <span className="text-lg text-muted-foreground"> / {target}</span>
                   </div>
                 )}
-                <div className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">
-                  {tracker.isRunning
+                <div
+                  className={`mt-1 text-xs uppercase tracking-wider ${
+                    metTarget ? 'font-semibold text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
+                  }`}
+                >
+                  {tracker.isRunning && !metTarget
                     ? t.tracker.running
                     : metTarget
                       ? t.tracker.targetMet
@@ -138,44 +159,52 @@ export default function Tracker() {
           <Card>
             <CardContent>
               <p className="mb-4 flex items-center gap-2 text-[15px] font-semibold text-foreground">
-                <Timer className="size-4 text-primary" /> {t.tracker.sessionsToday}
+                <Timer className="size-4 text-primary" /> {t.tracker.historyTitle}
               </p>
-              {tracker.todaySessions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t.tracker.noSessions}</p>
+              {tracker.sessions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">{t.tracker.noHistory}</p>
               ) : (
-                <ul className="divide-y divide-border">
-                  {tracker.todaySessions.map((s) => {
-                    const mins = Math.max(
-                      0,
-                      Math.round(
-                        (new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) /
-                          60000,
-                      ),
-                    )
-                    return (
-                      <li key={s.id} className="flex items-center justify-between py-2.5 text-sm">
-                        <span className="text-muted-foreground">
-                          {fmtTime(s.started_at, locale)} – {fmtTime(s.ended_at, locale)}
-                        </span>
-                        <span className="flex items-center gap-3">
-                          <span className="font-semibold text-foreground">
-                            {mins} {t.tracker.minutesShort}
-                          </span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            aria-label={t.tracker.delete}
-                            onClick={() => void tracker.remove(s.id)}
-                            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </span>
-                      </li>
-                    )
-                  })}
-                </ul>
+                <div className="max-h-[10.5rem] space-y-4 overflow-y-auto pr-1">
+                  {historyDays.map(([key, list]) => (
+                    <div key={key}>
+                      <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        {dayLabel(key)}
+                      </p>
+                      <ul className="divide-y divide-border">
+                        {list.map((s) => {
+                          const mins = Math.max(
+                            0,
+                            Math.round(
+                              (new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) / 60000,
+                            ),
+                          )
+                          return (
+                            <li key={s.id} className="flex items-center justify-between py-2.5 text-sm">
+                              <span className="text-muted-foreground">
+                                {fmtTime(s.started_at, locale)} – {fmtTime(s.ended_at, locale)}
+                              </span>
+                              <span className="flex items-center gap-3">
+                                <span className="font-semibold text-foreground">
+                                  {mins} {t.tracker.minutesShort}
+                                </span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  aria-label={t.tracker.delete}
+                                  onClick={() => void tracker.remove(s.id)}
+                                  className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                                >
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              </span>
+                            </li>
+                          )
+                        })}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
               )}
               <div className="mt-4 border-t border-border pt-3 text-sm">
                 <span className="text-muted-foreground">{t.tracker.cumulativeToday}: </span>

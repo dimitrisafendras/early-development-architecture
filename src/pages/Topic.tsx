@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Link, Navigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams, useLocation } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, LayoutGrid } from 'lucide-react'
 import { topics, topicPath, findTopic } from '../sections/registry'
 import { useT } from '../i18n'
@@ -11,14 +11,17 @@ import { useT } from '../i18n'
  */
 export default function Topic() {
   const { slug } = useParams()
+  const { hash } = useLocation()
   const t = useT()
   const topic = findTopic(slug)
 
   // Reset scroll when moving between topics (client-side nav keeps the scroll
-  // position otherwise, landing the reader mid-page).
+  // position otherwise, landing the reader mid-page). Skip when the URL carries
+  // a hash — the target section handles scrolling to its anchor.
   useEffect(() => {
+    if (hash) return
     window.scrollTo(0, 0)
-  }, [slug])
+  }, [slug, hash])
 
   if (!topic) return <Navigate to="/" replace />
 

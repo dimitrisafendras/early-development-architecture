@@ -18,14 +18,24 @@ export function FullDay() {
   const activeSlot = activeTimeIndex(fullDaySchedule.map((s) => s.time), now)
 
   // Deep-link to a slot (e.g. /topic/full-day#slot-4 from the day's "up next").
-  // rAF lets it win over the route-change scroll-to-top on the same commit.
+  // A short timed scroll survives StrictMode's effect double-invoke and any
+  // load-time layout shift (fonts) that would move the target mid-animation.
   const { hash } = useLocation()
   useEffect(() => {
     if (!hash) return
-    const el = document.getElementById(hash.slice(1))
-    if (!el) return
-    const id = requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }))
-    return () => cancelAnimationFrame(id)
+    // Retry briefly: on in-app navigation the target may not be laid out yet,
+    // and a smooth scroll gets interrupted by the route transition — so jump.
+    let tries = 0
+    const iv = setInterval(() => {
+      const el = document.getElementById(hash.slice(1))
+      if (el) {
+        // Explicit 'instant' — the global smooth scroll-behavior gets
+        // interrupted by the route transition and leaves us at the top.
+        el.scrollIntoView({ behavior: 'instant', block: 'center' })
+        clearInterval(iv)
+      } else if (++tries > 25) clearInterval(iv)
+    }, 50)
+    return () => clearInterval(iv)
   }, [hash])
   return (
     <section id="full-day">

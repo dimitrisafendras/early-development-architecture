@@ -179,7 +179,7 @@ function TummyWidget() {
     <Card>
       <CardContent className="flex flex-col items-center gap-4 py-6">
         <p className="self-start text-[15px] font-semibold text-foreground">{t.daily.tummyTitle}</p>
-        <ProgressRing progress={total / target} size={160} stroke={12}>
+        <ProgressRing progress={total / target} size={160} stroke={12} complete={total >= target}>
           <div>
             <div className="font-heading text-2xl font-semibold tabular-nums text-foreground">
               {clock ?? Math.round(total)}
