@@ -8,6 +8,7 @@ import { SectionHeader } from '../components/SectionHeader'
 import { useBabies } from '../lib/useBabies'
 import { useTummyTracker, useWeeklyMinutes } from '../lib/useTummyTracker'
 import { tummyTargetForAgeMonths, ageInMonths } from '../lib/schedule'
+import { formatDateKey, useDateLocale } from '../lib/dates'
 import { useT } from '../i18n'
 
 function fmtClock(totalSeconds: number): string {
@@ -16,12 +17,14 @@ function fmtClock(totalSeconds: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
 }
 
-function fmtTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+/** Uses the app's locale, not the browser's, so times read the same everywhere. */
+function fmtTime(iso: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
 }
 
 export default function Tracker() {
   const t = useT()
+  const locale = useDateLocale()
   const { currentBaby } = useBabies()
   const tracker = useTummyTracker(currentBaby?.id ?? null, currentBaby?.household_id ?? null)
   const week = useWeeklyMinutes(tracker.sessions, tracker.signedIn)
@@ -33,7 +36,7 @@ export default function Tracker() {
   const remaining = Math.max(0, Math.round(target - totalWithRunning))
   const metTarget = totalWithRunning >= target
 
-  const weekLabels = week.map((d) => new Date(d.key).toLocaleDateString([], { weekday: 'short' }))
+  const weekLabels = week.map((d) => formatDateKey(d.key, locale, { weekday: 'short' }))
   const weekMinutes = week.map((d) => Math.round(d.minutes))
   const weekTotal = weekMinutes.reduce((a, b) => a + b, 0)
   const daysOnTarget = week.filter((d) => d.minutes >= target).length
@@ -152,7 +155,7 @@ export default function Tracker() {
                     return (
                       <li key={s.id} className="flex items-center justify-between py-2.5 text-sm">
                         <span className="text-muted-foreground">
-                          {fmtTime(s.started_at)} – {fmtTime(s.ended_at)}
+                          {fmtTime(s.started_at, locale)} – {fmtTime(s.ended_at, locale)}
                         </span>
                         <span className="flex items-center gap-3">
                           <span className="font-semibold text-foreground">

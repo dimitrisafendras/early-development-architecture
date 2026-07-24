@@ -30,6 +30,15 @@ import {
   TooltipProvider,
 } from '@/components/ui/tooltip'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { NumberInput } from '@/components/ui/number-input'
+import { Calendar } from '@/components/ui/calendar'
+import { DatePicker } from '@/components/ui/date-picker'
+import { TimePicker, TimeColumns } from '@/components/ui/time-picker'
+import { DateTimePicker } from '@/components/ui/date-time-picker'
+import { todayKey } from '@/lib/schedule'
+import { nowDateTimeKey } from '@/lib/dates'
 
 import { GlassSurface, GlassButton, GlassToggleGroup } from '../components'
 import { DocSection, DocBlock, Panel } from './primitives'
@@ -48,6 +57,13 @@ export function ComponentsSection() {
   const [checked, setChecked] = useState(true)
   const [agree, setAgree] = useState<boolean>(true)
   const [seg, setSeg] = useState<'day' | 'week' | 'month'>('week')
+  const [weight, setWeight] = useState<number | null>(6.4)
+  const [feed, setFeed] = useState<number | null>(120)
+  const [naps, setNaps] = useState<number | null>(3)
+  const [measuredOn, setMeasuredOn] = useState(todayKey())
+  const [birthDate, setBirthDate] = useState('2026-05-02')
+  const [bedtime, setBedtime] = useState('19:30')
+  const [fedAt, setFedAt] = useState(nowDateTimeKey())
 
   return (
     <DocSection
@@ -203,6 +219,194 @@ export function ComponentsSection() {
               Above / below <Separator className="flex-1" /> a horizontal rule
             </div>
           </Specimen>
+        </div>
+      </DocBlock>
+
+      <DocBlock
+        title="Data entry"
+        description="Two controls the browser normally owns and refuses to theme — the number spinner and the date picker — rebuilt on our own tokens."
+      >
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Panel className="p-5">
+            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+              Number stepper
+            </p>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Decrement and increment caps flank the value, divided by hairlines so the control reads as one
+              segmented piece. Digits are tabular, so nothing shifts while stepping. Hold a cap to repeat;
+              arrow keys step, with alt for the small step and shift for the large one.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="ds-weight">Weight</Label>
+                <NumberInput
+                  id="ds-weight"
+                  value={weight}
+                  onValueChange={setWeight}
+                  floor={0}
+                  step={0.1}
+                  smallStep={0.01}
+                  unit="kg"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ds-feed">Bottle</Label>
+                <NumberInput
+                  id="ds-feed"
+                  value={feed}
+                  onValueChange={setFeed}
+                  floor={0}
+                  step={10}
+                  largeStep={50}
+                  unit="ml"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ds-naps">Naps — small</Label>
+                <NumberInput id="ds-naps" size="sm" value={naps} onValueChange={setNaps} floor={0} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ds-naps-lg">Naps — large</Label>
+                <NumberInput id="ds-naps-lg" size="lg" value={naps} onValueChange={setNaps} floor={0} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ds-empty">Empty state</Label>
+                <NumberInput id="ds-empty" value={null} placeholder="—" unit="ml" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ds-num-disabled">Disabled</Label>
+                <NumberInput id="ds-num-disabled" value={12} disabled unit="ml" />
+              </div>
+            </div>
+          </Panel>
+
+          <Panel className="p-5">
+            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+              Date picker
+            </p>
+            <p className="mb-4 text-sm text-muted-foreground">
+              A field-shaped trigger showing the date the way the locale writes it, opening the calendar in a
+              popover. Values are plain <code className="text-foreground">YYYY-MM-DD</code> keys, so no entry
+              ever shifts across a timezone.
+            </p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="ds-birth">Birth date</Label>
+                <DatePicker
+                  id="ds-birth"
+                  value={birthDate}
+                  onValueChange={setBirthDate}
+                  max={todayKey()}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="ds-date-empty">Nothing picked</Label>
+                <DatePicker id="ds-date-empty" max={todayKey()} />
+              </div>
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label htmlFor="ds-date-disabled">Disabled</Label>
+                <DatePicker id="ds-date-disabled" value={todayKey()} disabled />
+              </div>
+            </div>
+          </Panel>
+
+          <Panel className="p-5 lg:col-span-2">
+            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+              Time picker
+            </p>
+            <p className="mb-4 max-w-2xl text-sm text-muted-foreground">
+              Two scroll columns rather than the browser's own control. Minutes sit on a five-minute grid,
+              because that is the precision anyone reports a feed or a nap in — a value off the grid still
+              shows up in the list instead of being rounded away. Hour labels follow the locale's clock.
+            </p>
+            <div className="flex flex-wrap items-start gap-6">
+              <div className="w-56 space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="ds-bedtime">Bedtime</Label>
+                  <TimePicker id="ds-bedtime" value={bedtime} onValueChange={setBedtime} />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="ds-time-empty">Nothing picked</Label>
+                  <TimePicker id="ds-time-empty" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="ds-time-disabled">Disabled</Label>
+                  <TimePicker id="ds-time-disabled" value="07:15" disabled />
+                </div>
+              </div>
+              <div className="rounded-2xl border border-border p-3">
+                <TimeColumns value={bedtime} onValueChange={setBedtime} />
+              </div>
+              <p className="min-w-56 flex-1 text-sm text-muted-foreground">
+                The columns are usable on their own when a form has room for them. Each is a listbox with one
+                tab stop; arrow keys move within a column, Home and End jump to its ends.
+              </p>
+            </div>
+          </Panel>
+
+          <Panel className="p-5 lg:col-span-2">
+            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+              Calendar
+            </p>
+            <p className="mb-4 max-w-2xl text-sm text-muted-foreground">
+              The grid is always six weeks tall, so the panel never changes height between months. Today keeps
+              a ring; the selection takes the palette's fill. Days past the maximum drop out. The footer
+              carries the two picks that cover almost every entry.
+            </p>
+            <div className="flex flex-wrap items-start gap-6">
+              <div className="rounded-2xl border border-border p-3">
+                <Calendar value={measuredOn} onValueChange={setMeasuredOn} max={todayKey()} />
+              </div>
+              <div className="min-w-56 flex-1 space-y-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="ds-selected">Selected value</Label>
+                  <Input id="ds-selected" readOnly value={measuredOn} className="tabular-nums" />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Arrow keys move by a day, up and down by a week, Home and End across the week, Page Up and
+                  Page Down by a month.
+                </p>
+              </div>
+            </div>
+          </Panel>
+
+          <Panel className="p-5 lg:col-span-2">
+            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+              Date and time
+            </p>
+            <p className="mb-4 max-w-2xl text-sm text-muted-foreground">
+              One field for a moment in time. The offsets lead because they answer what almost every entry
+              asks — this happened now, or a little while ago — and settle it in a single press. The calendar
+              and columns wait below for the entry written up hours later. Today's moments read as
+              "Today, 19:30", since the date adds nothing there.
+            </p>
+            <div className="flex flex-wrap items-start gap-6">
+              <div className="w-64 space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="ds-fed">Fed at</Label>
+                  <DateTimePicker
+                    id="ds-fed"
+                    value={fedAt}
+                    onValueChange={setFedAt}
+                    maxDate={todayKey()}
+                    labels={{ today: 'Today' }}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="ds-fed-empty">Nothing picked</Label>
+                  <DateTimePicker id="ds-fed-empty" maxDate={todayKey()} />
+                </div>
+              </div>
+              <div className="min-w-56 flex-1 space-y-1.5">
+                <Label htmlFor="ds-fed-value">Stored value</Label>
+                <Input id="ds-fed-value" readOnly value={fedAt} className="tabular-nums" />
+                <p className="pt-2 text-sm text-muted-foreground">
+                  The same <code className="text-foreground">YYYY-MM-DDTHH:MM</code> shape the native
+                  datetime input produced, so a form swapping to this control needs no other change.
+                </p>
+              </div>
+            </div>
+          </Panel>
         </div>
       </DocBlock>
 

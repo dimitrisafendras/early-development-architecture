@@ -5,28 +5,29 @@ import { AgeBadge, useBabyAge } from '../components/AgeBadge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
+import { DateTimePicker } from '@/components/ui/date-time-picker'
 import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
+import { useFieldLabels } from '../lib/useFieldLabels'
 import { useBabies } from '../lib/useBabies'
 import { useFeedLog } from '../lib/useFeedLog'
-import { bandIndex } from '../lib/schedule'
+import { bandIndex, todayKey } from '../lib/schedule'
+import { nowDateTimeKey, useDateLocale } from '../lib/dates'
 import { feedingRows, feedingUppers } from '../data'
 import type { FeedMethod } from '../lib/db'
 import { useT } from '../i18n'
 
-function localNow(): string {
-  const d = new Date()
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
-  return d.toISOString().slice(0, 16)
-}
-function fmtTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+/** Uses the app's locale, not the browser's, so it agrees with the time field. */
+function fmtTime(iso: string, locale: string): string {
+  return new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
 }
 
 export default function FeedLog() {
   const t = useT()
   const tf = t.feed
   const { currentBaby } = useBabies()
+  const locale = useDateLocale()
   const baby = useBabyAge()
   const feed = useFeedLog(currentBaby?.id ?? null, currentBaby?.household_id ?? null)
 
@@ -56,7 +57,7 @@ export default function FeedLog() {
         <Stat
           icon={<BabyIcon className="size-4" />}
           label={tf.lastFeed}
-          value={feed.lastFeed ? fmtTime(feed.lastFeed.fed_at) : tf.never}
+          value={feed.lastFeed ? fmtTime(feed.lastFeed.fed_at, locale) : tf.never}
         />
       </div>
 
@@ -82,7 +83,7 @@ export default function FeedLog() {
                 <li key={f.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                   <span className="flex items-center gap-3">
                     <span className="font-heading font-bold tabular-nums text-foreground">
-                      {fmtTime(f.fed_at)}
+                      {fmtTime(f.fed_at, locale)}
                     </span>
                     <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
                       {tf[f.method]}
@@ -215,10 +216,11 @@ function AddFeedForm({
 }) {
   const t = useT()
   const tf = t.feed
+  const fields = useFieldLabels()
   const [method, setMethod] = useState<FeedMethod>('bottle')
-  const [amount, setAmount] = useState('')
-  const [minutes, setMinutes] = useState('')
-  const [when, setWhen] = useState(localNow())
+  const [amount, setAmount] = useState<number | null>(null)
+  const [minutes, setMinutes] = useState<number | null>(null)
+  const [when, setWhen] = useState(nowDateTimeKey())
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
 
@@ -226,9 +228,9 @@ function AddFeedForm({
   function copyLast() {
     if (!last) return
     setMethod(last.method)
-    setAmount(last.amount_ml != null ? String(last.amount_ml) : '')
-    setMinutes(last.minutes != null ? String(last.minutes) : '')
-    setWhen(localNow())
+    setAmount(last.amount_ml)
+    setMinutes(last.minutes)
+    setWhen(nowDateTimeKey())
   }
 
   async function submit(e: FormEvent) {
@@ -238,14 +240,14 @@ function AddFeedForm({
       await onAdd({
         fed_at: new Date(when).toISOString(),
         method,
-        amount_ml: method === 'breast' ? null : amount ? Number(amount) : null,
-        minutes: method === 'breast' ? (minutes ? Number(minutes) : null) : null,
+        amount_ml: method === 'breast' ? null : amount,
+        minutes: method === 'breast' ? minutes : null,
         note: note.trim() || null,
       })
-      setAmount('')
-      setMinutes('')
+      setAmount(null)
+      setMinutes(null)
       setNote('')
-      setWhen(localNow())
+      setWhen(nowDateTimeKey())
     } finally {
       setBusy(false)
     }
@@ -281,17 +283,42 @@ function AddFeedForm({
           {method === 'breast' ? (
             <div className="space-y-1.5">
               <Label htmlFor="f-min">{tf.minutesLabel}</Label>
-              <Input id="f-min" type="number" min="0" value={minutes} onChange={(e) => setMinutes(e.target.value)} />
+              <NumberInput
+                id="f-min"
+                value={minutes}
+                onValueChange={setMinutes}
+                floor={0}
+                step={5}
+                smallStep={1}
+                largeStep={15}
+                {...fields.stepper}
+              />
             </div>
           ) : (
             <div className="space-y-1.5">
               <Label htmlFor="f-amt">{tf.amountLabel}</Label>
-              <Input id="f-amt" type="number" min="0" step="5" value={amount} onChange={(e) => setAmount(e.target.value)} />
+              <NumberInput
+                id="f-amt"
+                value={amount}
+                onValueChange={setAmount}
+                floor={0}
+                step={10}
+                smallStep={5}
+                largeStep={50}
+                {...fields.stepper}
+              />
             </div>
           )}
-          <div className="space-y-1.5">
+          {/* Full width on a phone — "Σήμερα, 23:43" does not fit half a row. */}
+          <div className="col-span-2 space-y-1.5 sm:col-span-1">
             <Label htmlFor="f-when">{tf.timeLabel}</Label>
-            <Input id="f-when" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
+            <DateTimePicker
+              id="f-when"
+              value={when}
+              onValueChange={setWhen}
+              maxDate={todayKey()}
+              {...fields.dateTimePicker}
+            />
           </div>
           <div className="col-span-2 space-y-1.5">
             <Label htmlFor="f-note">{tf.noteLabel}</Label>

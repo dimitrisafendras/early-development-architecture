@@ -4,12 +4,16 @@ import { SectionHeader } from '../components/SectionHeader'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { GrowthChart } from '../components/charts'
 import { useBabies } from '../lib/useBabies'
 import { useHousehold } from '../lib/household'
+import { useFieldLabels } from '../lib/useFieldLabels'
+import { formatDateKey, useDateLocale } from '../lib/dates'
 import { ageInMonths, todayKey } from '../lib/schedule'
 import {
   listMeasurements,
@@ -118,6 +122,7 @@ function CreateBabyForm({
   onCreate: (i: { name: string; birth_date: string; palette: Palette }) => Promise<unknown>
 }) {
   const t = useT()
+  const fields = useFieldLabels()
   const [name, setName] = useState('')
   const [birthDate, setBirthDate] = useState(todayKey())
   const [palette, setPalette] = useState<Palette>('red')
@@ -158,13 +163,12 @@ function CreateBabyForm({
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="baby-birth">{t.baby.birthDateLabel}</Label>
-            <Input
+            <DatePicker
               id="baby-birth"
-              type="date"
               value={birthDate}
+              onValueChange={setBirthDate}
               max={todayKey()}
-              onChange={(e) => setBirthDate(e.target.value)}
-              required
+              {...fields.datePicker}
             />
           </div>
           <div className="space-y-1.5">
@@ -209,6 +213,7 @@ function BabyDetail({
   deleteBaby: (id: string) => Promise<unknown>
 }) {
   const t = useT()
+  const locale = useDateLocale()
   const babyId = baby.id
   const birthDate = baby.birth_date
   const name = baby.name
@@ -232,7 +237,7 @@ function BabyDetail({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [babyId])
 
-  const labels = rows.map((r) => new Date(r.measured_on).toLocaleDateString([], { month: 'short', day: 'numeric' }))
+  const labels = rows.map((r) => formatDateKey(r.measured_on, locale, { month: 'short', day: 'numeric' }))
   const latestWeight = [...rows].reverse().find((r) => r.weight_kg != null)?.weight_kg ?? null
   const latestHeight = [...rows].reverse().find((r) => r.height_cm != null)?.height_cm ?? null
   const months = ageInMonths(birthDate)
@@ -263,7 +268,7 @@ function BabyDetail({
               <div>
                 <p className="text-[15px] font-semibold text-foreground">{name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(birthDate).toLocaleDateString()} · {baby.palette === 'blue' ? t.nav.boy : t.nav.girl}
+                  {formatDateKey(birthDate, locale, { day: '2-digit', month: '2-digit', year: 'numeric' })} · {baby.palette === 'blue' ? t.nav.boy : t.nav.girl}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -331,7 +336,7 @@ function BabyDetail({
               {[...rows].reverse().map((r) => (
                 <li key={r.id} className="flex items-center justify-between py-2.5 text-sm">
                   <span className="text-muted-foreground">
-                    {new Date(r.measured_on).toLocaleDateString()}
+                    {formatDateKey(r.measured_on, locale, { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </span>
                   <span className="flex items-center gap-4">
                     <span className="text-foreground">
@@ -382,6 +387,7 @@ function EditBabyForm({
   onCancel: () => void
 }) {
   const t = useT()
+  const fields = useFieldLabels()
   const [name, setName] = useState(baby.name)
   const [birthDate, setBirthDate] = useState(baby.birth_date)
   const [palette, setPalette] = useState<Palette>(baby.palette)
@@ -409,13 +415,12 @@ function EditBabyForm({
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="edit-birth">{t.baby.birthDateLabel}</Label>
-        <Input
+        <DatePicker
           id="edit-birth"
-          type="date"
           value={birthDate}
+          onValueChange={setBirthDate}
           max={todayKey()}
-          onChange={(e) => setBirthDate(e.target.value)}
-          required
+          {...fields.datePicker}
         />
       </div>
       <div className="space-y-1.5">
@@ -461,32 +466,33 @@ function AddMeasurementForm({
   onSaved: () => Promise<void>
 }) {
   const t = useT()
+  const fields = useFieldLabels()
   const [date, setDate] = useState(todayKey())
-  const [weight, setWeight] = useState('')
-  const [height, setHeight] = useState('')
-  const [head, setHead] = useState('')
+  const [weight, setWeight] = useState<number | null>(null)
+  const [height, setHeight] = useState<number | null>(null)
+  const [head, setHead] = useState<number | null>(null)
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   async function submit(e: FormEvent) {
     e.preventDefault()
-    if (!weight && !height && !head) return
+    if (weight === null && height === null && head === null) return
     setBusy(true)
     setError('')
     try {
       await addMeasurement({
         baby_id: babyId,
         measured_on: date,
-        weight_kg: weight ? Number(weight) : null,
-        height_cm: height ? Number(height) : null,
-        head_cm: head ? Number(head) : null,
+        weight_kg: weight,
+        height_cm: height,
+        head_cm: head,
         note: note.trim() || null,
         household_id: householdId,
       })
-      setWeight('')
-      setHeight('')
-      setHead('')
+      setWeight(null)
+      setHeight(null)
+      setHead(null)
       setNote('')
       await onSaved()
     } catch {
@@ -505,19 +511,49 @@ function AddMeasurementForm({
         <form onSubmit={submit} className="grid grid-cols-2 gap-4 sm:grid-cols-5">
           <div className="space-y-1.5">
             <Label htmlFor="m-date">{t.baby.dateLabel}</Label>
-            <Input id="m-date" type="date" value={date} max={todayKey()} onChange={(e) => setDate(e.target.value)} />
+            <DatePicker
+              id="m-date"
+              value={date}
+              onValueChange={setDate}
+              max={todayKey()}
+              {...fields.datePicker}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="m-weight">{t.baby.weightLabel}</Label>
-            <Input id="m-weight" type="number" step="0.01" min="0" value={weight} onChange={(e) => setWeight(e.target.value)} />
+            <NumberInput
+              id="m-weight"
+              value={weight}
+              onValueChange={setWeight}
+              floor={0}
+              step={0.1}
+              smallStep={0.01}
+              {...fields.stepper}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="m-height">{t.baby.heightLabel}</Label>
-            <Input id="m-height" type="number" step="0.1" min="0" value={height} onChange={(e) => setHeight(e.target.value)} />
+            <NumberInput
+              id="m-height"
+              value={height}
+              onValueChange={setHeight}
+              floor={0}
+              step={0.5}
+              smallStep={0.1}
+              {...fields.stepper}
+            />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="m-head">{t.baby.headLabel}</Label>
-            <Input id="m-head" type="number" step="0.1" min="0" value={head} onChange={(e) => setHead(e.target.value)} />
+            <NumberInput
+              id="m-head"
+              value={head}
+              onValueChange={setHead}
+              floor={0}
+              step={0.5}
+              smallStep={0.1}
+              {...fields.stepper}
+            />
           </div>
           <div className="flex items-end">
             <Button type="submit" disabled={busy} className="w-full">
