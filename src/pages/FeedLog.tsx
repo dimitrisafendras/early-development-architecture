@@ -238,14 +238,14 @@ function AddFeedForm({
             <Input id="f-note" value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
           <div className="col-span-2 flex items-end gap-2 sm:col-span-4">
-            <Button type="submit" disabled={busy}>
-              {tf.save}
-            </Button>
             {last && (
               <Button type="button" variant="secondary" onClick={copyLast}>
                 <Copy className="mr-1.5 size-4" /> {tf.copyLast}
               </Button>
             )}
+            <Button type="submit" disabled={busy}>
+              {tf.save}
+            </Button>
           </div>
         </form>
         {guide && <p className="mt-3 text-xs text-muted-foreground">{guide}</p>}
