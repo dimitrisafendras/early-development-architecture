@@ -1,24 +1,15 @@
-import { useState, type FormEvent } from 'react'
-import { Milk, Trash2, Baby as BabyIcon, Utensils, Clock, Hash, Copy, Plus } from 'lucide-react'
+import { Milk, Trash2, Baby as BabyIcon, Utensils, Clock, Hash } from 'lucide-react'
 import { SectionHeader } from '../components/SectionHeader'
 import { AgeBadge, useBabyAge } from '../components/AgeBadge'
+import { AddFeedForm } from '../components/AddFeedForm'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { useBabies } from '../lib/useBabies'
 import { useFeedLog } from '../lib/useFeedLog'
 import { bandIndex } from '../lib/schedule'
 import { feedingRows, feedingUppers } from '../data'
-import type { FeedMethod } from '../lib/db'
 import { useT } from '../i18n'
 
-function localNow(): string {
-  const d = new Date()
-  d.setMinutes(d.getMinutes() - d.getTimezoneOffset())
-  return d.toISOString().slice(0, 16)
-}
 function fmtTime(iso: string): string {
   return new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
@@ -62,11 +53,17 @@ export default function FeedLog() {
 
       {feedsRange && <FeedProgress count={feed.todayFeeds.length} range={feedsRange} tf={tf} />}
 
-      <AddFeedForm
-        guide={guideAmount ? tf.guide.replace('{amount}', guideAmount) : null}
-        last={feed.lastFeed}
-        onAdd={feed.add}
-      />
+      <Card>
+        <CardContent>
+          <p className="mb-4 flex items-center gap-2 text-[15px] font-semibold text-foreground">
+            <Milk className="size-4 text-primary" /> {tf.add}
+          </p>
+          <AddFeedForm last={feed.lastFeed} onAdd={feed.add} />
+          {guideAmount && (
+            <p className="mt-3 text-xs text-muted-foreground">{tf.guide.replace('{amount}', guideAmount)}</p>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Today list */}
       <Card>
@@ -193,122 +190,6 @@ function Stat({
           {value}
           {unit && <span className="ml-1 text-sm font-medium text-muted-foreground">{unit}</span>}
         </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function AddFeedForm({
-  guide,
-  last,
-  onAdd,
-}: {
-  guide: string | null
-  last: { method: FeedMethod; amount_ml: number | null; minutes: number | null } | null
-  onAdd: (i: {
-    fed_at: string
-    method: FeedMethod
-    amount_ml: number | null
-    minutes: number | null
-    note: string | null
-  }) => Promise<void>
-}) {
-  const t = useT()
-  const tf = t.feed
-  const [method, setMethod] = useState<FeedMethod>('bottle')
-  const [amount, setAmount] = useState('')
-  const [minutes, setMinutes] = useState('')
-  const [when, setWhen] = useState(localNow())
-  const [note, setNote] = useState('')
-  const [busy, setBusy] = useState(false)
-
-  // Prefill from the previous feed but stamp the time to now.
-  function copyLast() {
-    if (!last) return
-    setMethod(last.method)
-    setAmount(last.amount_ml != null ? String(last.amount_ml) : '')
-    setMinutes(last.minutes != null ? String(last.minutes) : '')
-    setWhen(localNow())
-  }
-
-  async function submit(e: FormEvent) {
-    e.preventDefault()
-    setBusy(true)
-    try {
-      await onAdd({
-        fed_at: new Date(when).toISOString(),
-        method,
-        amount_ml: method === 'breast' ? null : amount ? Number(amount) : null,
-        minutes: method === 'breast' ? (minutes ? Number(minutes) : null) : null,
-        note: note.trim() || null,
-      })
-      setAmount('')
-      setMinutes('')
-      setNote('')
-      setWhen(localNow())
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <Card>
-      <CardContent>
-        <p className="mb-4 flex items-center gap-2 text-[15px] font-semibold text-foreground">
-          <Milk className="size-4 text-primary" /> {tf.add}
-        </p>
-        <form onSubmit={submit} className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div className="col-span-2 space-y-1.5 sm:col-span-4">
-            <Label>{tf.method}</Label>
-            <div className="flex gap-2">
-              {(['bottle', 'breast', 'solid'] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setMethod(m)}
-                  className={cn(
-                    'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                    method === m
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-accent',
-                  )}
-                >
-                  {tf[m]}
-                </button>
-              ))}
-            </div>
-          </div>
-          {method === 'breast' ? (
-            <div className="space-y-1.5">
-              <Label htmlFor="f-min">{tf.minutesLabel}</Label>
-              <Input id="f-min" type="number" min="0" value={minutes} onChange={(e) => setMinutes(e.target.value)} />
-            </div>
-          ) : (
-            <div className="space-y-1.5">
-              <Label htmlFor="f-amt">{tf.amountLabel}</Label>
-              <Input id="f-amt" type="number" min="0" step="5" value={amount} onChange={(e) => setAmount(e.target.value)} />
-            </div>
-          )}
-          <div className="space-y-1.5">
-            <Label htmlFor="f-when">{tf.timeLabel}</Label>
-            <Input id="f-when" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} />
-          </div>
-          <div className="col-span-2 space-y-1.5">
-            <Label htmlFor="f-note">{tf.noteLabel}</Label>
-            <Input id="f-note" value={note} onChange={(e) => setNote(e.target.value)} />
-          </div>
-          <div className="col-span-2 flex flex-wrap items-end gap-3 sm:col-span-4">
-            {last && (
-              <Button type="button" variant="secondary" size="lg" onClick={copyLast}>
-                <Copy className="mr-2 size-5" /> {tf.copyLast}
-              </Button>
-            )}
-            <Button type="submit" size="lg" disabled={busy}>
-              <Plus className="mr-2 size-5" /> {tf.save}
-            </Button>
-          </div>
-        </form>
-        {guide && <p className="mt-3 text-xs text-muted-foreground">{guide}</p>}
       </CardContent>
     </Card>
   )

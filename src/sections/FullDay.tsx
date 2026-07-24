@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
 import { SectionHeader } from '../components/SectionHeader'
 import { dayActivityMeta as activity, dayActivityOrder as legendOrder } from '../components/dayActivity'
@@ -15,6 +16,17 @@ export function FullDay() {
     return () => clearInterval(id)
   }, [])
   const activeSlot = activeTimeIndex(fullDaySchedule.map((s) => s.time), now)
+
+  // Deep-link to a slot (e.g. /topic/full-day#slot-4 from the day's "up next").
+  // rAF lets it win over the route-change scroll-to-top on the same commit.
+  const { hash } = useLocation()
+  useEffect(() => {
+    if (!hash) return
+    const el = document.getElementById(hash.slice(1))
+    if (!el) return
+    const id = requestAnimationFrame(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }))
+    return () => cancelAnimationFrame(id)
+  }, [hash])
   return (
     <section id="full-day">
       <SectionHeader module={11} title={tf.title} description={tf.description} />
@@ -49,8 +61,9 @@ export function FullDay() {
               const isNow = i === activeSlot
               return (
                 <li
+                  id={`slot-${i}`}
                   key={`${slot.time}-${i}`}
-                  className={`relative flex gap-4 pb-6 last:pb-0 ${isNow ? 'scroll-mt-28' : ''}`}
+                  className="relative flex scroll-mt-28 gap-4 pb-6 last:pb-0"
                 >
                   {/* connector rail */}
                   {!last && (

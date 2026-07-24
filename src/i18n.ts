@@ -135,6 +135,7 @@ const en = {
     logFeed: 'Log a feed',
     openFeed: 'Open feed log',
     learnMore: 'Learn more',
+    timeLeft: 'left',
     fullDayCta: 'See the full hour-by-hour day',
     learnRoutine: 'Learn about the daily routine',
   },
@@ -419,6 +420,7 @@ const en = {
     title: '📅 Daily Routine Architecture (Caregiver & Infant)',
     description:
       'A predictable yet adaptable rhythm balancing direct engagement, physical tummy sessions, sensory regulation, and caregiver recovery.',
+    nowLink: 'See what’s happening now',
     blocks: [
       {
         title: 'Morning Awakening & Auditory Scaffolding',
@@ -790,6 +792,7 @@ const el: Messages = {
     logFeed: 'Καταγραφή ταΐσματος',
     openFeed: 'Άνοιγμα καταγραφής',
     learnMore: 'Μάθετε περισσότερα',
+    timeLeft: 'ακόμη',
     fullDayCta: 'Δείτε την πλήρη μέρα ώρα-ώρα',
     learnRoutine: 'Μάθετε για την καθημερινή ρουτίνα',
   },
@@ -1074,6 +1077,7 @@ const el: Messages = {
     title: '📅 Αρχιτεκτονική Καθημερινής Ρουτίνας (Φροντιστής & Βρέφος)',
     description:
       'Ένας προβλέψιμος αλλά προσαρμόσιμος ρυθμός που ισορροπεί την άμεση αλληλεπίδραση, τις σωματικές συνεδρίες μπρούμυτα, την αισθητηριακή ρύθμιση και την ανάκαμψη του φροντιστή.',
+    nowLink: 'Δείτε τι συμβαίνει τώρα',
     blocks: [
       {
         title: 'Πρωινό Ξύπνημα & Ακουστική Υποστήριξη',
