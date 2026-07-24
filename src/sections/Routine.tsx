@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react'
-import { Check, Radio, ArrowRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { Check, ArrowRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { SectionHeader } from '../components/SectionHeader'
 import { scheduleBlocks, type ScheduleTone } from '../data'
-import { activeBlockIndex, minutesUntilBlockStart } from '../lib/schedule'
 import { useT } from '../i18n'
 
 /** Soft, theme-aware per-block tints — distinct hues on the DS opaque card. */
@@ -42,81 +41,34 @@ const toneStyles: Record<ScheduleTone, { label: string; chip: string; check: str
   },
 }
 
-/** Format a minute count as "Xh Ym" / "Ym", localized units. */
-function formatCountdown(mins: number, hourUnit: string, minUnit: string): string {
-  const h = Math.floor(mins / 60)
-  const m = mins % 60
-  return h > 0 ? `${h}${hourUnit} ${m}${minUnit}` : `${m}${minUnit}`
-}
-
 export function Routine() {
   const t = useT()
-  const [now, setNow] = useState(() => new Date())
-
-  // Live: re-evaluate the active block every 30s (cheap, no backend).
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 30_000)
-    return () => clearInterval(id)
-  }, [])
-
-  const activeIndex = activeBlockIndex(now)
-  const nextIndex = (activeIndex + 1) % scheduleBlocks.length
-  const untilNext = minutesUntilBlockStart(nextIndex, now)
-  const tl = t.routineLive
 
   return (
     <section id="routine">
       <SectionHeader module={5} title={t.routine.title} description={t.routine.description} />
 
-      {/* Live "what's now" banner */}
-      <Card className="mb-6 border-primary/30 bg-primary/5">
-        <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="relative flex size-2.5">
-              <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/60" />
-              <span className="relative inline-flex size-2.5 rounded-full bg-primary" />
-            </span>
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-wider text-primary">
-                {tl.rightNow}
-              </div>
-              <div className="font-semibold text-foreground">{t.routine.blocks[activeIndex].title}</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span className="uppercase tracking-wider">{tl.upNext}</span>
-            <ArrowRight className="size-4" />
-            <span className="font-medium text-foreground">{t.routine.blocks[nextIndex].title}</span>
-            <span>
-              {tl.in} {formatCountdown(untilNext, tl.hour, tl.minute)}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+      {/* The live "what's now" view lives on /daily + /full-day (one source of
+          truth); this page teaches the routine as a framework. */}
+      <Link
+        to="/daily"
+        className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+      >
+        {t.routine.nowLink} <ArrowRight className="size-3.5" />
+      </Link>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {scheduleBlocks.map((block, i) => {
           const ts = toneStyles[block.tone]
           const tb = t.routine.blocks[i]
-          const isActive = i === activeIndex
           return (
-            <Card
-              key={block.time}
-              className={`h-full transition-shadow ${
-                isActive ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''
-              }`}
-            >
+            <Card key={block.time} className="h-full">
               <CardContent className="flex h-full flex-col justify-between">
                 <div>
-                  <div className="mb-2 flex items-center justify-between">
+                  <div className="mb-2">
                     <span className={`text-xs font-bold uppercase tracking-wider ${ts.label}`}>
                       {block.time}
                     </span>
-                    {isActive && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
-                        <Radio className="size-3" /> {tl.nowBadge}
-                      </span>
-                    )}
                   </div>
                   <p className="m-0 text-lg font-semibold text-foreground">{tb.title}</p>
                   <div className="mt-3 space-y-2">
