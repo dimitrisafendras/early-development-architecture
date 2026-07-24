@@ -69,7 +69,9 @@ export function GlassNav({
 }: GlassNavProps) {
   const [open, setOpen] = React.useState(false)
   // At the top of the page the bar is flush/edge-to-edge; once scrolled it
-  // morphs into the floating rounded capsule.
+  // morphs into the floating rounded capsule — but only from `sm` up. On a
+  // phone the capsule would give up ~24px of an already scarce line to side
+  // gutters, so the bar stays edge-to-edge at every scroll position.
   const [scrolled, setScrolled] = React.useState(false)
   // Track the viewport width so the top state can be genuinely edge-to-edge on
   // any screen, while still animating to a fixed px width (smooth, no snap).
@@ -127,6 +129,13 @@ export function GlassNav({
   const hasLinks = links.length > 0
   const collapsible = hasLinks || Boolean(actions) || Boolean(mobileActions)
 
+  // The floating-capsule geometry (side gutters, capped width, rounded corners)
+  // is driven from JS because the radius and max-width animate as px values, so
+  // it needs the same `sm` cutoff the Tailwind classes use. Below it the bar is
+  // a flush edge-to-edge bar no matter the scroll position.
+  const SM = 640
+  const floating = scrolled && vw >= SM
+
   const ease = '[transition-timing-function:cubic-bezier(0.22,1,0.36,1)]'
   return (
     <div
@@ -138,7 +147,7 @@ export function GlassNav({
       // responsive part stays in Tailwind while env() stays in the style prop
       // (media queries can't live in an inline style).
       style={{
-        paddingTop: scrolled
+        paddingTop: floating
           ? 'calc(0.75rem + env(safe-area-inset-top))'
           : 'env(safe-area-inset-top)',
         paddingLeft: 'max(var(--nav-pad-x), env(safe-area-inset-left))',
@@ -147,7 +156,9 @@ export function GlassNav({
       className={cn(
         'sticky top-0 z-50 transition-[padding] duration-500',
         ease,
-        scrolled ? '[--nav-pad-x:0.75rem] sm:[--nav-pad-x:1.25rem]' : '[--nav-pad-x:0px]',
+        // `--nav-pad-x` stays 0 below `sm` even when scrolled, so the phone bar
+        // never gains side gutters.
+        scrolled ? '[--nav-pad-x:0px] sm:[--nav-pad-x:1.25rem]' : '[--nav-pad-x:0px]',
         className,
       )}
     >
@@ -155,15 +166,17 @@ export function GlassNav({
         // Top = full viewport width (edge-to-edge on any screen); scrolled =
         // the content width (max-w-7xl = 1280px) so the capsule lines up with
         // the page content. Both px so max-width eases smoothly (no snap).
-        style={{ maxWidth: scrolled ? 1280 : vw }}
+        style={{ maxWidth: floating ? 1280 : vw }}
         className={cn('relative mx-auto w-full transition-[max-width] duration-500', ease)}
       >
         <GlassSurface
-          radius={scrolled ? 26 : 0}
+          radius={floating ? 26 : 0}
           className={cn(
             'border-b transition-[border-radius,border-color,padding,box-shadow] duration-500',
             ease,
-            scrolled ? 'border-transparent px-3 py-2 sm:px-5' : 'border-border/50 px-4 py-2.5 sm:px-6',
+            // A flush bar keeps its hairline so it separates from the content
+            // scrolling beneath; the floating capsule doesn't need one.
+            floating ? 'border-transparent px-3 py-2 sm:px-5' : 'border-border/50 px-4 py-2.5 sm:px-6',
           )}
           role="banner"
         >
