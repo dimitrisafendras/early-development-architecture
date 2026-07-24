@@ -115,6 +115,21 @@ export async function acceptInvite(inviteId: string): Promise<void> {
   if (error) throw error
 }
 
+export async function renameHousehold(householdId: string, name: string): Promise<void> {
+  const { error } = await client().from('households').update({ name }).eq('id', householdId)
+  if (error) throw error
+}
+
+export async function removeMember(memberId: string): Promise<void> {
+  const { error } = await client().from('household_members').delete().eq('id', memberId)
+  if (error) throw error
+}
+
+export async function deleteHousehold(householdId: string): Promise<void> {
+  const { error } = await client().from('households').delete().eq('id', householdId)
+  if (error) throw error
+}
+
 export async function leaveHousehold(householdId: string): Promise<void> {
   const { data: userData } = await client().auth.getUser()
   const uid = userData.user?.id

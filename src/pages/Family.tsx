@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Users, UserPlus, Home as HomeIcon, Mail, Check, X, Share2, LogOut } from 'lucide-react'
+import { Users, UserPlus, Home as HomeIcon, Mail, Check, X, Share2, LogOut, Pencil, Trash2 } from 'lucide-react'
 import { NavBar } from '../components/NavBar'
 import { Footer } from '../components/Footer'
 import { SectionHeader } from '../components/SectionHeader'
@@ -15,6 +15,9 @@ import {
   acceptInvite,
   leaveHousehold,
   shareOwnedBabies,
+  renameHousehold,
+  removeMember,
+  deleteHousehold,
 } from '../lib/household'
 import { useSession } from '../lib/use-session'
 import { useT } from '../i18n'
@@ -25,8 +28,12 @@ export default function Family() {
   const { ready, loading, household, members, invites, pending, refresh } = useHousehold()
   const { session } = useSession()
   const myId = session?.user?.id
+  const isOwner = Boolean(household && household.created_by === myId)
   const [busy, setBusy] = useState<string>('')
   const [error, setError] = useState('')
+  const [editingName, setEditingName] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   async function run(key: string, fn: () => Promise<unknown>) {
     setBusy(key)
@@ -89,21 +96,67 @@ export default function Family() {
                 {/* Members */}
                 <Card>
                   <CardContent>
-                    <p className="mb-1 flex items-center gap-2 text-lg font-semibold text-foreground">
-                      <HomeIcon className="size-5 text-primary" /> {household.name}
-                    </p>
+                    {editingName ? (
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault()
+                          if (nameDraft.trim()) {
+                            void run('rename', () => renameHousehold(household.id, nameDraft.trim()))
+                            setEditingName(false)
+                          }
+                        }}
+                        className="mb-4 flex items-center gap-2"
+                      >
+                        <Input value={nameDraft} onChange={(e) => setNameDraft(e.target.value)} autoFocus />
+                        <Button type="submit" size="sm" disabled={busy === 'rename'}>
+                          {tf.save}
+                        </Button>
+                        <Button type="button" size="sm" variant="ghost" onClick={() => setEditingName(false)}>
+                          {tf.cancel}
+                        </Button>
+                      </form>
+                    ) : (
+                      <div className="mb-1 flex items-center gap-2">
+                        <p className="flex items-center gap-2 text-lg font-semibold text-foreground">
+                          <HomeIcon className="size-5 text-primary" /> {household.name}
+                        </p>
+                        <button
+                          type="button"
+                          aria-label={tf.rename}
+                          onClick={() => {
+                            setNameDraft(household.name)
+                            setEditingName(true)
+                          }}
+                          className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+                        >
+                          <Pencil className="size-3.5" />
+                        </button>
+                      </div>
+                    )}
                     <p className="mb-4 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
                       <Users className="size-3.5" /> {tf.membersTitle}
                     </p>
                     <ul className="divide-y divide-border">
                       {members.map((m) => (
-                        <li key={m.id} className="flex items-center justify-between py-2.5 text-sm">
-                          <span className="text-foreground">
+                        <li key={m.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                          <span className="min-w-0 truncate text-foreground">
                             {m.email ?? '—'}
                             {m.user_id === myId && <span className="text-muted-foreground"> ({tf.you})</span>}
                           </span>
-                          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                            {m.role === 'owner' ? tf.roleOwner : tf.roleParent}
+                          <span className="flex shrink-0 items-center gap-2">
+                            <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                              {m.role === 'owner' ? tf.roleOwner : tf.roleParent}
+                            </span>
+                            {isOwner && m.user_id !== myId && (
+                              <button
+                                type="button"
+                                aria-label={tf.remove}
+                                onClick={() => void run(m.id, () => removeMember(m.id))}
+                                className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                              >
+                                <X className="size-4" />
+                              </button>
+                            )}
                           </span>
                         </li>
                       ))}
@@ -157,7 +210,7 @@ export default function Family() {
                       </Button>
                       <p className="mt-2 text-xs text-muted-foreground">{tf.shareBabiesNote}</p>
                     </div>
-                    <div className="border-t border-border pt-4">
+                    <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
                       <Button
                         variant="ghost"
                         className="text-muted-foreground hover:text-destructive"
@@ -166,6 +219,35 @@ export default function Family() {
                       >
                         <LogOut className="mr-2 size-4" /> {tf.leave}
                       </Button>
+                      {isOwner &&
+                        (confirmDelete ? (
+                          <span className="flex items-center gap-2 text-sm">
+                            <span className="text-muted-foreground">{tf.deleteConfirm}</span>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              disabled={busy === 'delete'}
+                              onClick={() =>
+                                void run('delete', () => deleteHousehold(household.id)).then(() =>
+                                  setConfirmDelete(false),
+                                )
+                              }
+                            >
+                              {tf.deleteFamily}
+                            </Button>
+                            <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>
+                              {tf.cancel}
+                            </Button>
+                          </span>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            className="text-muted-foreground hover:text-destructive"
+                            onClick={() => setConfirmDelete(true)}
+                          >
+                            <Trash2 className="mr-2 size-4" /> {tf.deleteFamily}
+                          </Button>
+                        ))}
                     </div>
                   </CardContent>
                 </Card>
