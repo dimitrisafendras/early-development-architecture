@@ -46,7 +46,7 @@ export interface TrackerSession {
   ended_at: string
 }
 
-export function useTummyTracker(babyId: string | null) {
+export function useTummyTracker(babyId: string | null, householdId: string | null = null) {
   const { session } = useSession()
   const signedIn = isSupabaseEnabled && Boolean(session)
   const [activeStart, setActiveStart] = useState<Date | null>(null)
@@ -113,10 +113,10 @@ export function useTummyTracker(babyId: string | null) {
     setActiveStart(now)
     localStorage.setItem(ACTIVE_START, now.toISOString())
     if (signedIn) {
-      const row = await openSession(babyId, now.toISOString()).catch(() => null)
+      const row = await openSession(babyId, now.toISOString(), householdId).catch(() => null)
       if (row) localStorage.setItem(ACTIVE_REMOTE_ID, row.id)
     }
-  }, [signedIn, babyId])
+  }, [signedIn, babyId, householdId])
 
   const stop = useCallback(async () => {
     if (!activeStart) return

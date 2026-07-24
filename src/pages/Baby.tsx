@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { GrowthChart } from '../components/charts'
 import { useBabies } from '../lib/useBabies'
+import { useHousehold } from '../lib/household'
 import { ageInMonths, todayKey } from '../lib/schedule'
 import {
   listMeasurements,
@@ -24,6 +25,11 @@ export default function Baby() {
   const t = useT()
   const { babies, currentBaby, currentBabyId, setCurrentBabyId, createBaby, ready, loading } =
     useBabies()
+  const { household } = useHousehold()
+
+  // New babies join the family automatically when the user is in one.
+  const onCreate = (input: { name: string; birth_date: string; palette: Palette }) =>
+    createBaby({ ...input, household_id: household?.id ?? null })
 
   return (
     <>
@@ -65,9 +71,14 @@ export default function Baby() {
             )}
 
             {currentBaby ? (
-              <BabyDetail babyId={currentBaby.id} birthDate={currentBaby.birth_date} name={currentBaby.name} />
+              <BabyDetail
+                babyId={currentBaby.id}
+                birthDate={currentBaby.birth_date}
+                name={currentBaby.name}
+                householdId={currentBaby.household_id}
+              />
             ) : (
-              <CreateBabyForm onCreate={createBaby} />
+              <CreateBabyForm onCreate={onCreate} />
             )}
 
             {currentBaby && (
@@ -76,7 +87,7 @@ export default function Baby() {
                   {t.baby.addTitle}
                 </summary>
                 <div className="mt-4">
-                  <CreateBabyForm onCreate={createBaby} />
+                  <CreateBabyForm onCreate={onCreate} />
                 </div>
               </details>
             )}
@@ -179,10 +190,12 @@ function BabyDetail({
   babyId,
   birthDate,
   name,
+  householdId,
 }: {
   babyId: string
   birthDate: string
   name: string
+  householdId: string | null
 }) {
   const t = useT()
   const [rows, setRows] = useState<Measurement[]>([])
@@ -216,7 +229,7 @@ function BabyDetail({
         <Stat label={t.baby.selectLabel} value={name} icon={<BabyIcon className="size-4" />} />
       </div>
 
-      <AddMeasurementForm babyId={babyId} onSaved={refresh} />
+      <AddMeasurementForm babyId={babyId} householdId={householdId} onSaved={refresh} />
 
       {rows.length >= 1 && (
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -288,7 +301,15 @@ function Stat({ label, value, icon }: { label: string; value: string; icon: Reac
   )
 }
 
-function AddMeasurementForm({ babyId, onSaved }: { babyId: string; onSaved: () => Promise<void> }) {
+function AddMeasurementForm({
+  babyId,
+  householdId,
+  onSaved,
+}: {
+  babyId: string
+  householdId: string | null
+  onSaved: () => Promise<void>
+}) {
   const t = useT()
   const [date, setDate] = useState(todayKey())
   const [weight, setWeight] = useState('')
@@ -311,6 +332,7 @@ function AddMeasurementForm({ babyId, onSaved }: { babyId: string; onSaved: () =
         height_cm: height ? Number(height) : null,
         head_cm: head ? Number(head) : null,
         note: note.trim() || null,
+        household_id: householdId,
       })
       setWeight('')
       setHeight('')

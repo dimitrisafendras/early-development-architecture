@@ -11,6 +11,7 @@ import type { Palette } from '../store'
 export interface Baby {
   id: string
   owner: string
+  household_id: string | null
   name: string
   birth_date: string
   palette: Palette
@@ -20,6 +21,7 @@ export interface Baby {
 export interface TummySession {
   id: string
   owner: string
+  household_id: string | null
   baby_id: string | null
   started_at: string
   ended_at: string | null
@@ -28,6 +30,7 @@ export interface TummySession {
 export interface Measurement {
   id: string
   owner: string
+  household_id: string | null
   baby_id: string
   measured_on: string
   weight_kg: number | null
@@ -67,6 +70,7 @@ export async function createBaby(input: {
   name: string
   birth_date: string
   palette: Palette
+  household_id?: string | null
 }): Promise<Baby> {
   const owner = await currentUserId()
   const { data, error } = await client()
@@ -102,6 +106,7 @@ export async function addMeasurement(input: {
   height_cm?: number | null
   head_cm?: number | null
   note?: string | null
+  household_id?: string | null
 }): Promise<Measurement> {
   const owner = await currentUserId()
   const { data, error } = await client()
@@ -142,11 +147,15 @@ export async function findOpenSession(): Promise<TummySession | null> {
   return (data?.[0] as TummySession) ?? null
 }
 
-export async function openSession(babyId: string | null, startedAt: string): Promise<TummySession> {
+export async function openSession(
+  babyId: string | null,
+  startedAt: string,
+  householdId: string | null = null,
+): Promise<TummySession> {
   const owner = await currentUserId()
   const { data, error } = await client()
     .from('tummy_sessions')
-    .insert({ owner, baby_id: babyId, started_at: startedAt })
+    .insert({ owner, baby_id: babyId, started_at: startedAt, household_id: householdId })
     .select()
     .single()
   if (error) throw error

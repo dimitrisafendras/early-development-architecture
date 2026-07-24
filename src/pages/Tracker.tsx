@@ -24,7 +24,7 @@ function fmtTime(iso: string): string {
 export default function Tracker() {
   const t = useT()
   const { currentBaby } = useBabies()
-  const tracker = useTummyTracker(currentBaby?.id ?? null)
+  const tracker = useTummyTracker(currentBaby?.id ?? null, currentBaby?.household_id ?? null)
   const week = useWeeklyMinutes(tracker.sessions, tracker.signedIn)
 
   const ageM = currentBaby ? ageInMonths(currentBaby.birth_date) : null

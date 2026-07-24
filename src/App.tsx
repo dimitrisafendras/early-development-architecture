@@ -4,6 +4,7 @@ import Home from './pages/Home'
 import Topic from './pages/Topic'
 import Tracker from './pages/Tracker'
 import Baby from './pages/Baby'
+import Family from './pages/Family'
 import DesignSystem from './pages/DesignSystem'
 import { useAppStore } from './store'
 import { isSupabaseEnabled } from './lib/supabase'
@@ -34,6 +35,7 @@ export default function App() {
       <Route path="/topic/:slug" element={<Topic />} />
       <Route path="/tracker" element={<Tracker />} />
       <Route path="/baby" element={<Baby />} />
+      <Route path="/family" element={<Family />} />
       <Route path="/design-system" element={<DesignSystem />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

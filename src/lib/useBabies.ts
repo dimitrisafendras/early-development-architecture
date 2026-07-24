@@ -44,7 +44,7 @@ export function useBabies() {
   }, [])
 
   const createBaby = useCallback(
-    async (input: { name: string; birth_date: string; palette: Palette }) => {
+    async (input: { name: string; birth_date: string; palette: Palette; household_id?: string | null }) => {
       const baby = await dbCreateBaby(input)
       await refresh()
       setCurrentBabyId(baby.id)

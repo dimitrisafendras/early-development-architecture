@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Sun, Moon, Palette, Timer, Baby } from 'lucide-react'
+import { Sun, Moon, Palette, Timer, Baby, Users } from 'lucide-react'
 import { GlassNav, GlassToggleGroup } from '@/design-system/components'
 import '@/design-system/ds.css'
 import { AccountControl } from './AccountControl'
@@ -99,6 +99,14 @@ export function NavBar() {
           >
             <Baby className="size-4" aria-hidden />
             <span className="hidden lg:inline">{t.nav.baby}</span>
+          </Link>
+          <Link
+            to="/family"
+            aria-label={t.nav.family}
+            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium text-foreground/70 transition-colors hover:bg-foreground/5 hover:text-foreground sm:px-3"
+          >
+            <Users className="size-4" aria-hidden />
+            <span className="hidden lg:inline">{t.nav.family}</span>
           </Link>
           <Link
             to="/design-system"
