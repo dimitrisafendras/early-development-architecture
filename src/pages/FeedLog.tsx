@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Milk, Trash2, Baby as BabyIcon, Utensils, Clock, Hash, Copy } from 'lucide-react'
+import { Milk, Trash2, Baby as BabyIcon, Utensils, Clock, Hash, Copy, Plus } from 'lucide-react'
 import { SectionHeader } from '../components/SectionHeader'
 import { AgeBadge, useBabyAge } from '../components/AgeBadge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -237,14 +237,14 @@ function AddFeedForm({
             <Label htmlFor="f-note">{tf.noteLabel}</Label>
             <Input id="f-note" value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
-          <div className="col-span-2 flex items-end gap-2 sm:col-span-4">
+          <div className="col-span-2 flex flex-wrap items-end gap-3 sm:col-span-4">
             {last && (
-              <Button type="button" variant="secondary" onClick={copyLast}>
-                <Copy className="mr-1.5 size-4" /> {tf.copyLast}
+              <Button type="button" variant="secondary" size="lg" onClick={copyLast}>
+                <Copy className="mr-2 size-5" /> {tf.copyLast}
               </Button>
             )}
-            <Button type="submit" disabled={busy}>
-              {tf.save}
+            <Button type="submit" size="lg" disabled={busy}>
+              <Plus className="mr-2 size-5" /> {tf.save}
             </Button>
           </div>
         </form>
