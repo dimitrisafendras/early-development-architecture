@@ -28,6 +28,7 @@ const en = {
     theme: 'Color theme',
     lightTheme: 'Light theme',
     darkTheme: 'Dark theme',
+    settings: 'Settings',
     links: {
       neurobiology: 'Brain Growth',
       serveReturn: 'Serve & Return',
@@ -101,6 +102,14 @@ const en = {
     learn: 'Learn',
     dailyCardTitle: 'Open your daily dashboard',
     dailyCardBlurb: "What's happening now, the tummy-time timer, and today's checklist — all in one place.",
+    onThisPage: 'On this page',
+    topicsCount: 'topics',
+    groupBlurbs: {
+      foundations: 'Why the first months matter — explosive brain growth and why live interaction beats screens.',
+      connection: 'How you bond, respond, and talk: serve & return, Parentese, and how much interaction to aim for.',
+      rhythm: 'The physical care routine: tummy time, daily schedule, a full-day plan, sleep, and feeding.',
+      practice: 'Turn it into daily habits.',
+    },
   },
   daily: {
     title: 'Your Day',
@@ -626,6 +635,7 @@ const el: Messages = {
     theme: 'Θέμα χρωμάτων',
     lightTheme: 'Φωτεινό θέμα',
     darkTheme: 'Σκούρο θέμα',
+    settings: 'Ρυθμίσεις',
     links: {
       neurobiology: 'Ανάπτυξη Εγκεφάλου',
       serveReturn: 'Σερβίρισμα & Επιστροφή',
@@ -699,6 +709,14 @@ const el: Messages = {
     learn: 'Μάθετε',
     dailyCardTitle: 'Ανοίξτε τον ημερήσιο πίνακα',
     dailyCardBlurb: 'Τι συμβαίνει τώρα, ο χρονομετρητής μπρούμυτα και η σημερινή λίστα — όλα μαζί.',
+    onThisPage: 'Σε αυτή τη σελίδα',
+    topicsCount: 'θέματα',
+    groupBlurbs: {
+      foundations: 'Γιατί μετρούν οι πρώτοι μήνες — εκρηκτική ανάπτυξη εγκεφάλου και γιατί η ζωντανή επαφή υπερτερεί των οθονών.',
+      connection: 'Πώς δένεστε, ανταποκρίνεστε και μιλάτε: σερβίρισμα & επιστροφή, Παιδική Ομιλία και πόση αλληλεπίδραση.',
+      rhythm: 'Η ρουτίνα φροντίδας: χρόνος μπρούμυτα, καθημερινό πρόγραμμα, πλήρης μέρα, ύπνος και τάισμα.',
+      practice: 'Κάντε το καθημερινή συνήθεια.',
+    },
   },
   daily: {
     title: 'Η Μέρα σας',

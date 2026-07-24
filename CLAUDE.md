@@ -9,7 +9,8 @@ Guidance for Claude Code sessions working in this repo.
 - `/` — landing hub: a card grid linking to the seven infographic topics
 - `/` — landing hub, split into **Your Day** (a prominent card → `/daily`) and **Learn** (the themed topic grid)
 - `/daily` — the combined "Your Day" dashboard: live "what's now" routine + tummy-time widget + today's checklist + links to Full Day / routine
-- `/topic/:slug` — one infographic (Learn) topic per page (registry in `src/sections/registry.tsx`), with a prev/next pager
+- `/learn/:group` — a whole theme group on one page (topics stacked + "on this page" jump nav + prev/next group pager). The hub's Learn area links here. Groups: `foundations`, `connection`, `rhythm` (see `learnGroups`)
+- `/topic/:slug` — a single Learn topic on its own page (still used by deep links, the `/daily` links, and the topic pager)
 - `/tracker` — full tummy-time session tracker (local-first, syncs to Supabase when signed in)
 - `/baby` — baby profile (create/edit/delete) + weight/height/head growth monitoring
 - `/family` — household sharing: create a family, invite parents, share babies

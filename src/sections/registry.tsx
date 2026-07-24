@@ -74,6 +74,23 @@ export function topicsInGroup(group: TopicGroup): Topic[] {
   return topics.filter((topic) => topic.group === group)
 }
 
+/** Learn groups shown as combined pages (`/learn/:group`). "practice" (the
+ *  daily checklist) lives on the /daily dashboard, so it isn't a Learn page. */
+export const learnGroups: TopicGroup[] = ['foundations', 'connection', 'rhythm']
+
+export const groupMeta: Record<TopicGroup, { icon: ComponentType<{ className?: string }> }> = {
+  foundations: { icon: Brain },
+  connection: { icon: MessagesSquare },
+  rhythm: { icon: CalendarClock },
+  practice: { icon: ListChecks },
+}
+
+export function isLearnGroup(value: string | undefined): value is TopicGroup {
+  return learnGroups.includes(value as TopicGroup)
+}
+
+export const groupPath = (group: TopicGroup) => `/learn/${group}`
+
 export const topicPath = (slug: string) => `/topic/${slug}`
 
 export function findTopic(slug: string | undefined): Topic | undefined {
