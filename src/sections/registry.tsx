@@ -5,10 +5,12 @@ import {
   Music,
   Baby,
   CalendarClock,
+  CalendarDays,
   MonitorOff,
   ListChecks,
   MessagesSquare,
   MoonStar,
+  Utensils,
 } from 'lucide-react'
 import type { Messages } from '../i18n'
 import { Neurobiology } from './Neurobiology'
@@ -19,7 +21,9 @@ import { Routine } from './Routine'
 import { Environment } from './Environment'
 import { Summary } from './Summary'
 import { Interaction } from './Interaction'
-import { SleepFeeding } from './SleepFeeding'
+import { FullDay } from './FullDay'
+import { Sleep } from './Sleep'
+import { Feeding } from './Feeding'
 
 export type TopicGroup = 'foundations' | 'connection' | 'rhythm' | 'practice'
 
@@ -58,7 +62,9 @@ export const topics: Topic[] = [
   // Daily rhythm — the physical care routine
   { slug: 'tummy-time', module: 4, group: 'rhythm', icon: Baby, label: (t) => t.nav.links.tummyTime, blurb: (t) => t.tummyTime.description, Component: TummyTime },
   { slug: 'daily-routine', module: 5, group: 'rhythm', icon: CalendarClock, label: (t) => t.nav.links.routine, blurb: (t) => t.routine.description, Component: Routine },
-  { slug: 'sleep-feeding', module: 9, group: 'rhythm', icon: MoonStar, label: (t) => t.nav.links.sleepFeeding, blurb: (t) => t.sleepFeeding.description, Component: SleepFeeding },
+  { slug: 'full-day', module: 11, group: 'rhythm', icon: CalendarDays, label: (t) => t.nav.links.fullDay, blurb: (t) => t.fullDay.description, Component: FullDay },
+  { slug: 'sleep', module: 9, group: 'rhythm', icon: MoonStar, label: (t) => t.nav.links.sleep, blurb: (t) => t.sleep.description, Component: Sleep },
+  { slug: 'feeding', module: 10, group: 'rhythm', icon: Utensils, label: (t) => t.nav.links.feeding, blurb: (t) => t.feeding.description, Component: Feeding },
   // Put it into practice
   { slug: 'action-items', module: 7, group: 'practice', icon: ListChecks, label: (t) => t.nav.links.summary, blurb: (t) => t.summary.description, Component: Summary },
 ]

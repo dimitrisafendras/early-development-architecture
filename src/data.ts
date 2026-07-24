@@ -258,6 +258,38 @@ export const feedingRows: { tone: ScheduleTone }[] = [
   { tone: 'fuchsia' }, // 4–6 mo
 ]
 
+/* ------------------------------------------------------------- full day */
+
+/** Activity kinds on the hour-by-hour full-day schedule. Drives colour + icon
+ *  + the legend; the slot text is localized in i18n (`fullDay.slots`). */
+export type DayActivity = 'feed' | 'sleep' | 'play' | 'tummy' | 'care' | 'wind'
+
+/** A realistic ~3–4-month sample day, in order. Time is locale-independent;
+ *  each entry's title/detail live in i18n at the same index. */
+export const fullDaySchedule: { time: string; type: DayActivity }[] = [
+  { time: '07:00', type: 'feed' },
+  { time: '07:40', type: 'care' },
+  { time: '08:00', type: 'play' },
+  { time: '08:30', type: 'tummy' },
+  { time: '09:00', type: 'sleep' },
+  { time: '10:15', type: 'feed' },
+  { time: '10:45', type: 'play' },
+  { time: '11:30', type: 'tummy' },
+  { time: '12:00', type: 'sleep' },
+  { time: '13:30', type: 'feed' },
+  { time: '14:00', type: 'play' },
+  { time: '15:15', type: 'sleep' },
+  { time: '16:15', type: 'feed' },
+  { time: '16:45', type: 'play' },
+  { time: '17:30', type: 'tummy' },
+  { time: '18:00', type: 'care' },
+  { time: '18:45', type: 'wind' },
+  { time: '19:00', type: 'feed' },
+  { time: '19:30', type: 'sleep' },
+  { time: '23:00', type: 'feed' },
+  { time: '03:00', type: 'feed' },
+]
+
 export const efficiencyScores: {
   label: string
   value: number

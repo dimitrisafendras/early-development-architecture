@@ -35,7 +35,9 @@ const en = {
       environment: 'Video Deficit',
       summary: 'Action Items',
       interaction: 'Interaction Time',
-      sleepFeeding: 'Sleep & Feeding',
+      fullDay: 'Full Day',
+      sleep: 'Sleep',
+      feeding: 'Feeding',
     },
   },
   auth: {
@@ -428,42 +430,87 @@ const en = {
     sourcesLabel:
       'Sources: AAP (Power of Play; media guidance), ZERO TO THREE, Harvard Center on the Developing Child.',
   },
-  sleepFeeding: {
-    title: 'Sleep & Feeding by Age',
+  sleep: {
+    title: 'Sleep by Age',
     description:
-      'Typical sleep totals and feeding rhythms in the first six months, plus the non-negotiable safe-sleep rules. Every baby varies — feed and settle on demand, watching your baby, not the clock.',
-    sleepTitle: 'Sleep — how much',
-    sleepStats: [
+      'Typical sleep totals through the first year, plus the non-negotiable safe-sleep rules. Every baby varies — settle on demand and watch your baby, not the clock.',
+    statsTitle: 'How much sleep',
+    stats: [
       { label: 'Newborn (0–3 mo)', unit: '/ 24h', note: 'In 1–2h stretches; night-and-day not yet sorted out.' },
       { label: 'Infant (4–12 mo)', unit: '/ 24h', note: 'Longer night stretches; ~2/3 sleep through by 6 months.' },
       { label: 'Naps at 4–6 mo', unit: 'per day', note: 'Consolidating into a more predictable daytime rhythm.' },
       { label: 'Back to sleep', unit: 'until', note: 'On the back for every sleep until the first birthday.' },
     ],
-    safeSleepTitle: 'Safe sleep — every sleep, every time',
-    safeSleep: [
+    safeTitle: 'Safe sleep — every sleep, every time',
+    safe: [
       { title: 'Back to sleep', text: 'Always place baby on their back for naps and night — the single biggest SIDS protection.' },
       { title: 'Firm, flat, alone', text: 'A firm flat crib/bassinet mattress with a fitted sheet; baby sleeps alone in their own space.' },
       { title: 'Room-share 6–12 mo', text: "Keep the baby's crib in your room, but not your bed, for at least the first 6 months." },
       { title: 'Clear the space', text: 'No pillows, loose blankets, bumpers, or soft toys. Use a sleep sack instead of a blanket.' },
     ],
-    feedingTitle: 'Feeding — how often & how much',
-    feedingNote:
+    sourcesLabel: 'Sources: AAP HealthyChildren.org, AAP Safe Sleep 2022, American Academy of Sleep Medicine.',
+  },
+  feeding: {
+    title: 'Feeding by Age',
+    description:
+      'How often and how much through the first six months, and how to read your baby\'s hunger and fullness cues. Feed on demand — amounts are guides, not targets.',
+    tableTitle: 'How often & how much',
+    tableNote:
       'Feed on demand and watch hunger/fullness cues. Amounts are formula guides; breastfed babies feed more often. Never force a bottle — let baby stop when full. Introduce solids around 6 months.',
-    feedHeaders: { age: 'Age', frequency: 'How often', amount: 'Per feed (formula)' },
-    feeding: [
+    headers: { age: 'Age', frequency: 'How often', amount: 'Per feed (formula)' },
+    rows: [
       { age: 'Newborn (0–1 mo)', frequency: 'Every 2–3h · 8–12×/day', amount: '1–2 oz (30–60 ml)' },
       { age: '1–2 months', frequency: 'Every 3–4h', amount: '3–5 oz (90–150 ml)' },
       { age: '2–4 months', frequency: 'Every 3–4h', amount: '4–6 oz (120–180 ml)' },
       { age: '4–6 months', frequency: '4–5 feeds/day', amount: '6–8 oz (180–240 ml)' },
     ],
-    feedMax: 'Cap formula at about 32 oz (960 ml) per 24 hours.',
+    max: 'Cap formula at about 32 oz (960 ml) per 24 hours.',
     cuesTitle: 'Read the cues',
     hungerLabel: 'Hungry',
     fullLabel: 'Full',
     hungerCues: ['Rooting / turning to the breast', 'Hands to mouth, sucking', 'Lip-smacking, stirring', 'Fussing (crying is a late sign)'],
     fullCues: ['Turns head away', 'Closes mouth, slows sucking', 'Relaxes hands and body', 'Loses interest / pushes away'],
+    sourcesLabel: 'Sources: AAP HealthyChildren.org (feeding & nutrition), WHO responsive feeding guidance.',
+  },
+  fullDay: {
+    title: 'A Full Day, Hour by Hour',
+    description:
+      'A realistic sample day (~3–4 months) weaving feeds, naps, tummy time, play, and wind-down into one rhythm. Shift the clock to your own baby — the order and balance matter more than the exact times.',
+    legendTitle: 'Activity types',
+    types: {
+      feed: 'Feed',
+      sleep: 'Sleep / nap',
+      play: 'Play & connect',
+      tummy: 'Tummy time',
+      care: 'Care',
+      wind: 'Wind-down',
+    },
+    note: "Newborns (0–3 mo) won't hold a fixed clock yet — feed on demand and follow sleepy cues. A pattern like this usually emerges around 3–4 months.",
+    slots: [
+      { title: 'Wake & morning feed', detail: 'Full feed after the longest sleep; plenty of eye contact and warm parentese.' },
+      { title: 'Nappy & dress', detail: 'Narrate each step — a calm, chatty start sets the tone for the day.' },
+      { title: 'Floor play & serve-return', detail: 'Get face-to-face, answer coos within 1–4s, offer high-contrast toys.' },
+      { title: 'Tummy time', detail: 'Short supervised session while alert and happy.' },
+      { title: 'Morning nap', detail: '~1–1.5h. Watch for the first sleepy cues (yawning, gaze away) and settle early.' },
+      { title: 'Feed on waking', detail: 'Offer a feed as soon as baby is awake and calm.' },
+      { title: 'Books & singing', detail: 'Read aloud and sing rhymes; name whatever baby looks at.' },
+      { title: 'Tummy time', detail: 'Second short session — add a mirror or mat toys for interest.' },
+      { title: 'Midday nap', detail: 'Usually the longest daytime nap; keep the room calm and dim.' },
+      { title: 'Feed', detail: 'Wake-up feed; check the nappy.' },
+      { title: 'Outing / stroller / sensory', detail: 'Fresh air and new sights — talk through everything you see.' },
+      { title: 'Afternoon nap', detail: 'Shorter catnap to bridge to the evening.' },
+      { title: 'Feed', detail: 'Reconnect after the nap.' },
+      { title: 'Quiet play & music', detail: 'Lower-key play and soft music as the day winds down.' },
+      { title: 'Gentle tummy time', detail: 'Only if content — skip it if baby is fussy or tired.' },
+      { title: 'Bath & massage', detail: 'Warm, calm, predictable — the anchor of the bedtime routine.' },
+      { title: 'Wind-down routine', detail: 'Dim lights, lullaby, low voices, no screens.' },
+      { title: 'Bedtime feed', detail: 'Full feed to settle for the longest stretch of the night.' },
+      { title: 'Night sleep begins', detail: 'On the back, firm flat surface, in their own sleep space.' },
+      { title: 'Dream / night feed', detail: 'Feed on waking; keep it dark and quiet with minimal stimulation.' },
+      { title: 'Night feed', detail: 'As needed — straight back to sleep afterwards.' },
+    ],
     sourcesLabel:
-      'Sources: AAP HealthyChildren.org (sleep & feeding), AAP Safe Sleep 2022, American Academy of Sleep Medicine.',
+      'Illustrative schedule synthesized from AAP HealthyChildren.org routines, ZERO TO THREE, and infant sleep/awake-window guidance.',
   },
   footer: {
     title: '🧠 The Architecture of Early Development',
@@ -511,7 +558,9 @@ const el: Messages = {
       environment: 'Έλλειμμα Βίντεο',
       summary: 'Ενέργειες',
       interaction: 'Χρόνος Αλληλεπίδρασης',
-      sleepFeeding: 'Ύπνος & Τάισμα',
+      fullDay: 'Πλήρης Μέρα',
+      sleep: 'Ύπνος',
+      feeding: 'Τάισμα',
     },
   },
   auth: {
@@ -904,42 +953,87 @@ const el: Messages = {
     sourcesLabel:
       'Πηγές: AAP (Power of Play· οδηγίες μέσων), ZERO TO THREE, Harvard Center on the Developing Child.',
   },
-  sleepFeeding: {
-    title: 'Ύπνος & Τάισμα ανά Ηλικία',
+  sleep: {
+    title: 'Ύπνος ανά Ηλικία',
     description:
-      'Τυπικά σύνολα ύπνου και ρυθμοί ταΐσματος στους πρώτους έξι μήνες, μαζί με τους αδιαπραγμάτευτους κανόνες ασφαλούς ύπνου. Κάθε μωρό διαφέρει — ταΐστε και κοιμίστε όποτε το ζητά, παρατηρώντας το μωρό, όχι το ρολόι.',
-    sleepTitle: 'Ύπνος — πόσος',
-    sleepStats: [
+      'Τυπικά σύνολα ύπνου στον πρώτο χρόνο, μαζί με τους αδιαπραγμάτευτους κανόνες ασφαλούς ύπνου. Κάθε μωρό διαφέρει — κοιμίστε όποτε το ζητά, παρατηρώντας το μωρό, όχι το ρολόι.',
+    statsTitle: 'Πόσος ύπνος',
+    stats: [
       { label: 'Νεογνό (0–3 μην.)', unit: '/ 24ω', note: 'Σε διαστήματα 1–2ω· μέρα-νύχτα δεν έχουν ξεχωρίσει ακόμη.' },
       { label: 'Βρέφος (4–12 μην.)', unit: '/ 24ω', note: 'Μεγαλύτερα νυχτερινά διαστήματα· ~2/3 κοιμούνται όλη νύχτα στους 6 μήνες.' },
       { label: 'Ύπνοι στους 4–6 μην.', unit: 'ανά ημέρα', note: 'Παγιώνονται σε πιο προβλέψιμο ημερήσιο ρυθμό.' },
       { label: 'Ανάσκελα για ύπνο', unit: 'έως', note: 'Ανάσκελα σε κάθε ύπνο έως τα πρώτα γενέθλια.' },
     ],
-    safeSleepTitle: 'Ασφαλής ύπνος — κάθε ύπνο, κάθε φορά',
-    safeSleep: [
+    safeTitle: 'Ασφαλής ύπνος — κάθε ύπνο, κάθε φορά',
+    safe: [
       { title: 'Ανάσκελα για ύπνο', text: 'Πάντα ανάσκελα σε ύπνους ημέρας και νύχτας — η μεγαλύτερη προστασία από SIDS.' },
       { title: 'Σταθερό, επίπεδο, μόνο', text: 'Σταθερό επίπεδο στρώμα κούνιας με εφαρμοστό σεντόνι· το μωρό κοιμάται μόνο στον δικό του χώρο.' },
       { title: 'Ίδιο δωμάτιο 6–12 μην.', text: 'Κρατήστε την κούνια στο δωμάτιό σας, αλλά όχι στο κρεβάτι σας, για τουλάχιστον 6 μήνες.' },
       { title: 'Καθαρός χώρος', text: 'Χωρίς μαξιλάρια, χαλαρές κουβέρτες, προστατευτικά ή λούτρινα. Χρησιμοποιήστε υπνόσακο.' },
     ],
-    feedingTitle: 'Τάισμα — πόσο συχνά & πόσο',
-    feedingNote:
+    sourcesLabel: 'Πηγές: AAP HealthyChildren.org, AAP Safe Sleep 2022, American Academy of Sleep Medicine.',
+  },
+  feeding: {
+    title: 'Τάισμα ανά Ηλικία',
+    description:
+      'Πόσο συχνά και πόσο στους πρώτους έξι μήνες, και πώς να διαβάζετε τα σημάδια πείνας και κορεσμού. Ταΐστε όποτε το ζητά — οι ποσότητες είναι οδηγοί, όχι στόχοι.',
+    tableTitle: 'Πόσο συχνά & πόσο',
+    tableNote:
       'Ταΐστε όποτε το ζητά και παρατηρήστε σημάδια πείνας/κορεσμού. Οι ποσότητες αφορούν φόρμουλα· τα θηλάζοντα μωρά τρώνε πιο συχνά. Μην πιέζετε το μπιμπερό. Στερεές τροφές γύρω στους 6 μήνες.',
-    feedHeaders: { age: 'Ηλικία', frequency: 'Πόσο συχνά', amount: 'Ανά γεύμα (φόρμουλα)' },
-    feeding: [
+    headers: { age: 'Ηλικία', frequency: 'Πόσο συχνά', amount: 'Ανά γεύμα (φόρμουλα)' },
+    rows: [
       { age: 'Νεογνό (0–1 μην.)', frequency: 'Κάθε 2–3ω · 8–12×/ημέρα', amount: '30–60 ml' },
       { age: '1–2 μηνών', frequency: 'Κάθε 3–4ω', amount: '90–150 ml' },
       { age: '2–4 μηνών', frequency: 'Κάθε 3–4ω', amount: '120–180 ml' },
       { age: '4–6 μηνών', frequency: '4–5 γεύματα/ημέρα', amount: '180–240 ml' },
     ],
-    feedMax: 'Όριο φόρμουλας περίπου 960 ml ανά 24 ώρες.',
+    max: 'Όριο φόρμουλας περίπου 960 ml ανά 24 ώρες.',
     cuesTitle: 'Διαβάστε τα σημάδια',
     hungerLabel: 'Πεινάει',
     fullLabel: 'Χόρτασε',
     hungerCues: ['Στρέφεται προς το στήθος', 'Χέρια στο στόμα, πιπίλισμα', 'Κινήσεις χειλιών, ανησυχία', 'Γκρίνια (το κλάμα είναι όψιμο σημάδι)'],
     fullCues: ['Γυρίζει το κεφάλι', 'Κλείνει το στόμα, αργεί το πιπίλισμα', 'Χαλαρώνει χέρια και σώμα', 'Χάνει ενδιαφέρον / σπρώχνει'],
+    sourcesLabel: 'Πηγές: AAP HealthyChildren.org (τάισμα & διατροφή), οδηγίες υπεύθυνου ταΐσματος WHO.',
+  },
+  fullDay: {
+    title: 'Μια Πλήρης Μέρα, Ώρα-Ώρα',
+    description:
+      'Μια ρεαλιστική ενδεικτική μέρα (~3–4 μηνών) που πλέκει ταΐσματα, ύπνους, χρόνο μπρούμυτα, παιχνίδι και χαλάρωση σε έναν ρυθμό. Προσαρμόστε το ρολόι στο δικό σας μωρό — η σειρά και η ισορροπία μετρούν περισσότερο από τις ακριβείς ώρες.',
+    legendTitle: 'Τύποι δραστηριότητας',
+    types: {
+      feed: 'Τάισμα',
+      sleep: 'Ύπνος',
+      play: 'Παιχνίδι & σύνδεση',
+      tummy: 'Χρόνος μπρούμυτα',
+      care: 'Φροντίδα',
+      wind: 'Χαλάρωση',
+    },
+    note: 'Τα νεογνά (0–3 μην.) δεν κρατούν σταθερό ρολόι ακόμη — ταΐστε όποτε το ζητά και ακολουθήστε τα σημάδια ύπνου. Ένα μοτίβο σαν αυτό εμφανίζεται συνήθως γύρω στους 3–4 μήνες.',
+    slots: [
+      { title: 'Ξύπνημα & πρωινό τάισμα', detail: 'Πλήρες τάισμα μετά τον μεγαλύτερο ύπνο· άφθονη βλεμματική επαφή και ζεστή παιδική ομιλία.' },
+      { title: 'Αλλαγή & ντύσιμο', detail: 'Περιγράψτε κάθε βήμα — μια ήρεμη, ομιλητική αρχή δίνει τον τόνο της ημέρας.' },
+      { title: 'Παιχνίδι στο πάτωμα & σερβίρισμα-επιστροφή', detail: 'Πρόσωπο με πρόσωπο, απαντήστε στα γουργουρίσματα σε 1–4 δευτ., κάρτες αντίθεσης.' },
+      { title: 'Χρόνος μπρούμυτα', detail: 'Σύντομη εποπτευόμενη συνεδρία όσο είναι ξύπνιο και χαρούμενο.' },
+      { title: 'Πρωινός ύπνος', detail: '~1–1,5ω. Προσέξτε τα πρώτα σημάδια ύπνου (χασμουρητά, αποστροφή βλέμματος) και κοιμίστε νωρίς.' },
+      { title: 'Τάισμα στο ξύπνημα', detail: 'Προσφέρετε τάισμα μόλις το μωρό είναι ξύπνιο και ήρεμο.' },
+      { title: 'Βιβλία & τραγούδι', detail: 'Διαβάστε δυνατά και τραγουδήστε ρίμες· ονομάστε ό,τι κοιτάζει το μωρό.' },
+      { title: 'Χρόνος μπρούμυτα', detail: 'Δεύτερη σύντομη συνεδρία — προσθέστε καθρέφτη ή παιχνίδια στο στρωματάκι.' },
+      { title: 'Μεσημεριανός ύπνος', detail: 'Συνήθως ο μεγαλύτερος ύπνος της ημέρας· κρατήστε το δωμάτιο ήρεμο και σκοτεινό.' },
+      { title: 'Τάισμα', detail: 'Τάισμα στο ξύπνημα· έλεγχος πάνας.' },
+      { title: 'Έξοδος / καρότσι / αισθητηριακά', detail: 'Καθαρός αέρας και νέες εικόνες — μιλήστε για όλα όσα βλέπετε.' },
+      { title: 'Απογευματινός ύπνος', detail: 'Σύντομος ύπνος-γέφυρα προς το βράδυ.' },
+      { title: 'Τάισμα', detail: 'Επανασύνδεση μετά τον ύπνο.' },
+      { title: 'Ήσυχο παιχνίδι & μουσική', detail: 'Πιο ήπιο παιχνίδι και απαλή μουσική καθώς κλείνει η μέρα.' },
+      { title: 'Ήπιος χρόνος μπρούμυτα', detail: 'Μόνο αν είναι ευχαριστημένο — παραλείψτε το αν γκρινιάζει ή είναι κουρασμένο.' },
+      { title: 'Μπάνιο & μασάζ', detail: 'Ζεστό, ήρεμο, προβλέψιμο — η άγκυρα της ρουτίνας ύπνου.' },
+      { title: 'Ρουτίνα χαλάρωσης', detail: 'Χαμηλά φώτα, νανούρισμα, χαμηλές φωνές, χωρίς οθόνες.' },
+      { title: 'Τάισμα πριν τον ύπνο', detail: 'Πλήρες τάισμα για να ηρεμήσει για το μεγαλύτερο διάστημα της νύχτας.' },
+      { title: 'Έναρξη νυχτερινού ύπνου', detail: 'Ανάσκελα, σε σταθερή επίπεδη επιφάνεια, στον δικό του χώρο ύπνου.' },
+      { title: 'Ονειρικό / νυχτερινό τάισμα', detail: 'Τάισμα στο ξύπνημα· κρατήστε το σκοτεινό και ήσυχο με ελάχιστα ερεθίσματα.' },
+      { title: 'Νυχτερινό τάισμα', detail: 'Όπως χρειάζεται — αμέσως πίσω στον ύπνο μετά.' },
+    ],
     sourcesLabel:
-      'Πηγές: AAP HealthyChildren.org (ύπνος & τάισμα), AAP Safe Sleep 2022, American Academy of Sleep Medicine.',
+      'Ενδεικτικό πρόγραμμα βασισμένο σε ρουτίνες AAP HealthyChildren.org, ZERO TO THREE και οδηγίες ύπνου/παραθύρων εγρήγορσης.',
   },
   footer: {
     title: '🧠 Η Αρχιτεκτονική της Πρώιμης Ανάπτυξης',
