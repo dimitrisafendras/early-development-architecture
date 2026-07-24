@@ -1,37 +1,52 @@
 # Interactive Features + Supabase — Implementation Plan
 
 Prioritized plan for adding live interactive functionality to the app and wiring
-Supabase (org `trmfffzkmabmanjwhcmh`) as the backend. The app stays a static
+Supabase as the backend. The app stays a static
 Vite SPA on GitHub Pages — Supabase provides ALL server capability (Postgres,
-Auth, Realtime, Edge Functions). Anon key is public by design; **RLS is the
-security boundary on every table.**
+Auth, Realtime, Edge Functions). Anon/publishable key is public by design;
+**RLS is the security boundary on every table.**
+
+**Project:** `early-development` — ref `fmmztrxenoiwhiwxkzzn`, personal org
+`dimitrisafendras's Org` (Free tier). URL `https://fmmztrxenoiwhiwxkzzn.supabase.co`.
+Uses the new publishable key format (`sb_publishable_…`), not the legacy JWT anon.
+The Supabase MCP has no permission on this project (personal org) → migrations
+run via the dashboard SQL editor (browser), kept as files in `supabase/migrations/`.
+
+**Status legend:** ✅ done · 🔜 next · ⬜ not started
 
 ---
 
-## P0 — Supabase wiring (foundation, blocks everything else)
+## P0 — Supabase wiring (foundation, blocks everything else) ✅ DONE
 
-**0.1 Project + credentials**
-- Create (or pick) a project in the org; grab `Project URL` + `anon` key
-  (Dashboard → Project Settings → API). ⚠️ Needed from Dimitris — the dashboard
-  is auth-only. Only these two values; never the `service_role` key.
-- Local dev: `.env.local` → `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
-  (gitignore `.env*`). CI: same two values as GitHub Actions repo secrets,
-  passed as `env:` to the build step in `.github/workflows/deploy.yml`.
+**0.1 Project + credentials** ✅
+- Project + publishable key captured. `.env.local` written; GitHub Actions repo
+  secrets `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` set (2026-07-24).
+  `.env*` gitignored. Never the `service_role` / `sb_secret_…` key.
 
-**0.2 Client + auth scaffolding**
-- `npm i @supabase/supabase-js`
-- `src/lib/supabase.ts` — singleton client (env-driven; app must still fully
-  work with NO env set → all sync features hidden, infographic untouched).
-- Auth: **anonymous sign-in enabled** (zero-friction start) + email OTP/magic
-  link to "claim" the account later (`linkIdentity`). Redirect URL allow-list
-  must include `https://dimitrisafendras.github.io/early-development-architecture/`
-  (and `http://localhost:5173`/`5174` for dev).
-- `src/store.ts`: add `session` slice (user, status) hydrated from
-  `supabase.auth.onAuthStateChange`.
-- UI: small account chip in the GlassNav (sign in / signed-in state) built from
-  existing DS components.
+**0.2 Client + auth scaffolding** ✅
+- `@supabase/supabase-js@^2.110` installed.
+- `src/lib/supabase.ts` — env-driven singleton, `null` when env absent (app
+  degrades gracefully). `src/lib/use-session.ts` hydrates the live session.
+- Auth: **email + password** (commit c122366 deliberately replaced the earlier
+  magic-link/Google approach — kept per decision 2026-07-24; the plan's original
+  anonymous+magic-link is NOT used). `AccountControl` in the GlassNav renders the
+  sign-in popover / signed-in identity, nothing when Supabase is unconfigured.
+- Redirect allow-list still to confirm for prod:
+  `https://dimitrisafendras.github.io/early-development-architecture/`.
+- NOTE: `src/store.ts` has no `session` slice — session lives in `use-session.ts`
+  (hook-local). Add a store slice only if P1 needs session outside React tree.
 
-**0.3 Base schema + RLS** (SQL migration, run via dashboard SQL editor or CLI)
+**0.3 Base schema + RLS** ✅ — `supabase/migrations/0001_base_schema.sql`, run in
+  the dashboard. `profiles` + `babies` created, RLS enabled, owner-only policies,
+  `handle_new_user` trigger auto-creates a profile on signup.
+  ⚠️ The pre-existing signed-in user predates the trigger → has no `profiles`
+  row yet (app doesn't read profiles yet, so harmless).
+
+**Verified 2026-07-24 (local, Chrome):** app runs with env; real session active;
+`babies` insert `201` + read `200` via live session token; RLS enforces
+`owner = auth.uid()`; test row deleted. Acceptance met.
+
+**Original 0.3 SQL** (reference — actual applied version is in the migration file):
 ```sql
 create table profiles (
   id uuid primary key references auth.users on delete cascade,
@@ -62,9 +77,9 @@ verified (second account sees nothing).
 
 ---
 
-## P1 — Core interactive features
+## P1 — Core interactive features 🔜
 
-**1.1 Tummy-time session timer** (the flagship "schedule timer")
+**1.1 Tummy-time session timer** (the flagship "schedule timer") ⬜
 - New route `/tracker` (router + GlassNav link; content cards opaque per DS).
 - Start/stop timer with a large palette-tinted progress ring toward the
   age-appropriate daily target (derived from `babies.birth_date` and the
@@ -76,14 +91,15 @@ verified (second account sees nothing).
 - Today view: sessions list, cumulative minutes, target %, delete-mistake.
 - Reuse: chart.js weekly bar (existing `useChartColors`), DS Card/GlassButton.
 
-**1.2 Live daily routine ("what's now")**
+**1.2 Live daily routine ("what's now")** ⬜ — pure client-side, no backend; can
+land independently of 1.1/1.3.
 - Upgrade the Module-5 schedule cards into a live timeline: highlight the
   current block, countdown to the next, "now" marker; purely client-side
   (no backend), driven by the existing `scheduleBlocks` data + `Date`.
 - Per-family customization (P1.5, optional): `routine_blocks` table overriding
   the defaults (time ranges editable in a Sheet form).
 
-**1.3 Synced daily checklist**
+**1.3 Synced daily checklist** ⬜
 - Make the Module-7 checklist per-day: `checklist_entries(owner, baby_id, day date, item_id text, checked bool)`,
   unique `(owner, baby_id, day, item_id)`; upsert on toggle.
 - Local-first: zustand stays the source of truth offline; background upsert
@@ -142,5 +158,6 @@ everything still AA in all 4 theme×palette combos; `npm run build` green.
 - Guardrails: no service_role in the repo ever; every new table gets RLS in the
   same migration that creates it; app must degrade gracefully without env/session.
 
-**Blocker to start P0:** the Supabase Project URL + anon key (or log in
-`supabase` CLI locally and I take it from there).
+**P0 unblocked & complete** (2026-07-24). Next: P1.2 (client-only, no deps) or
+P1.1 (needs `tummy_sessions` migration first). Migrations run via the dashboard
+SQL editor since the MCP can't reach this personal-org project.
