@@ -252,12 +252,15 @@ export const safeSleepRules: { tone: StatusTone }[] = [
   { tone: 'danger' }, //  no soft bedding / bumpers / toys
 ]
 
-/** Feeding frequency/amount rows by age band; all text localized in i18n. */
-export const feedingRows: { tone: ScheduleTone }[] = [
-  { tone: 'amber' }, // newborn 0–1 mo
-  { tone: 'emerald' }, // 1–2 mo
-  { tone: 'sky' }, // 2–4 mo
-  { tone: 'fuchsia' }, // 4–6 mo
+/** Feeding frequency/amount rows by age band; all text localized in i18n.
+ *  `feedsPerDay` is the typical [min, max] number of feeds/24h for the band —
+ *  used to compare today's logged count against age guidance (a guide, not a
+ *  target). Monotonic-decreasing and consistent with the i18n frequency text. */
+export const feedingRows: { tone: ScheduleTone; feedsPerDay: [number, number] }[] = [
+  { tone: 'amber', feedsPerDay: [8, 12] }, // newborn 0–1 mo
+  { tone: 'emerald', feedsPerDay: [7, 9] }, // 1–2 mo
+  { tone: 'sky', feedsPerDay: [6, 8] }, // 2–4 mo
+  { tone: 'fuchsia', feedsPerDay: [4, 5] }, // 4–6 mo
 ]
 /** Exclusive upper age bound (months) per feeding band; last is open-ended. */
 export const feedingUppers = [1, 2, 4, 999]
