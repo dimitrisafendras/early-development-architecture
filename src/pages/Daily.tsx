@@ -1,45 +1,62 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Play, Square, Radio, ArrowRight, CalendarDays, ListChecks, Flame } from 'lucide-react'
+import { Play, Square, Radio, ArrowRight, CalendarDays, ListChecks, Milk, Moon } from 'lucide-react'
 import { SectionHeader } from '../components/SectionHeader'
 import { AgeBadge } from '../components/AgeBadge'
 import { ProgressRing } from '../components/ProgressRing'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
-import { scheduleBlocks } from '../data'
-import { checklistItems } from '../data'
-import { activeBlockIndex, minutesUntilBlockStart, tummyTargetForAgeMonths, ageInMonths } from '../lib/schedule'
+import { scheduleBlocks, feedingRows, feedingUppers } from '../data'
+import {
+  activeBlockIndex,
+  minutesUntilBlockStart,
+  tummyTargetForAgeMonths,
+  ageInMonths,
+  bandIndex,
+} from '../lib/schedule'
 import { topicPath } from '../sections/registry'
 import { useBabies } from '../lib/useBabies'
 import { useTummyTracker } from '../lib/useTummyTracker'
-import { useDailyChecklist } from '../lib/useDailyChecklist'
+import { useFeedLog } from '../lib/useFeedLog'
 import { useT } from '../i18n'
+
+/** Live clock ticked every 30s — drives both "what's now" and which action
+ *  widget the day surfaces, from a single source so they never disagree. */
+function useNow(): Date {
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000)
+    return () => clearInterval(id)
+  }, [])
+  return now
+}
 
 export default function Daily() {
   const t = useT()
+  const now = useNow()
+  const active = activeBlockIndex(now)
+  const action = scheduleBlocks[active].action
+
   return (
-    <>
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-10">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <SectionHeader title={t.daily.title} description={t.daily.subtitle} />
-          <AgeBadge />
-        </div>
+    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-10">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <SectionHeader title={t.daily.title} description={t.daily.subtitle} />
+        <AgeBadge />
+      </div>
 
-        <NowWidget />
+      <NowWidget now={now} />
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <TummyWidget />
-          <ChecklistWidget />
-        </div>
+      {/* The one action that fits the current block. */}
+      {action === 'tummy' && <TummyWidget />}
+      {action === 'feed' && <FeedWidget />}
+      {action === 'rest' && <RestWidget />}
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <LinkCard to={topicPath('full-day')} icon={<CalendarDays className="size-5" />} label={t.daily.fullDayCta} />
-          <LinkCard to={topicPath('daily-routine')} icon={<ListChecks className="size-5" />} label={t.daily.learnRoutine} />
-        </div>
-      </main>
-    </>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <LinkCard to={topicPath('full-day')} icon={<CalendarDays className="size-5" />} label={t.daily.fullDayCta} />
+        <LinkCard to={topicPath('daily-routine')} icon={<ListChecks className="size-5" />} label={t.daily.learnRoutine} />
+      </div>
+    </main>
   )
 }
 
@@ -49,14 +66,9 @@ function formatCountdown(mins: number, h: string, m: string): string {
   return hr > 0 ? `${hr}${h} ${mn}${m}` : `${mn}${m}`
 }
 
-function NowWidget() {
+function NowWidget({ now }: { now: Date }) {
   const t = useT()
   const tl = t.routineLive
-  const [now, setNow] = useState(() => new Date())
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 30_000)
-    return () => clearInterval(id)
-  }, [])
   const active = activeBlockIndex(now)
   const next = (active + 1) % scheduleBlocks.length
   const untilNext = minutesUntilBlockStart(next, now)
@@ -149,43 +161,105 @@ function TummyWidget() {
   )
 }
 
-function ChecklistWidget() {
+function FeedWidget() {
   const t = useT()
-  const { checked, streak, total, toggle } = useDailyChecklist()
+  const { currentBaby } = useBabies()
+  const feed = useFeedLog(currentBaby?.id ?? null, currentBaby?.household_id ?? null)
+  const months = currentBaby ? ageInMonths(currentBaby.birth_date) : null
+  const range = months != null ? feedingRows[bandIndex(months, feedingUppers)].feedsPerDay : null
+  const count = feed.todayFeeds.length
+
+  const mins = feed.minsSinceLast
+  const since =
+    mins == null
+      ? t.feed.never
+      : mins >= 60
+        ? `${Math.floor(mins / 60)}${t.feed.hourShort} ${mins % 60}${t.feed.minShort}`
+        : `${mins} ${t.feed.minShort}`
+
+  const last = feed.lastFeed
+  const quickLog = () =>
+    void feed.add({
+      fed_at: new Date().toISOString(),
+      method: last?.method ?? 'bottle',
+      amount_ml: last?.amount_ml ?? null,
+      minutes: last?.minutes ?? null,
+      note: null,
+    })
+
+  // Compare today's count against the typical daily range (a guide, not a target).
+  let state: 'below' | 'on' | 'above' = 'on'
+  let scaleMax = Math.max(count + 1, 1)
+  if (range) {
+    const [min, max] = range
+    state = count < min ? 'below' : count > max ? 'above' : 'on'
+    scaleMax = Math.max(max + 2, count + 1, 1)
+  }
+  const p = (v: number) => Math.min(100, (v / scaleMax) * 100)
+
   return (
     <Card>
-      <CardContent>
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-[15px] font-semibold text-foreground">{t.daily.checklistTitle}</p>
-          {streak > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-              <Flame className="size-3.5" /> {streak}
-            </span>
+      <CardContent className="flex flex-col gap-4 py-6">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="flex items-center gap-2 text-[15px] font-semibold text-foreground">
+            <Milk className="size-4 text-primary" /> {t.daily.feedTitle}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {t.feed.sinceLast}: <span className="font-medium text-foreground">{since}</span>
+          </p>
+        </div>
+
+        <div>
+          <p className="font-heading text-sm text-muted-foreground">
+            <span className="text-2xl font-semibold tabular-nums text-foreground">{count}</span>
+            {range && (
+              <>
+                {' / ~'}
+                {range[0]}–{range[1]}
+              </>
+            )}{' '}
+            {t.feed.progressFeeds}
+          </p>
+          {range && (
+            <div className="relative mt-2 h-2.5 w-full overflow-hidden rounded-full bg-muted">
+              <div
+                className="absolute inset-y-0 bg-primary/20"
+                style={{ left: `${p(range[0])}%`, width: `${p(range[1]) - p(range[0])}%` }}
+              />
+              <div
+                className={cn(
+                  'absolute inset-y-0 left-0 rounded-full',
+                  state === 'on' ? 'bg-emerald-500' : state === 'above' ? 'bg-amber-500' : 'bg-primary',
+                )}
+                style={{ width: `${p(count)}%` }}
+              />
+            </div>
           )}
         </div>
-        <ul className="space-y-1.5">
-          {checklistItems.map((item, i) => {
-            const isChecked = checked.includes(item.id)
-            return (
-              <li key={item.id}>
-                <label
-                  className={cn(
-                    'flex cursor-pointer items-center gap-3 rounded-lg border p-2.5 text-sm transition-colors',
-                    isChecked ? 'border-emerald-400/60 bg-emerald-500/10' : 'border-border hover:bg-accent',
-                  )}
-                >
-                  <Checkbox checked={isChecked} onCheckedChange={() => toggle(item.id)} />
-                  <span className={cn('text-foreground', isChecked && 'text-muted-foreground line-through')}>
-                    {t.summary.items[i].title}
-                  </span>
-                </label>
-              </li>
-            )
-          })}
-        </ul>
-        <p className="mt-3 text-xs text-muted-foreground">
-          <span className="font-bold text-primary">{checked.length}</span> / {total} {t.daily.checklistDone}
-        </p>
+
+        <Button onClick={quickLog} className="self-start">
+          <Milk className="mr-2 size-4" /> {t.daily.logFeed}
+        </Button>
+        <Link to="/feed" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+          {t.daily.openFeed} <ArrowRight className="size-3.5" />
+        </Link>
+      </CardContent>
+    </Card>
+  )
+}
+
+function RestWidget() {
+  const t = useT()
+  return (
+    <Card>
+      <CardContent className="flex items-start gap-4 py-6">
+        <span className="inline-flex shrink-0 rounded-xl bg-primary/10 p-2.5 text-primary">
+          <Moon className="size-5" />
+        </span>
+        <div>
+          <p className="text-[15px] font-semibold text-foreground">{t.daily.restTitle}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t.daily.restText}</p>
+        </div>
       </CardContent>
     </Card>
   )
