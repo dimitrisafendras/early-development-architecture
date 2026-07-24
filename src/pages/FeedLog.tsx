@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Milk, Trash2, Baby as BabyIcon, Utensils, Clock, Hash } from 'lucide-react'
+import { Milk, Trash2, Baby as BabyIcon, Utensils, Clock, Hash, Copy } from 'lucide-react'
 import { SectionHeader } from '../components/SectionHeader'
 import { AgeBadge, useBabyAge } from '../components/AgeBadge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -60,6 +60,7 @@ export default function FeedLog() {
 
       <AddFeedForm
         guide={guideAmount ? tf.guide.replace('{amount}', guideAmount) : null}
+        last={feed.lastFeed}
         onAdd={feed.add}
       />
 
@@ -139,9 +140,11 @@ function Stat({
 
 function AddFeedForm({
   guide,
+  last,
   onAdd,
 }: {
   guide: string | null
+  last: { method: FeedMethod; amount_ml: number | null; minutes: number | null } | null
   onAdd: (i: {
     fed_at: string
     method: FeedMethod
@@ -158,6 +161,15 @@ function AddFeedForm({
   const [when, setWhen] = useState(localNow())
   const [note, setNote] = useState('')
   const [busy, setBusy] = useState(false)
+
+  // Prefill from the previous feed but stamp the time to now.
+  function copyLast() {
+    if (!last) return
+    setMethod(last.method)
+    setAmount(last.amount_ml != null ? String(last.amount_ml) : '')
+    setMinutes(last.minutes != null ? String(last.minutes) : '')
+    setWhen(localNow())
+  }
 
   async function submit(e: FormEvent) {
     e.preventDefault()
@@ -225,10 +237,15 @@ function AddFeedForm({
             <Label htmlFor="f-note">{tf.noteLabel}</Label>
             <Input id="f-note" value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
-          <div className="col-span-2 flex items-end sm:col-span-4">
+          <div className="col-span-2 flex items-end gap-2 sm:col-span-4">
             <Button type="submit" disabled={busy}>
               {tf.save}
             </Button>
+            {last && (
+              <Button type="button" variant="secondary" onClick={copyLast}>
+                <Copy className="mr-1.5 size-4" /> {tf.copyLast}
+              </Button>
+            )}
           </div>
         </form>
         {guide && <p className="mt-3 text-xs text-muted-foreground">{guide}</p>}

@@ -59,8 +59,17 @@ export function GlassNav({
   className,
 }: GlassNavProps) {
   const [open, setOpen] = React.useState(false)
+  // At the top of the page the bar is flush/edge-to-edge; once scrolled it
+  // morphs into the floating rounded capsule.
+  const [scrolled, setScrolled] = React.useState(false)
+  React.useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
-  const defaultRenderLink = ({ link, active, className: cls, onNavigate }: GlassNavLinkRenderArgs) => (
+  const defaultRenderLink =({ link, active, className: cls, onNavigate }: GlassNavLinkRenderArgs) => (
     <a
       href={link.href}
       aria-current={active ? 'true' : undefined}
@@ -92,9 +101,28 @@ export function GlassNav({
   const collapsible = hasLinks || Boolean(actions)
 
   return (
-    <div ref={rootRef} className={cn('sticky top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-4', className)}>
-      <div className="relative mx-auto max-w-6xl">
-        <GlassSurface radius={26} className="px-3 py-2 sm:px-5" role="banner">
+    <div
+      ref={rootRef}
+      className={cn(
+        'sticky top-0 z-50 transition-all duration-300',
+        scrolled ? 'px-3 pt-3 sm:px-5 sm:pt-4' : 'px-0 pt-0',
+        className,
+      )}
+    >
+      <div
+        className={cn(
+          'relative mx-auto transition-all duration-300',
+          scrolled ? 'max-w-6xl' : 'max-w-none',
+        )}
+      >
+        <GlassSurface
+          radius={scrolled ? 26 : 0}
+          className={cn(
+            'transition-all duration-300',
+            scrolled ? 'px-3 py-2 sm:px-5' : 'border-b border-border/50 px-4 py-2.5 sm:px-6',
+          )}
+          role="banner"
+        >
           {/* Tier 1: brand (left) + controls (right). GlassSurface nests
               children in `.ds-glass__content`. */}
           <div className="flex items-center gap-2 sm:gap-4">

@@ -1,11 +1,13 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Sun, Moon, Palette, Timer, Baby, Users, CalendarCheck, SlidersHorizontal, Milk } from 'lucide-react'
+import { useState } from 'react'
+import { Sun, Moon, Palette, Timer, Baby, Users, CalendarCheck, SlidersHorizontal, Milk, Download } from 'lucide-react'
 import { GlassNav, GlassToggleGroup } from '@/design-system/components'
 import '@/design-system/ds.css'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 import { AccountControl } from './AccountControl'
 import { useAppStore } from '../store'
+import { useInstall } from '../lib/useInstall'
 import { useT } from '../i18n'
 import { learnGroups, groupPath } from '../sections/registry'
 
@@ -88,6 +90,9 @@ function SettingsMenu({ triggerClassName }: { triggerClassName: string }) {
   const setPalette = useAppStore((s) => s.setPalette)
   const locale = useAppStore((s) => s.locale)
   const setLocale = useAppStore((s) => s.setLocale)
+  const { canInstall, installed, ios, promptInstall } = useInstall()
+  const [iosHint, setIosHint] = useState(false)
+  const showInstall = !installed && (canInstall || ios)
 
   return (
     <Popover>
@@ -133,6 +138,25 @@ function SettingsMenu({ triggerClassName }: { triggerClassName: string }) {
             ]}
           />
         </Field>
+        {showInstall && (
+          <>
+            <Separator />
+            <button
+              type="button"
+              onClick={() => {
+                if (canInstall) void promptInstall()
+                else setIosHint((v) => !v)
+              }}
+              className="inline-flex items-center gap-2 text-sm font-medium text-primary transition-colors hover:text-primary/80"
+            >
+              <Download className="size-4" aria-hidden />
+              {t.install.title}
+            </button>
+            {iosHint && !canInstall && (
+              <p className="text-xs leading-relaxed text-muted-foreground">{t.install.iosBody}</p>
+            )}
+          </>
+        )}
         <Separator />
         <Link
           to="/design-system"
