@@ -4,10 +4,21 @@ Guidance for Claude Code sessions working in this repo.
 
 ## Project
 
-**The Architecture of Early Development** — a React SPA with two routes:
+**The Architecture of Early Development** — a React SPA:
 
-- `/` — an evidence-based infant-development infographic
+- `/` — landing hub: a card grid linking to the seven infographic topics
+- `/` — landing hub, split into **Your Day** (a prominent card → `/daily`) and **Learn** (the themed topic grid)
+- `/daily` — the combined "Your Day" dashboard: live "what's now" routine + tummy-time widget + today's checklist + links to Full Day / routine
+- `/learn/:group` — a whole theme group on one page (topics stacked + "on this page" jump nav + prev/next group pager). The hub's Learn area links here. Groups: `foundations`, `connection`, `rhythm` (see `learnGroups`)
+- `/topic/:slug` — a single Learn topic on its own page (still used by deep links, the `/daily` links, and the topic pager)
+- `/tracker` — full tummy-time session tracker (local-first, syncs to Supabase when signed in)
+- `/baby` — baby profile (create/edit/delete) + weight/height/head growth monitoring
+- `/family` — household sharing: create a family, invite parents, share babies
 - `/design-system` — a Liquid Glass design system documentation page
+
+The Learn topics are defined once in `src/sections/registry.tsx` (slug, module, `group`, icon, i18n label/blurb getters, section component). That registry drives the hub grid (grouped by theme via `group` / `groupOrder`), the routes, the nav links, and the pager. Topic content/data lives in `src/data.ts` + `src/i18n.ts` (en + el must stay in sync — `Messages = typeof en`).
+
+Shared daily logic is hook-first: `useDailyChecklist` (checklist + streak + sync), `useTummyTracker`, `useBabies`, `useHousehold`, `useBabyAge` (age-band highlighting). Both the `/daily` widgets and the standalone sections/pages reuse these — don't duplicate the state.
 
 ## Stack
 

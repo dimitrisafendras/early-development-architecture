@@ -203,6 +203,97 @@ export const checklistItems = [
   },
 ]
 
+/* ------------------------------------------------------------ interaction */
+
+/** "How much" daily-dose stat tiles. Values are locale-independent; the
+ *  label + unit + note are localized in i18n (`interaction.stats`). */
+export const interactionStats: { value: string; color: string }[] = [
+  { value: '21,000', color: '#38bdf8' }, // words/day heard
+  { value: '15+', color: '#34d399' }, //    minutes reading/day
+  { value: '2–3', color: '#fbbf24' }, //    tummy sessions/day
+  { value: '1–4', color: '#e879f9' }, //    second response window
+]
+
+/** Age-banded awake windows; text (age / window / play) localized in i18n. */
+export const awakeWindows: { tone: ScheduleTone }[] = [
+  { tone: 'amber' }, // 0–1 mo
+  { tone: 'emerald' }, // 1–3 mo
+  { tone: 'sky' }, // 3–4 mo
+  { tone: 'fuchsia' }, // 4–6 mo
+]
+/** Exclusive upper age bound (months) per awake-window band; last is open-ended. */
+export const awakeWindowUppers = [1, 3, 4, 999]
+
+/** "How" method cards; title/text localized in i18n (`interaction.how`). */
+export const interactionHow: { tone: StatusTone }[] = [
+  { tone: 'success' }, // serve & return
+  { tone: 'success' }, // parentese narration
+  { tone: 'success' }, // read & sing
+  { tone: 'success' }, // face-to-face
+  { tone: 'warning' }, // follow the baby's lead
+  { tone: 'danger' }, //  keep it screen-free
+]
+
+/* --------------------------------------------------------- sleep & feeding */
+
+/** Sleep "at a glance" tiles; label/note localized in i18n. */
+export const sleepStats: { value: string; color: string }[] = [
+  { value: '14–17h', color: '#818cf8' }, // 0–3 mo total / 24h
+  { value: '12–16h', color: '#34d399' }, // 4–12 mo total / 24h
+  { value: '2–3', color: '#fbbf24' }, //    naps/day at 4–6 mo
+  { value: '1 yr', color: '#38bdf8' }, //   back-to-sleep until
+]
+
+/** Safe-sleep rules; title/text localized in i18n. tone drives the accent. */
+export const safeSleepRules: { tone: StatusTone }[] = [
+  { tone: 'success' }, // back to sleep
+  { tone: 'success' }, // firm flat surface, own space
+  { tone: 'success' }, // room-share 6–12 mo
+  { tone: 'danger' }, //  no soft bedding / bumpers / toys
+]
+
+/** Feeding frequency/amount rows by age band; all text localized in i18n. */
+export const feedingRows: { tone: ScheduleTone }[] = [
+  { tone: 'amber' }, // newborn 0–1 mo
+  { tone: 'emerald' }, // 1–2 mo
+  { tone: 'sky' }, // 2–4 mo
+  { tone: 'fuchsia' }, // 4–6 mo
+]
+/** Exclusive upper age bound (months) per feeding band; last is open-ended. */
+export const feedingUppers = [1, 2, 4, 999]
+
+/* ------------------------------------------------------------- full day */
+
+/** Activity kinds on the hour-by-hour full-day schedule. Drives colour + icon
+ *  + the legend; the slot text is localized in i18n (`fullDay.slots`). */
+export type DayActivity = 'feed' | 'sleep' | 'play' | 'tummy' | 'care' | 'wind'
+
+/** A realistic ~3–4-month sample day, in order. Time is locale-independent;
+ *  each entry's title/detail live in i18n at the same index. */
+export const fullDaySchedule: { time: string; type: DayActivity }[] = [
+  { time: '07:00', type: 'feed' },
+  { time: '07:40', type: 'care' },
+  { time: '08:00', type: 'play' },
+  { time: '08:30', type: 'tummy' },
+  { time: '09:00', type: 'sleep' },
+  { time: '10:15', type: 'feed' },
+  { time: '10:45', type: 'play' },
+  { time: '11:30', type: 'tummy' },
+  { time: '12:00', type: 'sleep' },
+  { time: '13:30', type: 'feed' },
+  { time: '14:00', type: 'play' },
+  { time: '15:15', type: 'sleep' },
+  { time: '16:15', type: 'feed' },
+  { time: '16:45', type: 'play' },
+  { time: '17:30', type: 'tummy' },
+  { time: '18:00', type: 'care' },
+  { time: '18:45', type: 'wind' },
+  { time: '19:00', type: 'feed' },
+  { time: '19:30', type: 'sleep' },
+  { time: '23:00', type: 'feed' },
+  { time: '03:00', type: 'feed' },
+]
+
 export const efficiencyScores: {
   label: string
   value: number

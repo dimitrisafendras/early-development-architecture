@@ -3,28 +3,47 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 
 /**
- * Live Supabase session. `session` is null while signed out (or when the
- * Supabase env is absent entirely); `loading` covers the initial fetch so
- * the UI can avoid a signed-out flash on reload.
+ * App-wide Supabase session as a module singleton. The auth listener is
+ * attached once (not per component), and the resolved session is cached — so
+ * navigating between routes reuses the known session instantly instead of
+ * re-entering a loading state and flashing the UI.
  */
+let cachedSession: Session | null = null
+let hasResolved = false
+let started = false
+const listeners = new Set<() => void>()
+
+function notify() {
+  for (const l of listeners) l()
+}
+
+function ensureStarted() {
+  if (started || !supabase) return
+  started = true
+  supabase.auth.getSession().then(({ data }) => {
+    cachedSession = data.session
+    hasResolved = true
+    notify()
+  })
+  supabase.auth.onAuthStateChange((_event, next) => {
+    cachedSession = next
+    hasResolved = true
+    notify()
+  })
+}
+
 export function useSession() {
-  const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(Boolean(supabase))
-
+  ensureStarted()
+  const [, force] = useState(0)
   useEffect(() => {
-    if (!supabase) return
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      setLoading(false)
-    })
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
-      setSession(next)
-      setLoading(false)
-    })
-    return () => sub.subscription.unsubscribe()
+    const l = () => force((n) => n + 1)
+    listeners.add(l)
+    return () => {
+      listeners.delete(l)
+    }
   }, [])
-
-  return { session, loading }
+  // `loading` is true only until the very first resolve, ever — not per mount.
+  return { session: cachedSession, loading: Boolean(supabase) && !hasResolved }
 }
 
 /** Where OAuth/magic-link redirects land — the app root, base-path aware. */

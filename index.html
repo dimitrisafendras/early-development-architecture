@@ -18,12 +18,12 @@
     <link rel="apple-touch-icon" href="/early-development-architecture/apple-touch-icon.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/early-development-architecture/icon-512.png" />
 
-    <!-- Pre-hydration theme bootstrap: apply the persisted (or default light+rose)
+    <!-- Pre-hydration theme bootstrap: apply the persisted (or default dark+rose)
          theme to <html> before React mounts so there is no flash of the wrong theme. -->
     <script>
       (function () {
         try {
-          var choice = { dark: false, palette: 'red' }
+          var choice = { dark: true, palette: 'red' }
           var raw = localStorage.getItem('eda-theme')
           if (raw) {
             var s = (JSON.parse(raw) || {}).state

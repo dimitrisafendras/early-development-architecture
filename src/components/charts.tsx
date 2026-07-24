@@ -2,6 +2,8 @@ import {
   Chart as ChartJS,
   ArcElement,
   BarElement,
+  BarController,
+  LineController,
   CategoryScale,
   LinearScale,
   LineElement,
@@ -17,6 +19,8 @@ import { useT } from '../i18n'
 ChartJS.register(
   ArcElement,
   BarElement,
+  BarController,
+  LineController,
   CategoryScale,
   LinearScale,
   LineElement,
@@ -139,6 +143,119 @@ export function ParenteseChart() {
           plugins: {
             legend: { position: 'top', labels: { font: { size: 11 }, color: c.text } },
           },
+        }}
+      />
+    </div>
+  )
+}
+
+/**
+ * Weekly tummy-time bars with a dashed daily-target reference line (mixed
+ * bar+line). Palette/theme aware via useChartColors.
+ */
+export function TummyWeekChart({
+  labels,
+  minutes,
+  target,
+}: {
+  labels: string[]
+  minutes: number[]
+  target: number
+}) {
+  const c = useChartColors()
+  const max = Math.max(target, ...minutes, 1)
+  return (
+    <div style={{ position: 'relative', height: 240 }}>
+      <Bar
+        data={
+          {
+            labels,
+            datasets: [
+              {
+                type: 'line' as const,
+                label: 'Target',
+                data: labels.map(() => target),
+                borderColor: c.neutral,
+                borderDash: [6, 6],
+                borderWidth: 2,
+                pointRadius: 0,
+                fill: false,
+              },
+              {
+                type: 'bar' as const,
+                label: 'Minutes',
+                data: minutes,
+                backgroundColor: c.primary,
+                borderRadius: 6,
+                maxBarThickness: 42,
+              },
+            ],
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as any
+        }
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              suggestedMax: Math.ceil((max * 1.2) / 10) * 10,
+              ticks: { callback: (v) => `${v}m`, color: c.text },
+              grid: { color: c.grid },
+            },
+            x: { ticks: { color: c.text }, grid: { color: c.grid } },
+          },
+          plugins: { legend: { position: 'top', labels: { font: { size: 11 }, color: c.text } } },
+        }}
+      />
+    </div>
+  )
+}
+
+/** Generic growth line (weight or height) over measurement dates. */
+export function GrowthChart({
+  labels,
+  data,
+  label,
+  yTitle,
+}: {
+  labels: string[]
+  data: (number | null)[]
+  label: string
+  yTitle: string
+}) {
+  const c = useChartColors()
+  return (
+    <div style={{ position: 'relative', height: 240 }}>
+      <Line
+        data={{
+          labels,
+          datasets: [
+            {
+              label,
+              data,
+              borderColor: c.primary,
+              backgroundColor: `${c.primary}26`,
+              fill: true,
+              tension: 0.35,
+              spanGaps: true,
+              pointBackgroundColor: c.primary,
+              pointRadius: 4,
+            },
+          ],
+        }}
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              title: { display: true, text: yTitle, font: { size: 11 }, color: c.text },
+              ticks: { color: c.text },
+              grid: { color: c.grid },
+            },
+            x: { ticks: { color: c.text }, grid: { color: c.grid } },
+          },
+          plugins: { legend: { display: false } },
         }}
       />
     </div>

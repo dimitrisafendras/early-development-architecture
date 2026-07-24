@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { todayKey } from './lib/schedule'
 
 export type LatencyMode = 'optimal' | 'delayed' | 'none'
 export type Palette = 'blue' | 'red'
@@ -14,18 +15,25 @@ interface AppState {
   setLocale: (locale: Locale) => void
   latency: LatencyMode
   setLatency: (mode: LatencyMode) => void
-  checkedItems: string[]
+  /** Checklist checked-item ids keyed by local day (YYYY-MM-DD). Kept as history
+   *  so streaks can be computed and so the day rolls over cleanly at midnight. */
+  checklistHistory: Record<string, string[]>
   toggleItem: (id: string) => void
+  /** Replace today's checked set outright (used to merge a server pull). */
+  setCheckedForToday: (ids: string[]) => void
   resetChecklist: () => void
+  /** User's preferred hub card order (topic slugs). Empty = registry order. */
+  cardOrder: string[]
+  setCardOrder: (order: string[]) => void
 }
 
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
-      // Defaults: light theme + "girl" (soft rose) palette. Persisted user
+      // Defaults: dark theme + "girl" (soft rose) palette. Persisted user
       // choices in localStorage override these on load (see partialize below
       // and the pre-hydration bootstrap in index.html that prevents a flash).
-      dark: false,
+      dark: true,
       toggleTheme: () => set((state) => ({ dark: !state.dark })),
       palette: 'red',
       setPalette: (palette) => set({ palette }),
@@ -33,19 +41,56 @@ export const useAppStore = create<AppState>()(
       setLocale: (locale) => set({ locale }),
       latency: 'optimal',
       setLatency: (latency) => set({ latency }),
-      checkedItems: [],
+      checklistHistory: {},
       toggleItem: (id) =>
+        set((state) => {
+          const day = todayKey()
+          const current = state.checklistHistory[day] ?? []
+          const next = current.includes(id)
+            ? current.filter((i) => i !== id)
+            : [...current, id]
+          return { checklistHistory: { ...state.checklistHistory, [day]: next } }
+        }),
+      setCheckedForToday: (ids) =>
         set((state) => ({
-          checkedItems: state.checkedItems.includes(id)
-            ? state.checkedItems.filter((i) => i !== id)
-            : [...state.checkedItems, id],
+          checklistHistory: { ...state.checklistHistory, [todayKey()]: ids },
         })),
-      resetChecklist: () => set({ checkedItems: [] }),
+      resetChecklist: () =>
+        set((state) => ({
+          checklistHistory: { ...state.checklistHistory, [todayKey()]: [] },
+        })),
+      cardOrder: [],
+      setCardOrder: (cardOrder) => set({ cardOrder }),
     }),
     {
       name: 'eda-theme',
-      // Only theming + language choices are persisted; latency/checklist stay ephemeral.
-      partialize: (state) => ({ dark: state.dark, palette: state.palette, locale: state.locale }),
+      // Theming + language choices, checklist history, and the hub card order
+      // persist; the latency simulator stays ephemeral.
+      partialize: (state) => ({
+        dark: state.dark,
+        palette: state.palette,
+        locale: state.locale,
+        checklistHistory: state.checklistHistory,
+        cardOrder: state.cardOrder,
+      }),
     },
   ),
 )
+
+/** Consecutive days (ending today or yesterday) with all `total` items checked. */
+export function computeStreak(history: Record<string, string[]>, total: number): number {
+  let streak = 0
+  const cursor = new Date()
+  // Allow the streak to "hang" from yesterday if today isn't complete yet.
+  if ((history[todayKey(cursor)]?.length ?? 0) < total) {
+    cursor.setDate(cursor.getDate() - 1)
+  }
+  for (;;) {
+    const key = todayKey(cursor)
+    if ((history[key]?.length ?? 0) >= total) {
+      streak += 1
+      cursor.setDate(cursor.getDate() - 1)
+    } else break
+  }
+  return streak
+}
