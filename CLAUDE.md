@@ -4,10 +4,13 @@ Guidance for Claude Code sessions working in this repo.
 
 ## Project
 
-**The Architecture of Early Development** — a React SPA with two routes:
+**The Architecture of Early Development** — a React SPA:
 
-- `/` — an evidence-based infant-development infographic
+- `/` — landing hub: a card grid linking to the seven infographic topics
+- `/topic/:slug` — one infographic topic per page (registry in `src/sections/registry.tsx`), with a prev/next pager
 - `/design-system` — a Liquid Glass design system documentation page
+
+The seven topics are defined once in `src/sections/registry.tsx` (slug, module, icon, i18n label/blurb getters, section component). That registry drives the hub grid, the routes, the nav links, and the pager — add or reorder topics there.
 
 ## Stack
 

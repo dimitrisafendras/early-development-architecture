@@ -73,6 +73,16 @@ const en = {
       { label: 'Parentese Effect', note: 'Sustained attention & recall' },
     ],
   },
+  hub: {
+    eyebrow: 'Explore the topics',
+    title: 'Where would you like to start?',
+    subtitle:
+      'Seven evidence-based modules. Open one at a time instead of scrolling one long page.',
+    open: 'Open',
+    back: 'All topics',
+    prev: 'Previous',
+    next: 'Next',
+  },
   neurobiology: {
     title: 'The Biological Imperative: Explosive Brain Growth',
     description:
@@ -394,6 +404,16 @@ const el: Messages = {
       { label: 'Στόχος Χρόνου Μπρούμυτα', note: 'Ημερήσιος στόχος έως τους 4 μήνες' },
       { label: 'Επίδραση Παιδικής Ομιλίας', note: 'Διατηρούμενη προσοχή & ανάκληση' },
     ],
+  },
+  hub: {
+    eyebrow: 'Εξερευνήστε τις ενότητες',
+    title: 'Από πού θέλετε να ξεκινήσετε;',
+    subtitle:
+      'Επτά τεκμηριωμένες ενότητες. Ανοίξτε μία κάθε φορά αντί να κυλάτε μια μεγάλη σελίδα.',
+    open: 'Άνοιγμα',
+    back: 'Όλες οι ενότητες',
+    prev: 'Προηγούμενο',
+    next: 'Επόμενο',
   },
   neurobiology: {
     title: 'Η Βιολογική Επιταγή: Εκρηκτική Ανάπτυξη του Εγκεφάλου',

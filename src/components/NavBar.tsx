@@ -1,45 +1,17 @@
-import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { Sun, Moon, Palette } from 'lucide-react'
 import { GlassNav, GlassToggleGroup } from '@/design-system/components'
 import '@/design-system/ds.css'
 import { AccountControl } from './AccountControl'
 import { useAppStore } from '../store'
 import { useT } from '../i18n'
+import { topics, topicPath } from '../sections/registry'
 
-const NAV_HREFS = [
-  '#neurobiology',
-  '#serve-return',
-  '#language-music',
-  '#tummy-time',
-  '#routine',
-  '#environment',
-  '#summary',
-] as const
-
-/** Tracks which section anchor is currently in view, for nav link highlighting. */
-function useActiveSection(hrefs: readonly string[]) {
-  const [active, setActive] = useState<string>(hrefs[0] ?? '')
-  useEffect(() => {
-    const ids = hrefs.map((h) => h.slice(1))
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((e) => e.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
-        if (visible[0]) setActive(`#${visible[0].target.id}`)
-      },
-      { rootMargin: '-45% 0px -45% 0px', threshold: [0, 0.25, 0.5, 1] },
-    )
-    ids.forEach((id) => {
-      const el = document.getElementById(id)
-      if (el) observer.observe(el)
-    })
-    return () => observer.disconnect()
-  }, [hrefs])
-  return active
-}
-
+/**
+ * The shared floating nav. Section links are real routes now (`/topic/:slug`),
+ * so the active link is derived from the current pathname and navigation is
+ * client-side via react-router `<Link>` (injected through GlassNav.renderLink).
+ */
 export function NavBar() {
   const dark = useAppStore((s) => s.dark)
   const toggleTheme = useAppStore((s) => s.toggleTheme)
@@ -48,30 +20,35 @@ export function NavBar() {
   const locale = useAppStore((s) => s.locale)
   const setLocale = useAppStore((s) => s.setLocale)
   const t = useT()
-  const activeHref = useActiveSection(NAV_HREFS)
+  const { pathname } = useLocation()
 
-  const labels = [
-    t.nav.links.neurobiology,
-    t.nav.links.serveReturn,
-    t.nav.links.languageMusic,
-    t.nav.links.tummyTime,
-    t.nav.links.routine,
-    t.nav.links.environment,
-    t.nav.links.summary,
-  ]
+  const links = topics.map((topic) => ({
+    href: topicPath(topic.slug),
+    label: topic.label(t),
+  }))
 
   return (
     <GlassNav
-      activeHref={activeHref}
+      activeHref={pathname}
       menuLabelOpen={t.nav.menuOpen}
       menuLabelClose={t.nav.menuClose}
       sectionsLabel={t.nav.sections}
-      links={NAV_HREFS.map((href, i) => ({ href, label: labels[i] }))}
+      links={links}
+      renderLink={({ link, active, className, onNavigate }) => (
+        <Link
+          to={link.href}
+          aria-current={active ? 'true' : undefined}
+          onClick={onNavigate}
+          className={className}
+        >
+          {link.label}
+        </Link>
+      )}
       brand={
-        <>
+        <Link to="/" className="flex min-w-0 items-center gap-2 text-foreground">
           <span aria-hidden>🧠</span>
           <span className="hidden truncate sm:inline">{t.nav.brand}</span>
-        </>
+        </Link>
       }
       actions={
         <>

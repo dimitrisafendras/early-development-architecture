@@ -9,6 +9,14 @@ export interface GlassNavLink {
   label: string
 }
 
+export interface GlassNavLinkRenderArgs {
+  link: GlassNavLink
+  active: boolean
+  className: string
+  /** Call on activation so the mobile dropdown can close itself. */
+  onNavigate: () => void
+}
+
 export interface GlassNavProps {
   brand: React.ReactNode
   links?: GlassNavLink[]
@@ -16,6 +24,12 @@ export interface GlassNavProps {
   actions?: React.ReactNode
   /** Currently-active anchor href, for link highlighting. */
   activeHref?: string
+  /**
+   * Custom renderer for each section link. Lets a router-driven consumer emit
+   * a client-side `<Link>` while keeping GlassNav itself router-agnostic.
+   * Defaults to a plain `<a href>`.
+   */
+  renderLink?: (args: GlassNavLinkRenderArgs) => React.ReactNode
   /** Accessible label for the mobile menu button. */
   menuLabelOpen?: string
   menuLabelClose?: string
@@ -38,12 +52,25 @@ export function GlassNav({
   links = [],
   actions,
   activeHref,
+  renderLink,
   menuLabelOpen = 'Open menu',
   menuLabelClose = 'Close menu',
   sectionsLabel = 'Sections',
   className,
 }: GlassNavProps) {
   const [open, setOpen] = React.useState(false)
+
+  const defaultRenderLink = ({ link, active, className: cls, onNavigate }: GlassNavLinkRenderArgs) => (
+    <a
+      href={link.href}
+      aria-current={active ? 'true' : undefined}
+      onClick={onNavigate}
+      className={cls}
+    >
+      {link.label}
+    </a>
+  )
+  const renderNavLink = renderLink ?? defaultRenderLink
   const rootRef = React.useRef<HTMLDivElement>(null)
   const menuId = React.useId()
 
@@ -108,18 +135,17 @@ export function GlassNav({
                   const active = activeHref === link.href
                   return (
                     <li key={link.href}>
-                      <a
-                        href={link.href}
-                        aria-current={active ? 'true' : undefined}
-                        className={cn(
+                      {renderNavLink({
+                        link,
+                        active,
+                        onNavigate: () => setOpen(false),
+                        className: cn(
                           'block whitespace-nowrap rounded-full px-3 py-1.5 text-[0.8rem] font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/70',
                           active
                             ? 'bg-primary/15 text-foreground'
                             : 'text-foreground/60 hover:bg-foreground/5 hover:text-foreground'
-                        )}
-                      >
-                        {link.label}
-                      </a>
+                        ),
+                      })}
                     </li>
                   )
                 })}
@@ -145,19 +171,17 @@ export function GlassNav({
                   const active = activeHref === link.href
                   return (
                     <li key={link.href}>
-                      <a
-                        href={link.href}
-                        aria-current={active ? 'true' : undefined}
-                        onClick={() => setOpen(false)}
-                        className={cn(
+                      {renderNavLink({
+                        link,
+                        active,
+                        onNavigate: () => setOpen(false),
+                        className: cn(
                           'block rounded-xl px-3 py-2.5 text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/70',
                           active
                             ? 'bg-primary/15 text-foreground'
                             : 'text-foreground/70 hover:bg-foreground/5 hover:text-foreground'
-                        )}
-                      >
-                        {link.label}
-                      </a>
+                        ),
+                      })}
                     </li>
                   )
                 })}

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Home from './pages/Home'
+import Topic from './pages/Topic'
 import DesignSystem from './pages/DesignSystem'
 import { useAppStore } from './store'
 import { isSupabaseEnabled } from './lib/supabase'
@@ -28,7 +29,9 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/topic/:slug" element={<Topic />} />
       <Route path="/design-system" element={<DesignSystem />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
