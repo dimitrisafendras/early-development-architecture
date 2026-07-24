@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Download, Share, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useInstall } from '../lib/useInstall'
@@ -7,16 +8,24 @@ import { useT } from '../i18n'
 const DISMISS_KEY = 'eda-install-dismissed'
 
 /**
+ * Routes where the banner would sit on top of the work. On a short phone
+ * (e.g. 320x568) it covers the auth form's own fields, and "install this app"
+ * is the wrong thing to ask of someone halfway through signing in.
+ */
+const SUPPRESSED_ON = new Set(['/signin', '/signup'])
+
+/**
  * "Add to phone" banner. On Android/Chrome it uses the captured
  * `beforeinstallprompt` (shared via useInstall); on iOS Safari it shows the
  * Share → Add to Home Screen hint. Hidden when already installed or dismissed.
  */
 export function InstallPrompt() {
   const t = useT()
+  const { pathname } = useLocation()
   const { canInstall, installed, ios, promptInstall } = useInstall()
   const [dismissed, setDismissed] = useState(() => localStorage.getItem(DISMISS_KEY) === '1')
 
-  const show = !dismissed && !installed && (canInstall || ios)
+  const show = !dismissed && !installed && (canInstall || ios) && !SUPPRESSED_ON.has(pathname)
   if (!show) return null
 
   function dismiss() {
