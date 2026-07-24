@@ -124,8 +124,9 @@ export function GlassNav({
     >
       <div
         // Top = full viewport width (edge-to-edge on any screen); scrolled =
-        // fixed capsule width. Both are px so max-width eases smoothly (no snap).
-        style={{ maxWidth: scrolled ? 1152 : vw }}
+        // the content width (max-w-7xl = 1280px) so the capsule lines up with
+        // the page content. Both px so max-width eases smoothly (no snap).
+        style={{ maxWidth: scrolled ? 1280 : vw }}
         className={cn('relative mx-auto w-full transition-[max-width] duration-500', ease)}
       >
         <GlassSurface
