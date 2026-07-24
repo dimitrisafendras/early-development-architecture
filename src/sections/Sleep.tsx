@@ -2,6 +2,8 @@ import { MoonStar, Bed, DoorOpen, Ban } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { SectionHeader } from '../components/SectionHeader'
 import { sleepStats, safeSleepRules, type StatusTone } from '../data'
+import { AgeBadge, useBabyAge } from '../components/AgeBadge'
+import { cn } from '@/lib/utils'
 import { useT } from '../i18n'
 
 const ruleTone: Record<StatusTone, string> = {
@@ -14,16 +16,25 @@ const ruleIcons = [MoonStar, Bed, DoorOpen, Ban]
 export function Sleep() {
   const t = useT()
   const ts = t.sleep
+  const baby = useBabyAge()
+  // Tile 0 = newborn (0–3 mo), tile 1 = infant (4–12 mo); highlight the one that fits.
+  const activeStat = baby ? (baby.months < 4 ? 0 : baby.months < 12 ? 1 : -1) : -1
   return (
     <section id="sleep">
       <SectionHeader module={9} title={ts.title} description={ts.description} />
 
-      <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-primary">
-        {ts.statsTitle}
-      </h3>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">
+          {ts.statsTitle}
+        </h3>
+        <AgeBadge />
+      </div>
       <div className="mb-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {sleepStats.map((stat, i) => (
-          <Card key={ts.stats[i].label} className="h-full">
+          <Card
+            key={ts.stats[i].label}
+            className={cn('h-full', i === activeStat && 'ring-2 ring-primary ring-offset-2 ring-offset-background')}
+          >
             <CardContent className="py-5">
               <div className="font-heading text-3xl font-semibold" style={{ color: stat.color }}>
                 {stat.value}

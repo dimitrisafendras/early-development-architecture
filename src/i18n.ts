@@ -320,6 +320,7 @@ const en = {
     chartTitle: 'Tummy Time Progression Target',
     chartSub: 'Cumulative minutes per day from birth to 4 months',
     badge: 'Physical Milestone',
+    ageTarget: 'For {name} ({age} mo): aim for about {mins} cumulative minutes a day.',
     benefitsTitle: '🦴 Biomechanical Benefits',
     benefits: [
       'Strengthens extensor muscles in neck, spine, and trunk.',
@@ -898,6 +899,7 @@ const el: Messages = {
     chartTitle: 'Στόχος Εξέλιξης Χρόνου Μπρούμυτα',
     chartSub: 'Αθροιστικά λεπτά ανά ημέρα από τη γέννηση έως τους 4 μήνες',
     badge: 'Σωματικό Ορόσημο',
+    ageTarget: 'Για τον/την {name} ({age} μην.): στοχεύστε ~{mins} αθροιστικά λεπτά/ημέρα.',
     benefitsTitle: '🦴 Βιομηχανικά Οφέλη',
     benefits: [
       'Ενδυναμώνει τους εκτείνοντες μυς σε αυχένα, σπονδυλική στήλη και κορμό.',

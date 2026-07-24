@@ -221,6 +221,8 @@ export const awakeWindows: { tone: ScheduleTone }[] = [
   { tone: 'sky' }, // 3–4 mo
   { tone: 'fuchsia' }, // 4–6 mo
 ]
+/** Exclusive upper age bound (months) per awake-window band; last is open-ended. */
+export const awakeWindowUppers = [1, 3, 4, 999]
 
 /** "How" method cards; title/text localized in i18n (`interaction.how`). */
 export const interactionHow: { tone: StatusTone }[] = [
@@ -252,11 +254,13 @@ export const safeSleepRules: { tone: StatusTone }[] = [
 
 /** Feeding frequency/amount rows by age band; all text localized in i18n. */
 export const feedingRows: { tone: ScheduleTone }[] = [
-  { tone: 'amber' }, // newborn
+  { tone: 'amber' }, // newborn 0–1 mo
   { tone: 'emerald' }, // 1–2 mo
   { tone: 'sky' }, // 2–4 mo
   { tone: 'fuchsia' }, // 4–6 mo
 ]
+/** Exclusive upper age bound (months) per feeding band; last is open-ended. */
+export const feedingUppers = [1, 2, 4, 999]
 
 /* ------------------------------------------------------------- full day */
 

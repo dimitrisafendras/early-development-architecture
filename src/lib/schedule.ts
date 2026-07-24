@@ -66,6 +66,14 @@ export function tummyTargetForAgeMonths(months: number | null): number {
   return 60
 }
 
+/** Index of the age band whose exclusive upper bound first exceeds `months`. */
+export function bandIndex(months: number, uppers: number[]): number {
+  for (let i = 0; i < uppers.length; i++) {
+    if (months < uppers[i]) return i
+  }
+  return uppers.length - 1
+}
+
 export function ageInMonths(birthDate: string, at: Date = new Date()): number {
   const b = new Date(birthDate)
   let months = (at.getFullYear() - b.getFullYear()) * 12 + (at.getMonth() - b.getMonth())

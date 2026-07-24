@@ -9,19 +9,27 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { SectionHeader } from '../components/SectionHeader'
-import { feedingRows } from '../data'
+import { feedingRows, feedingUppers } from '../data'
+import { AgeBadge, useBabyAge } from '../components/AgeBadge'
+import { bandIndex } from '../lib/schedule'
+import { cn } from '@/lib/utils'
 import { useT } from '../i18n'
 
 export function Feeding() {
   const t = useT()
   const tf = t.feeding
+  const baby = useBabyAge()
+  const activeRow = baby ? bandIndex(baby.months, feedingUppers) : -1
   return (
     <section id="feeding">
       <SectionHeader module={10} title={tf.title} description={tf.description} />
 
-      <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.16em] text-primary">
-        {tf.tableTitle}
-      </h3>
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">
+          {tf.tableTitle}
+        </h3>
+        <AgeBadge />
+      </div>
       <p className="mb-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">{tf.tableNote}</p>
       <Card className="mb-10">
         <CardContent className="overflow-x-auto">
@@ -35,7 +43,7 @@ export function Feeding() {
             </TableHeader>
             <TableBody>
               {feedingRows.map((_, i) => (
-                <TableRow key={tf.rows[i].age}>
+                <TableRow key={tf.rows[i].age} className={cn(i === activeRow && 'bg-primary/10')}>
                   <TableCell className="font-semibold text-foreground">{tf.rows[i].age}</TableCell>
                   <TableCell className="text-muted-foreground">{tf.rows[i].frequency}</TableCell>
                   <TableCell className="text-muted-foreground">{tf.rows[i].amount}</TableCell>

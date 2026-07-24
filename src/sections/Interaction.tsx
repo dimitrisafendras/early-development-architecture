@@ -1,8 +1,16 @@
 import { Repeat, MessageCircle, BookOpen, Smile, Hand, MonitorOff, Clock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { SectionHeader } from '../components/SectionHeader'
-import { interactionStats, awakeWindows, interactionHow, type ScheduleTone } from '../data'
+import {
+  interactionStats,
+  awakeWindows,
+  awakeWindowUppers,
+  interactionHow,
+  type ScheduleTone,
+} from '../data'
 import type { StatusTone } from '../data'
+import { AgeBadge, useBabyAge } from '../components/AgeBadge'
+import { bandIndex } from '../lib/schedule'
 import { useT } from '../i18n'
 
 const windowTone: Record<ScheduleTone, string> = {
@@ -25,6 +33,8 @@ const howIcons = [Repeat, MessageCircle, BookOpen, Smile, Hand, MonitorOff]
 export function Interaction() {
   const t = useT()
   const ti = t.interaction
+  const baby = useBabyAge()
+  const activeWindow = baby ? bandIndex(baby.months, awakeWindowUppers) : -1
   return (
     <section id="interaction">
       <SectionHeader module={8} title={ti.title} description={ti.description} />
@@ -51,13 +61,23 @@ export function Interaction() {
       </div>
 
       {/* When — awake windows */}
-      <h3 className="mb-2 text-sm font-semibold uppercase tracking-[0.16em] text-primary">
-        {ti.whenTitle}
-      </h3>
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">
+          {ti.whenTitle}
+        </h3>
+        <AgeBadge />
+      </div>
       <p className="mb-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">{ti.whenNote}</p>
       <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {awakeWindows.map((w, i) => (
-          <Card key={ti.windows[i].age} className="h-full">
+          <Card
+            key={ti.windows[i].age}
+            className={
+              i === activeWindow
+                ? 'h-full ring-2 ring-primary ring-offset-2 ring-offset-background'
+                : 'h-full'
+            }
+          >
             <CardContent>
               <div className={`text-sm font-bold ${windowTone[w.tone]}`}>{ti.windows[i].age}</div>
               <div className="mt-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">

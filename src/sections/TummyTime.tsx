@@ -4,14 +4,25 @@ import { Badge } from '@/components/ui/badge'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { SectionHeader } from '../components/SectionHeader'
 import { TummyTimeChart } from '../components/charts'
+import { useBabyAge } from '../components/AgeBadge'
+import { tummyTargetForAgeMonths } from '../lib/schedule'
 import { useT } from '../i18n'
 
 export function TummyTime() {
   const t = useT()
   const tt = t.tummyTime
+  const baby = useBabyAge()
   return (
     <section id="tummy-time">
       <SectionHeader module={4} title={tt.title} description={tt.description} />
+      {baby && (
+        <div className="mb-6 rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm font-medium text-foreground">
+          {tt.ageTarget
+            .replace('{name}', baby.name)
+            .replace('{age}', String(baby.months))
+            .replace('{mins}', String(tummyTargetForAgeMonths(baby.months)))}
+        </div>
+      )}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <Card className="lg:col-span-7">
           <CardContent>
