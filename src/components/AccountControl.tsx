@@ -1,162 +1,98 @@
 import { useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { LogIn, LogOut, UserRound } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
 import { supabase, isSupabaseEnabled } from '@/lib/supabase'
-import { useSession, authRedirectUrl } from '@/lib/use-session'
+import { useSession } from '@/lib/use-session'
 import { useT } from '../i18n'
 
-type Mode = 'signin' | 'signup'
-type Status = 'idle' | 'working' | 'confirm-sent' | 'error'
-
 /**
- * Sign-in / account control for the nav. Signed out: popover with an
- * email + password form (sign in, or create an account — Supabase sends a
- * confirmation email before the first sign-in). Signed in: identity +
- * sign-out. Renders nothing when Supabase is not configured.
+ * Account control for the nav.
+ *
+ * Signed out it is a plain link to `/signin` — the form used to live in this
+ * popover, which could not be filled in on a phone (see the note in
+ * `pages/Auth.tsx`). Signed in it keeps a popover, which is safe: identity plus
+ * a sign-out button, no text inputs and no keyboard.
+ *
+ * `variant="row"` is the full-width labelled form used inside the nav dropdown;
+ * `"inline"` is the compact icon-first form for the desktop nav row.
+ *
+ * Renders nothing when Supabase is not configured.
  */
-export function AccountControl() {
+export function AccountControl({ variant = 'inline' }: { variant?: 'inline' | 'row' }) {
   const t = useT()
+  const { pathname, search } = useLocation()
   const { session, loading } = useSession()
   const [open, setOpen] = useState(false)
-  const [mode, setMode] = useState<Mode>('signin')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [status, setStatus] = useState<Status>('idle')
-  const [errorText, setErrorText] = useState('')
 
   if (!isSupabaseEnabled || !supabase) return null
   const sb = supabase
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email.trim() || !password) return
-    setStatus('working')
-    if (mode === 'signin') {
-      const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password })
-      if (error) {
-        setErrorText(error.message)
-        setStatus('error')
-      } else {
-        setStatus('idle')
-        setOpen(false)
-        setPassword('')
-      }
-    } else {
-      const { data, error } = await sb.auth.signUp({
-        email: email.trim(),
-        password,
-        options: { emailRedirectTo: authRedirectUrl() },
-      })
-      if (error) {
-        setErrorText(error.message)
-        setStatus('error')
-      } else if (data.session) {
-        // Email confirmation disabled server-side — signed in immediately.
-        setStatus('idle')
-        setOpen(false)
-        setPassword('')
-      } else {
-        setStatus('confirm-sent')
-      }
-    }
+  const isRow = variant === 'row'
+  const triggerClass = cn(
+    'inline-flex items-center gap-2 text-sm font-medium text-foreground/70 transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70',
+    isRow
+      ? 'min-h-11 w-full justify-start rounded-xl px-3 active:bg-foreground/10'
+      : 'min-h-11 rounded-full px-3 sm:min-h-0 sm:px-2.5 sm:py-1.5',
+  )
+
+  if (!session) {
+    // Come back to wherever the user was once they're in.
+    const next = encodeURIComponent(`${pathname}${search}`)
+    return (
+      <Link to={`/signin?next=${next}`} aria-label={t.auth.signIn} className={triggerClass}>
+        <LogIn className="size-4 shrink-0" aria-hidden />
+        <span className={isRow ? undefined : 'hidden lg:inline'}>
+          {loading ? '…' : t.auth.signIn}
+        </span>
+      </Link>
+    )
   }
 
-  const signOut = async () => {
-    await sb.auth.signOut()
-    setOpen(false)
-  }
-
-  const identity = session?.user.email ?? t.auth.anonymousUser
+  const email = session.user.email ?? t.auth.anonymousUser
+  // The local part is the recognisable bit and fits the bar; the full address is
+  // in the popover and the title attribute.
+  const shortName = email.split('@')[0]
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next)
-        if (!next) {
-          setStatus('idle')
-          setMode('signin')
-          setPassword('')
-        }
-      }}
-    >
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
-          <button
-            type="button"
-            aria-label={session ? t.auth.account : t.auth.signIn}
-            className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium text-foreground/70 transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70 sm:px-3"
-          />
+          <button type="button" aria-label={t.auth.account} title={email} className={triggerClass} />
         }
       >
-        {session ? <UserRound className="size-4 text-primary" aria-hidden /> : <LogIn className="size-4" aria-hidden />}
-        <span className="hidden lg:inline">{loading ? '…' : session ? t.auth.account : t.auth.signIn}</span>
+        <UserRound className="size-4 shrink-0 text-primary" aria-hidden />
+        <span
+          className={cn('truncate', isRow ? 'max-w-[22ch]' : 'hidden max-w-[12ch] lg:inline')}
+        >
+          {shortName}
+        </span>
       </PopoverTrigger>
-      <PopoverContent align="end" sideOffset={10} className="w-72 p-4">
-        {session ? (
-          <div className="flex flex-col gap-3">
-            <div>
-              <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">{t.auth.signedInAs}</p>
-              <p className="mt-1 truncate text-sm font-semibold">{identity}</p>
-            </div>
-            <Separator />
-            <Button variant="outline" size="sm" onClick={signOut} className="justify-start gap-2">
-              <LogOut className="size-4" aria-hidden />
-              {t.auth.signOut}
-            </Button>
+      <PopoverContent align="end" sideOffset={10} className="p-4">
+        <div className="flex flex-col gap-3">
+          <div>
+            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {t.auth.signedInAs}
+            </p>
+            <p className="mt-1 truncate text-sm font-semibold">{email}</p>
           </div>
-        ) : status === 'confirm-sent' ? (
-          <p className="rounded-lg bg-primary/10 p-3 text-sm text-foreground">{t.auth.confirmSent}</p>
-        ) : (
-          <div className="flex flex-col gap-3">
-            <p className="text-sm font-semibold">{mode === 'signin' ? t.auth.title : t.auth.titleSignUp}</p>
-            <form onSubmit={submit} className="flex flex-col gap-2">
-              <Label htmlFor="account-email" className="text-xs">
-                {t.auth.emailLabel}
-              </Label>
-              <Input
-                id="account-email"
-                type="email"
-                required
-                autoComplete="email"
-                placeholder={t.auth.emailPlaceholder}
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-              <Label htmlFor="account-password" className="text-xs">
-                {t.auth.passwordLabel}
-              </Label>
-              <Input
-                id="account-password"
-                type="password"
-                required
-                minLength={6}
-                autoComplete={mode === 'signin' ? 'current-password' : 'new-password'}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <Button type="submit" size="sm" disabled={status === 'working'} className="mt-1">
-                {status === 'working' ? t.auth.working : mode === 'signin' ? t.auth.submitSignIn : t.auth.submitSignUp}
-              </Button>
-              {status === 'error' && <p className="text-xs text-destructive">{errorText || t.auth.error}</p>}
-            </form>
-            <button
-              type="button"
-              onClick={() => {
-                setMode(mode === 'signin' ? 'signup' : 'signin')
-                setStatus('idle')
-              }}
-              className="text-left text-xs font-medium text-primary underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/70"
-            >
-              {mode === 'signin' ? t.auth.toggleToSignUp : t.auth.toggleToSignIn}
-            </button>
-          </div>
-        )}
+          <Separator />
+          <Button
+            variant="outline"
+            size="sm"
+            className="justify-start gap-2"
+            onClick={() => {
+              void sb.auth.signOut()
+              setOpen(false)
+            }}
+          >
+            <LogOut className="size-4" aria-hidden />
+            {t.auth.signOut}
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   )

@@ -42,7 +42,7 @@ export default function Baby() {
 
   return (
     <>
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-10">
+      <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 page-px py-10">
         <SectionHeader title={t.baby.title} description={t.baby.subtitle} />
 
         {!ready ? (
@@ -72,7 +72,7 @@ export default function Baby() {
                     type="button"
                     onClick={() => setCurrentBabyId(b.id)}
                     className={cn(
-                      'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
+                      'inline-flex min-h-11 items-center rounded-full px-3.5 text-sm font-medium transition-colors sm:min-h-9',
                       b.id === currentBabyId
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-muted-foreground hover:bg-accent',
@@ -169,14 +169,14 @@ function CreateBabyForm({
           </div>
           <div className="space-y-1.5">
             <Label>{t.baby.paletteLabel}</Label>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               {(['blue', 'red'] as const).map((p) => (
                 <button
                   key={p}
                   type="button"
                   onClick={() => setPalette(p)}
                   className={cn(
-                    'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                    'inline-flex min-h-11 items-center rounded-full px-4 text-sm font-medium transition-colors sm:min-h-9',
                     palette === p
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-muted-foreground hover:bg-accent',
@@ -271,7 +271,7 @@ function BabyDetail({
                   <Pencil className="mr-1.5 size-3.5" /> {t.baby.editProfile}
                 </Button>
                 {confirmDelete ? (
-                  <span className="flex items-center gap-2 text-sm">
+                  <span className="flex flex-wrap items-center gap-2 text-sm">
                     <span className="hidden text-muted-foreground sm:inline">{t.baby.deleteBabyConfirm}</span>
                     <Button size="sm" variant="destructive" onClick={() => void deleteBaby(baby.id)}>
                       {t.baby.deleteBaby}
@@ -339,14 +339,16 @@ function BabyDetail({
                       {r.height_cm != null && <span className="mr-3">{r.height_cm} cm</span>}
                       {r.head_cm != null && <span>{r.head_cm} cm ⌀</span>}
                     </span>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
+                      size="icon"
                       aria-label={t.baby.delete}
                       onClick={() => void deleteMeasurement(r.id).then(refresh)}
-                      className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                      className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                     >
                       <Trash2 className="size-4" />
-                    </button>
+                    </Button>
                   </span>
                 </li>
               ))}
@@ -363,8 +365,8 @@ function Stat({ label, value, icon }: { label: string; value: string; icon: Reac
     <Card>
       <CardContent className="py-4">
         <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
-          <span className="text-primary">{icon}</span>
-          {label}
+          <span className="shrink-0 text-primary">{icon}</span>
+          <span className="truncate">{label}</span>
         </div>
         <div className="mt-1 truncate font-heading text-xl font-semibold text-foreground">{value}</div>
       </CardContent>
@@ -420,14 +422,14 @@ function EditBabyForm({
       </div>
       <div className="space-y-1.5">
         <Label>{t.baby.paletteLabel}</Label>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {(['blue', 'red'] as const).map((p) => (
             <button
               key={p}
               type="button"
               onClick={() => setPalette(p)}
               className={cn(
-                'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                'inline-flex min-h-11 items-center rounded-full px-4 text-sm font-medium transition-colors sm:min-h-9',
                 palette === p
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground hover:bg-accent',

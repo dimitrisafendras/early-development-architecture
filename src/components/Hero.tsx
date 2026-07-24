@@ -9,7 +9,7 @@ export function Hero() {
   const t = useT()
   return (
     <header className="ds-aurora-brand relative overflow-hidden pb-16 pt-10 text-white">
-      <div className="relative z-10 mx-auto w-full max-w-7xl px-6">
+      <div className="relative z-10 mx-auto w-full max-w-7xl page-px">
         {/* Headline row */}
         <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-center">
           <div className="max-w-2xl">

@@ -22,6 +22,14 @@ export interface GlassNavProps {
   links?: GlassNavLink[]
   /** Controls slot (theme / palette / language switchers, cross-route link). */
   actions?: React.ReactNode
+  /**
+   * Controls rendered inside the collapsed dropdown instead of `actions`.
+   * The inline row is icon-dense because horizontal space is scarce; the
+   * dropdown has room for full labels and taller touch targets, so consumers
+   * pass a purpose-built layout rather than reusing the cramped inline one.
+   * Falls back to `actions` when omitted.
+   */
+  mobileActions?: React.ReactNode
   /** Currently-active anchor href, for link highlighting. */
   activeHref?: string
   /**
@@ -51,6 +59,7 @@ export function GlassNav({
   brand,
   links = [],
   actions,
+  mobileActions,
   activeHref,
   renderLink,
   menuLabelOpen = 'Open menu',
@@ -97,7 +106,14 @@ export function GlassNav({
   React.useEffect(() => {
     if (!open) return
     const onPointer = (e: PointerEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false)
+      const target = e.target as Element | null
+      // Popovers and menus opened *from* the dropdown (settings, account) are
+      // portalled to the end of <body>, so they are not DOM descendants of
+      // rootRef. Without this guard, tapping into one of them reads as an
+      // outside tap, collapses the dropdown, and unmounts the popover mid-use —
+      // which made the sign-in form impossible to fill in on a phone.
+      if (target?.closest?.('[data-slot^="popover"], [role="dialog"], [role="menu"]')) return
+      if (rootRef.current && target && !rootRef.current.contains(target)) setOpen(false)
     }
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
     document.addEventListener('pointerdown', onPointer)
@@ -109,16 +125,29 @@ export function GlassNav({
   }, [open])
 
   const hasLinks = links.length > 0
-  const collapsible = hasLinks || Boolean(actions)
+  const collapsible = hasLinks || Boolean(actions) || Boolean(mobileActions)
 
   const ease = '[transition-timing-function:cubic-bezier(0.22,1,0.36,1)]'
   return (
     <div
       ref={rootRef}
+      // `viewport-fit=cover` lets the page paint under the notch, so the bar has
+      // to add the insets back itself — otherwise the brand and the hamburger
+      // sit beneath the status bar in an installed iOS PWA, and one edge is
+      // clipped in landscape. The gutter travels through `--nav-pad-x` so the
+      // responsive part stays in Tailwind while env() stays in the style prop
+      // (media queries can't live in an inline style).
+      style={{
+        paddingTop: scrolled
+          ? 'calc(0.75rem + env(safe-area-inset-top))'
+          : 'env(safe-area-inset-top)',
+        paddingLeft: 'max(var(--nav-pad-x), env(safe-area-inset-left))',
+        paddingRight: 'max(var(--nav-pad-x), env(safe-area-inset-right))',
+      }}
       className={cn(
         'sticky top-0 z-50 transition-[padding] duration-500',
         ease,
-        scrolled ? 'px-3 pt-3 sm:px-5 sm:pt-4' : 'px-0 pt-0',
+        scrolled ? '[--nav-pad-x:0.75rem] sm:[--nav-pad-x:1.25rem]' : '[--nav-pad-x:0px]',
         className,
       )}
     >
@@ -149,13 +178,16 @@ export function GlassNav({
                 aria-controls={menuId}
                 aria-haspopup="menu"
                 onClick={() => setOpen((v) => !v)}
-                className="grid size-9 shrink-0 place-items-center rounded-full text-foreground/80 transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70 xl:hidden"
+                className="-ml-1 grid size-11 shrink-0 place-items-center rounded-full text-foreground/80 transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70 active:bg-foreground/10 sm:ml-0 sm:size-9 xl:hidden"
               >
                 {open ? <X className="size-5" /> : <Menu className="size-5" />}
               </button>
             )}
 
-            <div className="flex min-w-0 shrink-0 items-center gap-2 pl-0.5 font-heading text-sm font-semibold tracking-tight sm:pl-1">
+            {/* `flex-1` (not `shrink-0`) so a brand slot that carries a context
+                strip alongside the wordmark can claim the leftover width and
+                truncate inside it, instead of pushing the controls off-screen. */}
+            <div className="flex min-w-0 flex-1 items-center gap-2 pl-0.5 font-heading text-sm font-semibold tracking-tight sm:pl-1">
               {brand}
             </div>
 
@@ -197,19 +229,24 @@ export function GlassNav({
           )}
         </GlassSurface>
 
-        {/* Mobile / tablet dropdown — opaque popover for guaranteed legibility. */}
+        {/* Mobile / tablet dropdown — opaque popover for guaranteed legibility.
+            Capped to the dynamic viewport height and scrollable, so a long link
+            list stays reachable on a short phone in landscape. */}
         {collapsible && open && (
           <div
             id={menuId}
-            className="absolute inset-x-0 top-full z-50 mt-2 origin-top rounded-2xl border border-border bg-popover p-3 text-popover-foreground shadow-[0_16px_48px_rgb(0_0_0/0.20),0_4px_12px_rgb(0_0_0/0.12)] xl:hidden"
+            className="absolute inset-x-0 top-full z-50 mt-2 max-h-[calc(100dvh-8rem)] origin-top overflow-y-auto overscroll-contain rounded-2xl border border-border bg-popover p-3 text-popover-foreground shadow-[0_16px_48px_rgb(0_0_0/0.20),0_4px_12px_rgb(0_0_0/0.12)] xl:hidden"
           >
-            {actions && (
-              <div className="flex flex-wrap items-center gap-2 border-b border-border pb-3">
-                {actions}
-              </div>
+            {(mobileActions ?? actions) && (
+              <div className="border-b border-border pb-3">{mobileActions ?? actions}</div>
             )}
             {hasLinks && (
-              <ul className={cn('grid grid-cols-2 gap-1 sm:grid-cols-3', actions && 'pt-3')}>
+              <ul
+                className={cn(
+                  'grid grid-cols-2 gap-1 sm:grid-cols-3',
+                  (mobileActions ?? actions) && 'pt-3',
+                )}
+              >
                 {links.map((link) => {
                   const active = activeHref === link.href
                   return (
@@ -219,10 +256,10 @@ export function GlassNav({
                         active,
                         onNavigate: () => setOpen(false),
                         className: cn(
-                          'block rounded-xl px-3 py-2.5 text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/70',
+                          'flex min-h-11 items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/70',
                           active
                             ? 'bg-primary/15 text-foreground'
-                            : 'text-foreground/70 hover:bg-foreground/5 hover:text-foreground'
+                            : 'text-foreground/70 hover:bg-foreground/5 hover:text-foreground active:bg-foreground/10'
                         ),
                       })}
                     </li>

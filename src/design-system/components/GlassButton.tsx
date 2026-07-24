@@ -16,11 +16,14 @@ const glassButtonVariants = cva(
          *  material's own background declaration). */
         primary: 'text-primary-foreground',
       },
+      // Mobile-first: `sm` and `default` clear the ~44px touch minimum on
+      // phones and collapse to the tighter desktop scale from the `sm`
+      // breakpoint. `lg`/`icon` already clear it at every width.
       size: {
-        sm: 'h-8 px-3.5 text-xs',
-        default: 'h-10 px-5 text-sm',
+        sm: 'h-11 px-4 text-xs sm:h-8 sm:px-3.5',
+        default: 'h-11 px-5 text-sm sm:h-10',
         lg: 'h-12 px-7 text-base',
-        icon: 'size-10',
+        icon: 'size-11 sm:size-10',
       },
     },
     defaultVariants: {
