@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { isSupabaseEnabled } from './supabase'
 import { useSession } from './use-session'
-import { listBabies, createBaby as dbCreateBaby, type Baby } from './db'
+import {
+  listBabies,
+  createBaby as dbCreateBaby,
+  updateBaby as dbUpdateBaby,
+  deleteBaby as dbDeleteBaby,
+  type Baby,
+} from './db'
 import type { Palette } from '../store'
 
 const CURRENT_BABY_KEY = 'eda-current-baby'
@@ -53,6 +59,23 @@ export function useBabies() {
     [refresh, setCurrentBabyId],
   )
 
+  const updateBaby = useCallback(
+    async (id: string, patch: { name?: string; birth_date?: string; palette?: Palette }) => {
+      await dbUpdateBaby(id, patch)
+      await refresh()
+    },
+    [refresh],
+  )
+
+  const deleteBaby = useCallback(
+    async (id: string) => {
+      await dbDeleteBaby(id)
+      if (currentBabyId === id) setCurrentBabyId(null)
+      await refresh()
+    },
+    [currentBabyId, refresh, setCurrentBabyId],
+  )
+
   // Keep the selection valid: fall back to the first baby when the stored id
   // is gone (e.g. deleted, or a different account signed in).
   const resolvedId =
@@ -67,6 +90,8 @@ export function useBabies() {
     currentBabyId: resolvedId,
     setCurrentBabyId,
     createBaby,
+    updateBaby,
+    deleteBaby,
     refresh,
     loading: loading || sessionLoading,
     session,

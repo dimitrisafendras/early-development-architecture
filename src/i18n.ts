@@ -155,6 +155,11 @@ const en = {
     latestHeight: 'Latest height',
     delete: 'Delete',
     error: 'Something went wrong. Please try again.',
+    editProfile: 'Edit profile',
+    saveProfile: 'Save changes',
+    cancel: 'Cancel',
+    deleteBaby: 'Delete baby',
+    deleteBabyConfirm: 'Delete this baby and all its measurements and sessions? This cannot be undone.',
   },
   checklistUI: {
     streak: 'day streak',
@@ -718,6 +723,11 @@ const el: Messages = {
     latestHeight: 'Τελευταίο ύψος',
     delete: 'Διαγραφή',
     error: 'Κάτι πήγε στραβά. Δοκιμάστε ξανά.',
+    editProfile: 'Επεξεργασία προφίλ',
+    saveProfile: 'Αποθήκευση αλλαγών',
+    cancel: 'Άκυρο',
+    deleteBaby: 'Διαγραφή μωρού',
+    deleteBabyConfirm: 'Διαγραφή αυτού του μωρού και όλων των μετρήσεων και συνεδριών του; Δεν αναιρείται.',
   },
   checklistUI: {
     streak: 'ημέρες σερί',

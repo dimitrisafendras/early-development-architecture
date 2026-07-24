@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Baby as BabyIcon, Plus, Trash2, Ruler, Weight } from 'lucide-react'
+import { Baby as BabyIcon, Plus, Trash2, Ruler, Weight, Pencil } from 'lucide-react'
 import { NavBar } from '../components/NavBar'
 import { Footer } from '../components/Footer'
 import { SectionHeader } from '../components/SectionHeader'
@@ -17,14 +17,24 @@ import {
   addMeasurement,
   deleteMeasurement,
   type Measurement,
+  type Baby as BabyRecord,
 } from '../lib/db'
 import type { Palette } from '../store'
 import { useT } from '../i18n'
 
 export default function Baby() {
   const t = useT()
-  const { babies, currentBaby, currentBabyId, setCurrentBabyId, createBaby, ready, loading } =
-    useBabies()
+  const {
+    babies,
+    currentBaby,
+    currentBabyId,
+    setCurrentBabyId,
+    createBaby,
+    updateBaby,
+    deleteBaby,
+    ready,
+    loading,
+  } = useBabies()
   const { household } = useHousehold()
 
   // New babies join the family automatically when the user is in one.
@@ -72,10 +82,10 @@ export default function Baby() {
 
             {currentBaby ? (
               <BabyDetail
-                babyId={currentBaby.id}
-                birthDate={currentBaby.birth_date}
-                name={currentBaby.name}
-                householdId={currentBaby.household_id}
+                key={currentBaby.id}
+                baby={currentBaby}
+                updateBaby={updateBaby}
+                deleteBaby={deleteBaby}
               />
             ) : (
               <CreateBabyForm onCreate={onCreate} />
@@ -187,19 +197,23 @@ function CreateBabyForm({
 }
 
 function BabyDetail({
-  babyId,
-  birthDate,
-  name,
-  householdId,
+  baby,
+  updateBaby,
+  deleteBaby,
 }: {
-  babyId: string
-  birthDate: string
-  name: string
-  householdId: string | null
+  baby: BabyRecord
+  updateBaby: (id: string, patch: { name?: string; birth_date?: string; palette?: Palette }) => Promise<unknown>
+  deleteBaby: (id: string) => Promise<unknown>
 }) {
   const t = useT()
+  const babyId = baby.id
+  const birthDate = baby.birth_date
+  const name = baby.name
+  const householdId = baby.household_id
   const [rows, setRows] = useState<Measurement[]>([])
   const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   async function refresh() {
     setLoading(true)
@@ -228,6 +242,56 @@ function BabyDetail({
         <Stat label={t.baby.latestHeight} value={latestHeight != null ? `${latestHeight} cm` : '—'} icon={<Ruler className="size-4" />} />
         <Stat label={t.baby.selectLabel} value={name} icon={<BabyIcon className="size-4" />} />
       </div>
+
+      {/* Edit profile + danger zone */}
+      <Card>
+        <CardContent>
+          {editing ? (
+            <EditBabyForm
+              baby={baby}
+              onSave={async (patch) => {
+                await updateBaby(baby.id, patch)
+                setEditing(false)
+              }}
+              onCancel={() => setEditing(false)}
+            />
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-[15px] font-semibold text-foreground">{name}</p>
+                <p className="text-xs text-muted-foreground">
+                  {new Date(birthDate).toLocaleDateString()} · {baby.palette === 'blue' ? t.nav.boy : t.nav.girl}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
+                  <Pencil className="mr-1.5 size-3.5" /> {t.baby.editProfile}
+                </Button>
+                {confirmDelete ? (
+                  <span className="flex items-center gap-2 text-sm">
+                    <span className="hidden text-muted-foreground sm:inline">{t.baby.deleteBabyConfirm}</span>
+                    <Button size="sm" variant="destructive" onClick={() => void deleteBaby(baby.id)}>
+                      {t.baby.deleteBaby}
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>
+                      {t.baby.cancel}
+                    </Button>
+                  </span>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground hover:text-destructive"
+                    onClick={() => setConfirmDelete(true)}
+                  >
+                    <Trash2 className="mr-1.5 size-3.5" /> {t.baby.deleteBaby}
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <AddMeasurementForm babyId={babyId} householdId={householdId} onSaved={refresh} />
 
@@ -298,6 +362,85 @@ function Stat({ label, value, icon }: { label: string; value: string; icon: Reac
         <div className="mt-1 truncate font-heading text-xl font-semibold text-foreground">{value}</div>
       </CardContent>
     </Card>
+  )
+}
+
+function EditBabyForm({
+  baby,
+  onSave,
+  onCancel,
+}: {
+  baby: BabyRecord
+  onSave: (patch: { name: string; birth_date: string; palette: Palette }) => Promise<void>
+  onCancel: () => void
+}) {
+  const t = useT()
+  const [name, setName] = useState(baby.name)
+  const [birthDate, setBirthDate] = useState(baby.birth_date)
+  const [palette, setPalette] = useState<Palette>(baby.palette)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  async function submit(e: FormEvent) {
+    e.preventDefault()
+    if (!name.trim()) return
+    setBusy(true)
+    setError('')
+    try {
+      await onSave({ name: name.trim(), birth_date: birthDate, palette })
+    } catch {
+      setError(t.baby.error)
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form onSubmit={submit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="space-y-1.5">
+        <Label htmlFor="edit-name">{t.baby.nameLabel}</Label>
+        <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} required />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="edit-birth">{t.baby.birthDateLabel}</Label>
+        <Input
+          id="edit-birth"
+          type="date"
+          value={birthDate}
+          max={todayKey()}
+          onChange={(e) => setBirthDate(e.target.value)}
+          required
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label>{t.baby.paletteLabel}</Label>
+        <div className="flex gap-2">
+          {(['blue', 'red'] as const).map((p) => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setPalette(p)}
+              className={cn(
+                'rounded-full px-4 py-2 text-sm font-medium transition-colors',
+                palette === p
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted text-muted-foreground hover:bg-accent',
+              )}
+            >
+              {p === 'blue' ? t.nav.boy : t.nav.girl}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex items-end gap-2">
+        <Button type="submit" disabled={busy}>
+          {busy ? t.baby.saving : t.baby.saveProfile}
+        </Button>
+        <Button type="button" variant="ghost" onClick={onCancel}>
+          {t.baby.cancel}
+        </Button>
+      </div>
+      {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
+    </form>
   )
 }
 

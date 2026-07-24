@@ -82,6 +82,14 @@ export async function createBaby(input: {
   return data as Baby
 }
 
+export async function updateBaby(
+  id: string,
+  patch: { name?: string; birth_date?: string; palette?: Palette },
+): Promise<void> {
+  const { error } = await client().from('babies').update(patch).eq('id', id)
+  if (error) throw error
+}
+
 export async function deleteBaby(id: string): Promise<void> {
   const { error } = await client().from('babies').delete().eq('id', id)
   if (error) throw error
