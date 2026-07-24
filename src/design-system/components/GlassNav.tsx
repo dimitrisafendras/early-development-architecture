@@ -62,11 +62,22 @@ export function GlassNav({
   // At the top of the page the bar is flush/edge-to-edge; once scrolled it
   // morphs into the floating rounded capsule.
   const [scrolled, setScrolled] = React.useState(false)
+  // Track the viewport width so the top state can be genuinely edge-to-edge on
+  // any screen, while still animating to a fixed px width (smooth, no snap).
+  const [vw, setVw] = React.useState(() =>
+    typeof document !== 'undefined' ? document.documentElement.clientWidth : 1600,
+  )
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 4)
+    const onResize = () => setVw(document.documentElement.clientWidth)
     onScroll()
+    onResize()
     window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
+    window.addEventListener('resize', onResize)
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onResize)
+    }
   }, [])
 
   const defaultRenderLink =({ link, active, className: cls, onNavigate }: GlassNavLinkRenderArgs) => (
@@ -112,9 +123,9 @@ export function GlassNav({
       )}
     >
       <div
-        // Width animates between two fixed values (not none↔max-w) so it eases
-        // smoothly instead of snapping. 1600px ≈ edge-to-edge on typical screens.
-        style={{ maxWidth: scrolled ? 1152 : 1600 }}
+        // Top = full viewport width (edge-to-edge on any screen); scrolled =
+        // fixed capsule width. Both are px so max-width eases smoothly (no snap).
+        style={{ maxWidth: scrolled ? 1152 : vw }}
         className={cn('relative mx-auto w-full transition-[max-width] duration-500', ease)}
       >
         <GlassSurface
