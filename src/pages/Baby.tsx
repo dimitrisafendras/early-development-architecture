@@ -1,7 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Baby as BabyIcon, Plus, Trash2, Ruler, Weight, Pencil } from 'lucide-react'
-import { NavBar } from '../components/NavBar'
-import { Footer } from '../components/Footer'
 import { SectionHeader } from '../components/SectionHeader'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -44,7 +42,6 @@ export default function Baby() {
 
   return (
     <>
-      <NavBar />
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-10">
         <SectionHeader title={t.baby.title} description={t.baby.subtitle} />
 
@@ -111,7 +108,6 @@ export default function Baby() {
           </>
         )}
       </main>
-      <Footer />
     </>
   )
 }

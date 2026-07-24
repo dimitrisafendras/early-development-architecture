@@ -1,8 +1,6 @@
 import { useEffect } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { LayoutGrid, ArrowLeft, ArrowRight } from 'lucide-react'
-import { NavBar } from '../components/NavBar'
-import { Footer } from '../components/Footer'
 import {
   learnGroups,
   groupMeta,
@@ -36,7 +34,6 @@ export default function LearnGroup() {
 
   return (
     <>
-      <NavBar />
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-10 px-6 py-10">
         <Link
           to="/"
@@ -108,7 +105,6 @@ export default function LearnGroup() {
           )}
         </nav>
       </main>
-      <Footer />
     </>
   )
 }

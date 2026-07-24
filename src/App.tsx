@@ -7,7 +7,9 @@ import Daily from './pages/Daily'
 import Tracker from './pages/Tracker'
 import Baby from './pages/Baby'
 import Family from './pages/Family'
+import FeedLog from './pages/FeedLog'
 import DesignSystem from './pages/DesignSystem'
+import { Layout } from './components/Layout'
 import { useAppStore } from './store'
 import { isSupabaseEnabled } from './lib/supabase'
 
@@ -35,13 +37,16 @@ export default function App() {
     <>
       <ScrollToTop />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/topic/:slug" element={<Topic />} />
-        <Route path="/learn/:group" element={<LearnGroup />} />
-        <Route path="/daily" element={<Daily />} />
-        <Route path="/tracker" element={<Tracker />} />
-        <Route path="/baby" element={<Baby />} />
-        <Route path="/family" element={<Family />} />
+        <Route element={<Layout />}>
+          <Route path="/" element={<Home />} />
+          <Route path="/topic/:slug" element={<Topic />} />
+          <Route path="/learn/:group" element={<LearnGroup />} />
+          <Route path="/daily" element={<Daily />} />
+          <Route path="/tracker" element={<Tracker />} />
+          <Route path="/baby" element={<Baby />} />
+          <Route path="/family" element={<Family />} />
+          <Route path="/feed" element={<FeedLog />} />
+        </Route>
         <Route path="/design-system" element={<DesignSystem />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

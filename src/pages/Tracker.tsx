@@ -1,7 +1,5 @@
 import type { ReactNode } from 'react'
 import { Play, Square, Trash2, Timer, CalendarDays, Flame, Hourglass, Target } from 'lucide-react'
-import { NavBar } from '../components/NavBar'
-import { Footer } from '../components/Footer'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ProgressRing } from '../components/ProgressRing'
@@ -61,7 +59,6 @@ export default function Tracker() {
 
   return (
     <>
-      <NavBar />
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-6 py-10">
         <SectionHeader title={t.tracker.title} description={t.tracker.subtitle} />
 
@@ -196,7 +193,6 @@ export default function Tracker() {
           </Card>
         </div>
       </main>
-      <Footer />
     </>
   )
 }

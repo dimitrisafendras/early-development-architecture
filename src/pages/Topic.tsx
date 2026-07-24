@@ -1,8 +1,6 @@
 import { useEffect } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, LayoutGrid } from 'lucide-react'
-import { NavBar } from '../components/NavBar'
-import { Footer } from '../components/Footer'
 import { topics, topicPath, findTopic } from '../sections/registry'
 import { useT } from '../i18n'
 
@@ -31,7 +29,6 @@ export default function Topic() {
 
   return (
     <>
-      <NavBar />
       <main className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-6 py-10">
         <Link
           to="/"
@@ -63,7 +60,6 @@ export default function Topic() {
           )}
         </nav>
       </main>
-      <Footer />
     </>
   )
 }

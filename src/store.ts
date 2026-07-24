@@ -30,10 +30,10 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
-      // Defaults: light theme + "girl" (soft rose) palette. Persisted user
+      // Defaults: dark theme + "girl" (soft rose) palette. Persisted user
       // choices in localStorage override these on load (see partialize below
       // and the pre-hydration bootstrap in index.html that prevents a flash).
-      dark: false,
+      dark: true,
       toggleTheme: () => set((state) => ({ dark: !state.dark })),
       palette: 'red',
       setPalette: (palette) => set({ palette }),

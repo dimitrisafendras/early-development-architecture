@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Play, Square, Radio, ArrowRight, CalendarDays, ListChecks, Flame } from 'lucide-react'
-import { NavBar } from '../components/NavBar'
-import { Footer } from '../components/Footer'
 import { SectionHeader } from '../components/SectionHeader'
 import { AgeBadge } from '../components/AgeBadge'
 import { ProgressRing } from '../components/ProgressRing'
@@ -23,7 +21,6 @@ export default function Daily() {
   const t = useT()
   return (
     <>
-      <NavBar />
       <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-10">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <SectionHeader title={t.daily.title} description={t.daily.subtitle} />
@@ -42,7 +39,6 @@ export default function Daily() {
           <LinkCard to={topicPath('daily-routine')} icon={<ListChecks className="size-5" />} label={t.daily.learnRoutine} />
         </div>
       </main>
-      <Footer />
     </>
   )
 }

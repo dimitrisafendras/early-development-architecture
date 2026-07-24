@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Sun, Moon, Palette, Timer, Baby, Users, CalendarCheck, SlidersHorizontal } from 'lucide-react'
+import { Sun, Moon, Palette, Timer, Baby, Users, CalendarCheck, SlidersHorizontal, Milk } from 'lucide-react'
 import { GlassNav, GlassToggleGroup } from '@/design-system/components'
 import '@/design-system/ds.css'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -62,6 +62,9 @@ export function NavBar() {
           </Link>
           <Link to="/tracker" aria-label={t.nav.tracker} title={t.nav.tracker} className={iconLink}>
             <Timer className="size-4" aria-hidden />
+          </Link>
+          <Link to="/feed" aria-label={t.nav.feed} title={t.nav.feed} className={iconLink}>
+            <Milk className="size-4" aria-hidden />
           </Link>
           <Link to="/baby" aria-label={t.nav.baby} title={t.nav.baby} className={iconLink}>
             <Baby className="size-4" aria-hidden />

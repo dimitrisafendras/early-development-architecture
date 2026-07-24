@@ -1,8 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, CalendarCheck } from 'lucide-react'
 import { Hero } from '../components/Hero'
-import { NavBar } from '../components/NavBar'
-import { Footer } from '../components/Footer'
 import { Card, CardContent } from '@/components/ui/card'
 import { learnGroups, groupMeta, groupPath, topicsInGroup, type TopicGroup } from '../sections/registry'
 import { useT } from '../i18n'
@@ -17,7 +15,6 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <NavBar />
       <main className="mx-auto w-full max-w-7xl px-6 py-14">
         {/* Your day */}
         <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
@@ -62,7 +59,6 @@ export default function Home() {
           ))}
         </ul>
       </main>
-      <Footer />
     </>
   )
 }

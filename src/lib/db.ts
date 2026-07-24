@@ -44,6 +44,19 @@ export interface ChecklistEntry {
   checked: boolean
 }
 
+export type FeedMethod = 'bottle' | 'breast' | 'solid'
+export interface FeedLog {
+  id: string
+  owner: string
+  household_id: string | null
+  baby_id: string | null
+  fed_at: string
+  method: FeedMethod
+  amount_ml: number | null
+  minutes: number | null
+  note: string | null
+}
+
 function client() {
   if (!supabase) throw new Error('Supabase is not configured')
   return supabase
@@ -197,6 +210,42 @@ export async function deleteSession(id: string): Promise<void> {
 }
 
 /* ------------------------------------------------------ checklist entries */
+
+/* ------------------------------------------------------------- feed logs */
+
+export async function listFeedsSince(isoDate: string): Promise<FeedLog[]> {
+  const { data, error } = await client()
+    .from('feed_logs')
+    .select('*')
+    .gte('fed_at', isoDate)
+    .order('fed_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as FeedLog[]
+}
+
+export async function addFeed(input: {
+  baby_id: string | null
+  household_id: string | null
+  fed_at: string
+  method: FeedMethod
+  amount_ml?: number | null
+  minutes?: number | null
+  note?: string | null
+}): Promise<FeedLog> {
+  const owner = await currentUserId()
+  const { data, error } = await client()
+    .from('feed_logs')
+    .insert({ ...input, owner })
+    .select()
+    .single()
+  if (error) throw error
+  return data as FeedLog
+}
+
+export async function deleteFeed(id: string): Promise<void> {
+  const { error } = await client().from('feed_logs').delete().eq('id', id)
+  if (error) throw error
+}
 
 export async function getChecklistForDay(day: string): Promise<string[]> {
   const { data, error } = await client()

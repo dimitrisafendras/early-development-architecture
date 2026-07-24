@@ -1,7 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { Users, UserPlus, Home as HomeIcon, Mail, Check, X, Share2, LogOut, Pencil, Trash2 } from 'lucide-react'
-import { NavBar } from '../components/NavBar'
-import { Footer } from '../components/Footer'
 import { SectionHeader } from '../components/SectionHeader'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -51,7 +49,6 @@ export default function Family() {
 
   return (
     <>
-      <NavBar />
       <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
         <SectionHeader title={tf.title} description={tf.subtitle} />
 
@@ -260,7 +257,6 @@ export default function Family() {
           </>
         )}
       </main>
-      <Footer />
     </>
   )
 }
