@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, GripVertical } from 'lucide-react'
+import { ArrowRight, GripVertical, CalendarCheck } from 'lucide-react'
 import { Hero } from '../components/Hero'
 import { NavBar } from '../components/NavBar'
 import { Footer } from '../components/Footer'
@@ -60,9 +60,34 @@ export default function Home() {
       <Hero />
       <NavBar />
       <main className="mx-auto w-full max-w-7xl px-6 py-14">
-        <div className="mb-10 max-w-2xl">
+        {/* Your day — the do-it-now surface */}
+        <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+          {t.hub.yourDay}
+        </p>
+        <Link
+          to="/daily"
+          className="group mb-12 block rounded-2xl border border-primary/30 bg-gradient-to-br from-primary/15 to-primary/5 p-6 outline-none transition-[border-color,box-shadow] hover:border-primary/50 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring/70 sm:p-8"
+        >
+          <div className="flex items-center gap-5">
+            <span className="inline-flex shrink-0 rounded-2xl bg-primary/15 p-3.5 text-primary">
+              <CalendarCheck className="size-7" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="font-heading text-xl font-semibold text-foreground sm:text-2xl">
+                {t.hub.dailyCardTitle}
+              </p>
+              <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                {t.hub.dailyCardBlurb}
+              </p>
+            </div>
+            <ArrowRight className="size-6 shrink-0 text-primary transition-transform group-hover:translate-x-1" />
+          </div>
+        </Link>
+
+        {/* Learn — the reference library */}
+        <div className="mb-8 max-w-2xl">
           <p className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-            {t.hub.eyebrow}
+            {t.hub.learn}
           </p>
           <h2 className="font-heading text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
             {t.hub.title}
@@ -140,14 +165,9 @@ function TopicCard({ topic }: { topic: Topic }) {
       >
         <Card className="h-full transition-[transform,box-shadow,border-color] group-hover:-translate-y-0.5 group-hover:border-primary/40 group-hover:shadow-lg">
           <CardContent className="flex h-full flex-col">
-            <div className="flex items-center justify-between">
-              <span className="inline-flex rounded-xl bg-primary/10 p-2.5 text-primary">
-                <Icon className="size-5" />
-              </span>
-              <span className="mr-6 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                {t.common.module} {topic.module}
-              </span>
-            </div>
+            <span className="inline-flex w-fit rounded-xl bg-primary/10 p-2.5 text-primary">
+              <Icon className="size-5" />
+            </span>
             <p className="mt-4 text-lg font-semibold text-foreground">{topic.label(t)}</p>
             <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
               {topic.blurb(t)}

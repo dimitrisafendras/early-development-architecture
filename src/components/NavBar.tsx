@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { Sun, Moon, Palette, Timer, Baby, Users } from 'lucide-react'
+import { Sun, Moon, Palette, Timer, Baby, Users, CalendarCheck } from 'lucide-react'
 import { GlassNav, GlassToggleGroup } from '@/design-system/components'
 import '@/design-system/ds.css'
 import { AccountControl } from './AccountControl'
@@ -84,6 +84,14 @@ export function NavBar() {
               { value: 'el', label: 'ΕΛ' },
             ]}
           />
+          <Link
+            to="/daily"
+            aria-label={t.nav.today}
+            className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20 sm:px-3"
+          >
+            <CalendarCheck className="size-4" aria-hidden />
+            <span className="hidden sm:inline">{t.nav.today}</span>
+          </Link>
           <Link
             to="/tracker"
             aria-label={t.nav.tracker}

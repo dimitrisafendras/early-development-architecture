@@ -29,11 +29,11 @@ export function Hero() {
               the aurora backdrop is always dark, so a dark frosted button keeps the
               white label text legible in all four theme x palette combos. */}
           <div className="dark flex flex-wrap gap-3">
-            <GlassButton tone="primary" size="lg" render={<Link to={topicPath('action-items')} />}>
+            <GlassButton tone="primary" size="lg" render={<Link to="/daily" />}>
               <CheckSquare />
-              {t.hero.ctaChecklist}
+              {t.hero.ctaDaily}
             </GlassButton>
-            <GlassButton size="lg" className="text-white" render={<Link to={topicPath('daily-routine')} />}>
+            <GlassButton size="lg" className="text-white" render={<Link to={topicPath('full-day')} />}>
               <Clock />
               {t.hero.ctaSchedule}
             </GlassButton>
