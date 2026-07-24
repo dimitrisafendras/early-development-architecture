@@ -66,6 +66,36 @@ export function tummyTargetForAgeMonths(months: number | null): number {
   return 60
 }
 
+function minutesOf(time: string): number {
+  const m = time.match(/(\d{1,2}):(\d{2})/)
+  return m ? Number(m[1]) * 60 + Number(m[2]) : 0
+}
+
+/**
+ * Index of the "current" entry in a time-ordered list of HH:MM times: the last
+ * one at or before `now`. Before the first time of the day it wraps to the
+ * latest entry (i.e. the previous day's last slot is still current overnight).
+ */
+export function activeTimeIndex(times: string[], now: Date = new Date()): number {
+  const cur = now.getHours() * 60 + now.getMinutes()
+  let best = -1
+  let bestStart = -1
+  let latest = 0
+  let latestStart = -1
+  times.forEach((t, i) => {
+    const s = minutesOf(t)
+    if (s <= cur && s > bestStart) {
+      bestStart = s
+      best = i
+    }
+    if (s > latestStart) {
+      latestStart = s
+      latest = i
+    }
+  })
+  return best !== -1 ? best : latest
+}
+
 /** Index of the age band whose exclusive upper bound first exceeds `months`. */
 export function bandIndex(months: number, uppers: number[]): number {
   for (let i = 0; i < uppers.length; i++) {

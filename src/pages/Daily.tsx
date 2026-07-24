@@ -64,6 +64,7 @@ function NowWidget() {
   const active = activeBlockIndex(now)
   const next = (active + 1) % scheduleBlocks.length
   const untilNext = minutesUntilBlockStart(next, now)
+  const suggestions = t.routine.blocks[active].items
   return (
     <Card className="border-primary/30 bg-primary/5">
       <CardContent className="py-5">
@@ -87,6 +88,23 @@ function NowWidget() {
             <span className="font-medium text-foreground">{t.routine.blocks[next].title}</span>
             <span>· {tl.in} {formatCountdown(untilNext, tl.hour, tl.minute)}</span>
           </div>
+        </div>
+
+        {/* Proposed next activities for the current block */}
+        <div className="mt-4 border-t border-primary/15 pt-3">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-primary">
+            {t.daily.suggestedNow}
+          </p>
+          <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {suggestions.map((item) => (
+              <li key={item.strong} className="flex gap-2 text-[13px] text-muted-foreground">
+                <ArrowRight className="mt-0.5 size-3.5 shrink-0 text-primary" />
+                <span>
+                  <strong className="text-foreground">{item.strong}</strong> {item.text}
+                </span>
+              </li>
+            ))}
+          </ul>
         </div>
       </CardContent>
     </Card>

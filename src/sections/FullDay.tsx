@@ -1,8 +1,9 @@
+import { useEffect, useState, type ComponentType } from 'react'
 import { Milk, Moon, ToyBrick, Baby, Bath, Sparkles } from 'lucide-react'
-import type { ComponentType } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { SectionHeader } from '../components/SectionHeader'
 import { fullDaySchedule, type DayActivity } from '../data'
+import { activeTimeIndex } from '../lib/schedule'
 import { useT } from '../i18n'
 
 /** Per-activity icon + soft theme-aware accent (dot background + text). */
@@ -20,6 +21,12 @@ const legendOrder: DayActivity[] = ['feed', 'sleep', 'play', 'tummy', 'care', 'w
 export function FullDay() {
   const t = useT()
   const tf = t.fullDay
+  const [now, setNow] = useState(() => new Date())
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 60_000)
+    return () => clearInterval(id)
+  }, [])
+  const activeSlot = activeTimeIndex(fullDaySchedule.map((s) => s.time), now)
   return (
     <section id="full-day">
       <SectionHeader module={11} title={tf.title} description={tf.description} />
@@ -51,18 +58,30 @@ export function FullDay() {
               const a = activity[slot.type]
               const Icon = a.icon
               const last = i === fullDaySchedule.length - 1
+              const isNow = i === activeSlot
               return (
-                <li key={`${slot.time}-${i}`} className="relative flex gap-4 pb-6 last:pb-0">
+                <li
+                  key={`${slot.time}-${i}`}
+                  className={`relative flex gap-4 pb-6 last:pb-0 ${isNow ? 'scroll-mt-28' : ''}`}
+                >
                   {/* connector rail */}
                   {!last && (
                     <span className="absolute left-[1.4375rem] top-11 bottom-0 w-px bg-border" aria-hidden />
                   )}
                   <div className="flex w-12 shrink-0 flex-col items-center">
-                    <span className={`inline-flex size-12 items-center justify-center rounded-full ${a.dot}`}>
+                    <span
+                      className={`inline-flex size-12 items-center justify-center rounded-full ${a.dot} ${
+                        isNow ? 'ring-2 ring-primary ring-offset-2 ring-offset-card' : ''
+                      }`}
+                    >
                       <Icon className="size-5" />
                     </span>
                   </div>
-                  <div className="min-w-0 flex-1 pt-1">
+                  <div
+                    className={`min-w-0 flex-1 pt-1 ${
+                      isNow ? '-my-1 rounded-lg bg-primary/5 px-3 py-2' : ''
+                    }`}
+                  >
                     <div className="flex flex-wrap items-baseline gap-x-3">
                       <span className="font-heading text-sm font-bold tabular-nums text-foreground">
                         {slot.time}
@@ -71,6 +90,11 @@ export function FullDay() {
                       <span className={`text-[11px] font-semibold uppercase tracking-wider ${a.text}`}>
                         {tf.types[slot.type]}
                       </span>
+                      {isNow && (
+                        <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
+                          {t.routineLive.nowBadge}
+                        </span>
+                      )}
                     </div>
                     <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
                       {tf.slots[i].detail}
