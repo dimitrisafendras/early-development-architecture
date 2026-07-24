@@ -1,4 +1,5 @@
-import { Play, Square, Trash2, Timer } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { Play, Square, Trash2, Timer, CalendarDays, Flame, Hourglass, Target } from 'lucide-react'
 import { NavBar } from '../components/NavBar'
 import { Footer } from '../components/Footer'
 import { Card, CardContent } from '@/components/ui/card'
@@ -31,11 +32,32 @@ export default function Tracker() {
   const target = tummyTargetForAgeMonths(ageM)
   const runningMin = tracker.isRunning ? tracker.elapsedSeconds / 60 : 0
   const totalWithRunning = tracker.completedMinutes + runningMin
-  const pct = Math.round((totalWithRunning / target) * 100)
+  const remaining = Math.max(0, Math.round(target - totalWithRunning))
+  const metTarget = totalWithRunning >= target
 
-  const weekLabels = week.map((d) =>
-    new Date(d.key).toLocaleDateString([], { weekday: 'short' }),
+  const weekLabels = week.map((d) => new Date(d.key).toLocaleDateString([], { weekday: 'short' }))
+  const weekMinutes = week.map((d) => Math.round(d.minutes))
+  const weekTotal = weekMinutes.reduce((a, b) => a + b, 0)
+  const daysOnTarget = week.filter((d) => d.minutes >= target).length
+
+  // Day streak: consecutive days up to today with the target met (from the 7-day window).
+  let streak = 0
+  for (let i = week.length - 1; i >= 0; i--) {
+    if (week[i].minutes >= target) streak++
+    else break
+  }
+
+  // Average completed-session length across the 7-day window.
+  const durations = tracker.sessions.map(
+    (s) => (new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) / 60000,
   )
+  const avgSession = durations.length
+    ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
+    : 0
+
+  const targetContext = currentBaby
+    ? t.tracker.targetForBaby.replace('{name}', currentBaby.name).replace('{age}', String(ageM))
+    : t.tracker.targetForNoBaby
 
   return (
     <>
@@ -58,7 +80,11 @@ export default function Tracker() {
                   </div>
                 )}
                 <div className="mt-1 text-xs uppercase tracking-wider text-muted-foreground">
-                  {tracker.isRunning ? t.tracker.running : `${pct}% ${t.tracker.ofTarget}`}
+                  {tracker.isRunning
+                    ? t.tracker.running
+                    : metTarget
+                      ? t.tracker.targetMet
+                      : `${remaining} ${t.tracker.toGo}`}
                 </div>
               </div>
             </ProgressRing>
@@ -73,11 +99,40 @@ export default function Tracker() {
               </Button>
             )}
 
-            <p className="text-xs text-muted-foreground">
+            <p className="text-center text-xs text-muted-foreground">
+              {targetContext}
+              <br />
               {tracker.signedIn ? t.tracker.synced : t.tracker.localOnly}
             </p>
           </CardContent>
         </Card>
+
+        {/* Stats at a glance */}
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <StatTile
+            icon={<Target className="size-4" />}
+            label={t.tracker.statToday}
+            value={`${Math.round(totalWithRunning)}`}
+            unit={`/ ${target} ${t.tracker.minutesShort}`}
+          />
+          <StatTile
+            icon={<CalendarDays className="size-4" />}
+            label={t.tracker.statWeek}
+            value={`${weekTotal}`}
+            unit={t.tracker.minutesShort}
+          />
+          <StatTile
+            icon={<Flame className="size-4" />}
+            label={t.tracker.statStreak}
+            value={`${streak}`}
+          />
+          <StatTile
+            icon={<Hourglass className="size-4" />}
+            label={t.tracker.statAvg}
+            value={`${avgSession}`}
+            unit={t.tracker.minutesShort}
+          />
+        </div>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <Card>
@@ -130,17 +185,45 @@ export default function Tracker() {
 
           <Card>
             <CardContent>
-              <p className="mb-4 text-[15px] font-semibold text-foreground">{t.tracker.weekTitle}</p>
-              <TummyWeekChart
-                labels={weekLabels}
-                minutes={week.map((d) => Math.round(d.minutes))}
-                target={target}
-              />
+              <div className="mb-4 flex items-center justify-between">
+                <p className="text-[15px] font-semibold text-foreground">{t.tracker.weekTitle}</p>
+                <span className="text-xs text-muted-foreground">
+                  {daysOnTarget}/7 · {t.tracker.statDaysOnTarget}
+                </span>
+              </div>
+              <TummyWeekChart labels={weekLabels} minutes={weekMinutes} target={target} />
             </CardContent>
           </Card>
         </div>
       </main>
       <Footer />
     </>
+  )
+}
+
+function StatTile({
+  icon,
+  label,
+  value,
+  unit,
+}: {
+  icon: ReactNode
+  label: string
+  value: string
+  unit?: string
+}) {
+  return (
+    <Card>
+      <CardContent className="py-4">
+        <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
+          <span className="text-primary">{icon}</span>
+          {label}
+        </div>
+        <div className="mt-1 font-heading text-2xl font-semibold text-foreground">
+          {value}
+          {unit && <span className="ml-1 text-sm font-medium text-muted-foreground">{unit}</span>}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
