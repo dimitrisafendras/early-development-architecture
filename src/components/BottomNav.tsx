@@ -23,9 +23,17 @@ export function BottomNav() {
   return (
     <nav
       aria-label={t.nav.appAreas}
-      className="fixed inset-x-0 bottom-0 z-40 px-3 pb-[max(0.5rem,env(safe-area-inset-bottom))] xl:hidden"
+      // Phones get a flush edge-to-edge bar: the five tabs each gain ~5px of
+      // width back, and a full-bleed bar reads as system chrome rather than as
+      // a floating widget. The safe-area inset moves *inside* the surface so
+      // the glass reaches the screen edge under the home indicator. From `sm`
+      // up it becomes the floating capsule that matches the scrolled top nav.
+      className="fixed inset-x-0 bottom-0 z-40 sm:px-3 sm:pb-[max(0.5rem,env(safe-area-inset-bottom))] xl:hidden"
     >
-      <GlassSurface radius={26} className="mx-auto max-w-md p-1.5">
+      {/* The radius travels through `--ds-glass-radius` as classes rather than
+          GlassSurface's `radius` prop: that prop writes an inline style, which a
+          `sm:` utility could never override. */}
+      <GlassSurface className="border-t border-border/50 px-1.5 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] [--ds-glass-radius:0px] sm:mx-auto sm:max-w-md sm:border-t-0 sm:p-1.5 sm:pb-1.5 sm:[--ds-glass-radius:26px]">
         <ul className="grid grid-cols-5">
           {appAreas.map(({ to, Icon, tabLabel }) => {
             const active = pathname === to
