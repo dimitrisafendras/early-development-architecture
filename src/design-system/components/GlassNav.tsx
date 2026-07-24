@@ -100,26 +100,29 @@ export function GlassNav({
   const hasLinks = links.length > 0
   const collapsible = hasLinks || Boolean(actions)
 
+  const ease = '[transition-timing-function:cubic-bezier(0.22,1,0.36,1)]'
   return (
     <div
       ref={rootRef}
       className={cn(
-        'sticky top-0 z-50 transition-all duration-300',
+        'sticky top-0 z-50 transition-[padding] duration-500',
+        ease,
         scrolled ? 'px-3 pt-3 sm:px-5 sm:pt-4' : 'px-0 pt-0',
         className,
       )}
     >
       <div
-        className={cn(
-          'relative mx-auto transition-all duration-300',
-          scrolled ? 'max-w-6xl' : 'max-w-none',
-        )}
+        // Width animates between two fixed values (not none↔max-w) so it eases
+        // smoothly instead of snapping. 1600px ≈ edge-to-edge on typical screens.
+        style={{ maxWidth: scrolled ? 1152 : 1600 }}
+        className={cn('relative mx-auto w-full transition-[max-width] duration-500', ease)}
       >
         <GlassSurface
           radius={scrolled ? 26 : 0}
           className={cn(
-            'transition-all duration-300',
-            scrolled ? 'px-3 py-2 sm:px-5' : 'border-b border-border/50 px-4 py-2.5 sm:px-6',
+            'border-b transition-[border-radius,border-color,padding,box-shadow] duration-500',
+            ease,
+            scrolled ? 'border-transparent px-3 py-2 sm:px-5' : 'border-border/50 px-4 py-2.5 sm:px-6',
           )}
           role="banner"
         >
