@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Milk, Trash2, Baby as BabyIcon, Utensils, Clock, Hash, Copy, Plus } from 'lucide-react'
 import { SectionHeader } from '../components/SectionHeader'
+import { ChoiceGroup } from '../components/ChoiceGroup'
 import { AgeBadge, useBabyAge } from '../components/AgeBadge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -262,23 +263,11 @@ function AddFeedForm({
         <form onSubmit={submit} className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div className="col-span-2 space-y-1.5 sm:col-span-4">
             <Label>{tf.method}</Label>
-            <div className="flex gap-2">
-              {(['bottle', 'breast', 'solid'] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => setMethod(m)}
-                  className={cn(
-                    'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                    method === m
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-accent',
-                  )}
-                >
-                  {tf[m]}
-                </button>
-              ))}
-            </div>
+            <ChoiceGroup
+              value={method}
+              onChange={setMethod}
+              options={(['bottle', 'breast', 'solid'] as const).map((m) => ({ value: m, label: tf[m] }))}
+            />
           </div>
           {method === 'breast' ? (
             <div className="space-y-1.5">

@@ -37,6 +37,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { DatePicker } from '@/components/ui/date-picker'
 import { TimePicker, TimeColumns } from '@/components/ui/time-picker'
 import { DateTimePicker } from '@/components/ui/date-time-picker'
+import { ChoiceGroup } from '@/components/ChoiceGroup'
 import { todayKey } from '@/lib/schedule'
 import { nowDateTimeKey } from '@/lib/dates'
 
@@ -57,6 +58,7 @@ export function ComponentsSection() {
   const [checked, setChecked] = useState(true)
   const [agree, setAgree] = useState<boolean>(true)
   const [seg, setSeg] = useState<'day' | 'week' | 'month'>('week')
+  const [method, setMethod] = useState<'bottle' | 'breast' | 'solid'>('bottle')
   const [weight, setWeight] = useState<number | null>(6.4)
   const [feed, setFeed] = useState<number | null>(120)
   const [naps, setNaps] = useState<number | null>(3)
@@ -104,6 +106,40 @@ export function ComponentsSection() {
               <Star /> Featured
             </Badge>
           </Specimen>
+
+          <Panel className="p-5">
+            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+              ChoiceGroup — required single choice
+            </p>
+            <p className="mb-4 text-sm text-muted-foreground">
+              A ToggleGroup in the <code className="text-foreground">pill</code> variant, where the pressed
+              option takes the palette fill instead of <code className="text-foreground">bg-muted</code>. It
+              swallows deselection, because none of the choices it covers has a valid empty state.
+            </p>
+            <div className="flex flex-col gap-3">
+              <ChoiceGroup
+                ariaLabel="Feed method"
+                value={method}
+                onChange={setMethod}
+                options={[
+                  { value: 'bottle', label: 'Bottle' },
+                  { value: 'breast', label: 'Breast' },
+                  { value: 'solid', label: 'Solid' },
+                ]}
+              />
+              <ChoiceGroup
+                ariaLabel="Size — default"
+                size="default"
+                value={method}
+                onChange={setMethod}
+                options={[
+                  { value: 'bottle', label: 'Bottle' },
+                  { value: 'breast', label: 'Breast' },
+                  { value: 'solid', label: 'Solid' },
+                ]}
+              />
+            </div>
+          </Panel>
 
           <Specimen label="Switch & Checkbox">
             <label className="flex items-center gap-2 text-sm">

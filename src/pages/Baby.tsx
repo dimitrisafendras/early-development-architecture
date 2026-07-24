@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Baby as BabyIcon, Plus, Trash2, Ruler, Weight, Pencil } from 'lucide-react'
 import { SectionHeader } from '../components/SectionHeader'
+import { ChoiceGroup } from '../components/ChoiceGroup'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,7 +9,6 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
 import { GrowthChart } from '../components/charts'
 import { useBabies } from '../lib/useBabies'
 import { useHousehold } from '../lib/household'
@@ -70,21 +70,13 @@ export default function Baby() {
             {babies.length > 1 && (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm text-muted-foreground">{t.baby.selectLabel}:</span>
-                {babies.map((b) => (
-                  <button
-                    key={b.id}
-                    type="button"
-                    onClick={() => setCurrentBabyId(b.id)}
-                    className={cn(
-                      'rounded-full px-3 py-1.5 text-sm font-medium transition-colors',
-                      b.id === currentBabyId
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted text-muted-foreground hover:bg-accent',
-                    )}
-                  >
-                    {b.name}
-                  </button>
-                ))}
+                <ChoiceGroup
+                  ariaLabel={t.baby.selectLabel}
+                  size="default"
+                  value={currentBabyId ?? babies[0].id}
+                  onChange={setCurrentBabyId}
+                  options={babies.map((b) => ({ value: b.id, label: b.name }))}
+                />
               </div>
             )}
 
@@ -173,23 +165,14 @@ function CreateBabyForm({
           </div>
           <div className="space-y-1.5">
             <Label>{t.baby.paletteLabel}</Label>
-            <div className="flex gap-2">
-              {(['blue', 'red'] as const).map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setPalette(p)}
-                  className={cn(
-                    'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                    palette === p
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground hover:bg-accent',
-                  )}
-                >
-                  {p === 'blue' ? t.nav.boy : t.nav.girl}
-                </button>
-              ))}
-            </div>
+            <ChoiceGroup
+              value={palette}
+              onChange={setPalette}
+              options={[
+                { value: 'blue', label: t.nav.boy },
+                { value: 'red', label: t.nav.girl },
+              ]}
+            />
           </div>
           <div className="flex items-end">
             <Button type="submit" disabled={busy}>
@@ -425,23 +408,14 @@ function EditBabyForm({
       </div>
       <div className="space-y-1.5">
         <Label>{t.baby.paletteLabel}</Label>
-        <div className="flex gap-2">
-          {(['blue', 'red'] as const).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setPalette(p)}
-              className={cn(
-                'rounded-full px-4 py-2 text-sm font-medium transition-colors',
-                palette === p
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-accent',
-              )}
-            >
-              {p === 'blue' ? t.nav.boy : t.nav.girl}
-            </button>
-          ))}
-        </div>
+        <ChoiceGroup
+          value={palette}
+          onChange={setPalette}
+          options={[
+            { value: 'blue', label: t.nav.boy },
+            { value: 'red', label: t.nav.girl },
+          ]}
+        />
       </div>
       <div className="flex items-end gap-2">
         <Button type="submit" disabled={busy}>
