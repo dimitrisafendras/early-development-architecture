@@ -115,24 +115,28 @@
 .ds-glass[data-interactive='true'] {
   cursor: pointer;
 }
-.ds-glass[data-interactive='true']:hover {
-  transform: translateY(-2px);
-  --ds-glass-saturate: 200%;
-  box-shadow:
-    0 16px 40px rgb(0 0 0 / 0.18),
-    0 4px 10px rgb(0 0 0 / 0.1),
-    inset 0 0 0 1px var(--ds-glass-edge);
-}
-.dark .ds-glass[data-interactive='true']:hover,
-[data-theme='dark'] .ds-glass[data-interactive='true']:hover {
-  box-shadow:
-    0 18px 46px rgb(0 0 0 / 0.55),
-    0 4px 10px rgb(0 0 0 / 0.35),
-    inset 0 0 0 1px var(--ds-glass-edge);
-}
-.ds-glass[data-interactive='true']:hover .ds-glass__illumination {
-  transform: scale(1.08);
-  opacity: 1;
+/* Gated on a real hovering pointer: touch browsers leave :hover latched on the
+   last-tapped element, so an un-gated lift would stick after every tap. */
+@media (hover: hover) {
+  .ds-glass[data-interactive='true']:hover {
+    transform: translateY(-2px);
+    --ds-glass-saturate: 200%;
+    box-shadow:
+      0 16px 40px rgb(0 0 0 / 0.18),
+      0 4px 10px rgb(0 0 0 / 0.1),
+      inset 0 0 0 1px var(--ds-glass-edge);
+  }
+  .dark .ds-glass[data-interactive='true']:hover,
+  [data-theme='dark'] .ds-glass[data-interactive='true']:hover {
+    box-shadow:
+      0 18px 46px rgb(0 0 0 / 0.55),
+      0 4px 10px rgb(0 0 0 / 0.35),
+      inset 0 0 0 1px var(--ds-glass-edge);
+  }
+  .ds-glass[data-interactive='true']:hover .ds-glass__illumination {
+    transform: scale(1.08);
+    opacity: 1;
+  }
 }
 .ds-glass[data-interactive='true']:active {
   transform: translateY(0);

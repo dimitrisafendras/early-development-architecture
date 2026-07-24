@@ -39,7 +39,7 @@ export default function Daily() {
   const activityType = fullDaySchedule[slot].type
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-10">
+    <main className="page-px mx-auto flex w-full max-w-5xl flex-col gap-6 py-10">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <SectionHeader title={t.daily.title} description={t.daily.subtitle} />
         <AgeBadge />
@@ -199,7 +199,7 @@ function TummyWidget() {
             <Play className="mr-2 size-4" /> {t.daily.startSession}
           </Button>
         )}
-        <Link to="/tracker" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+        <Link to="/tracker" className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-primary hover:underline sm:min-h-0">
           {t.daily.openTracker} <ArrowRight className="size-3.5" />
         </Link>
       </CardContent>
@@ -275,7 +275,7 @@ function FeedWidget() {
 
         <AddFeedForm compact last={feed.lastFeed} onAdd={feed.add} />
 
-        <Link to="/feed" className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+        <Link to="/feed" className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-primary hover:underline sm:min-h-0">
           {t.daily.openFeed} <ArrowRight className="size-3.5" />
         </Link>
       </CardContent>
@@ -311,7 +311,7 @@ function ActivityWidget({ type }: { type: DayActivity }) {
         </span>
         <Link
           to={topicPath(topic)}
-          className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+          className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-primary hover:underline sm:min-h-0"
         >
           {t.daily.learnMore} <ArrowRight className="size-3.5" />
         </Link>

@@ -3,6 +3,7 @@ import { SectionHeader } from '../components/SectionHeader'
 import { AgeBadge, useBabyAge } from '../components/AgeBadge'
 import { AddFeedForm } from '../components/AddFeedForm'
 import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useBabies } from '../lib/useBabies'
 import { useFeedLog } from '../lib/useFeedLog'
@@ -33,7 +34,7 @@ export default function FeedLog() {
   const feedsRange = band != null ? feedingRows[band].feedsPerDay : null
 
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-10">
+    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 page-px py-10">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <SectionHeader title={tf.title} description={tf.subtitle} />
         <AgeBadge />
@@ -90,14 +91,16 @@ export default function FeedLog() {
                       {f.amount_ml != null ? `${f.amount_ml} ${tf.mlShort}` : ''}
                       {f.minutes != null ? `${f.amount_ml != null ? ' · ' : ''}${f.minutes} ${tf.minShort}` : ''}
                     </span>
-                    <button
+                    <Button
                       type="button"
-                      aria-label="delete"
+                      variant="ghost"
+                      size="icon"
+                      aria-label={tf.delete}
                       onClick={() => void feed.remove(f.id)}
-                      className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                      className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                     >
                       <Trash2 className="size-4" />
-                    </button>
+                    </Button>
                   </span>
                 </li>
               ))}
@@ -183,8 +186,8 @@ function Stat({
     <Card>
       <CardContent className="py-4">
         <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
-          <span className="text-primary">{icon}</span>
-          {label}
+          <span className="shrink-0 text-primary">{icon}</span>
+          <span className="truncate">{label}</span>
         </div>
         <div className="mt-1 truncate font-heading text-2xl font-semibold text-foreground">
           {value}

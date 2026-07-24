@@ -49,7 +49,7 @@ export default function Family() {
 
   return (
     <>
-      <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-10">
+      <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 page-px py-10">
         <SectionHeader title={tf.title} description={tf.subtitle} />
 
         {!ready ? (
@@ -104,32 +104,36 @@ export default function Family() {
                             setEditingName(false)
                           }
                         }}
-                        className="mb-4 flex items-center gap-2"
+                        className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center"
                       >
                         <Input value={nameDraft} onChange={(e) => setNameDraft(e.target.value)} autoFocus />
-                        <Button type="submit" size="sm" disabled={busy === 'rename'}>
-                          {tf.save}
-                        </Button>
-                        <Button type="button" size="sm" variant="ghost" onClick={() => setEditingName(false)}>
-                          {tf.cancel}
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button type="submit" size="sm" disabled={busy === 'rename'}>
+                            {tf.save}
+                          </Button>
+                          <Button type="button" size="sm" variant="ghost" onClick={() => setEditingName(false)}>
+                            {tf.cancel}
+                          </Button>
+                        </div>
                       </form>
                     ) : (
                       <div className="mb-1 flex items-center gap-2">
                         <p className="flex items-center gap-2 text-lg font-semibold text-foreground">
                           <HomeIcon className="size-5 text-primary" /> {household.name}
                         </p>
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="icon-sm"
                           aria-label={tf.rename}
                           onClick={() => {
                             setNameDraft(household.name)
                             setEditingName(true)
                           }}
-                          className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-foreground/5 hover:text-foreground"
+                          className="shrink-0 text-muted-foreground hover:text-foreground"
                         >
                           <Pencil className="size-3.5" />
-                        </button>
+                        </Button>
                       </div>
                     )}
                     <p className="mb-4 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
@@ -147,14 +151,16 @@ export default function Family() {
                               {m.role === 'owner' ? tf.roleOwner : tf.roleParent}
                             </span>
                             {isOwner && m.user_id !== myId && (
-                              <button
+                              <Button
                                 type="button"
+                                variant="ghost"
+                                size="icon"
                                 aria-label={tf.remove}
                                 onClick={() => void run(m.id, () => removeMember(m.id))}
-                                className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                                className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                               >
                                 <X className="size-4" />
-                              </button>
+                              </Button>
                             )}
                           </span>
                         </li>
@@ -181,13 +187,15 @@ export default function Family() {
                           {invites.map((inv) => (
                             <li key={inv.id} className="flex items-center justify-between text-sm">
                               <span className="text-muted-foreground">{inv.email}</span>
-                              <button
+                              <Button
                                 type="button"
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => void run(inv.id, () => deleteInvite(inv.id))}
-                                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                                className="shrink-0 gap-1 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
                               >
                                 <X className="size-3.5" /> {tf.revoke}
-                              </button>
+                              </Button>
                             </li>
                           ))}
                         </ul>
@@ -220,7 +228,7 @@ export default function Family() {
                       </Button>
                       {isOwner &&
                         (confirmDelete ? (
-                          <span className="flex items-center gap-2 text-sm">
+                          <span className="flex flex-wrap items-center gap-2 text-sm">
                             <span className="text-muted-foreground">{tf.deleteConfirm}</span>
                             <Button
                               size="sm"

@@ -29,10 +29,10 @@ export default function Topic() {
 
   return (
     <>
-      <main className="mx-auto flex w-full max-w-7xl flex-col gap-12 px-6 py-10">
+      <main className="mx-auto flex w-full max-w-7xl flex-col gap-12 page-px py-10">
         <Link
           to="/"
-          className="inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium text-muted-foreground transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70"
+          className="inline-flex min-h-11 w-fit items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted-foreground sm:min-h-9 transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70"
         >
           <LayoutGrid className="size-4" />
           {t.hub.back}

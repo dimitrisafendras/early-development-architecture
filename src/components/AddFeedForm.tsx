@@ -92,8 +92,10 @@ export function AddFeedForm({
           type="button"
           onClick={() => setMethod(m)}
           className={cn(
-            'rounded-full font-medium transition-colors',
-            compact ? 'px-3 py-1.5 text-[13px]' : 'px-4 py-2 text-sm',
+            // min-h on phones so each pill is a real touch target, collapsing
+            // to the tighter desktop height from `sm` up.
+            'inline-flex min-h-11 items-center rounded-full font-medium transition-colors sm:min-h-9',
+            compact ? 'px-3.5 text-[13px]' : 'px-4 text-sm',
             method === m
               ? 'bg-primary text-primary-foreground'
               : 'bg-muted text-muted-foreground hover:bg-accent',

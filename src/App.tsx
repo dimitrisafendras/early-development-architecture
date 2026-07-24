@@ -8,6 +8,7 @@ import Tracker from './pages/Tracker'
 import Baby from './pages/Baby'
 import Family from './pages/Family'
 import FeedLog from './pages/FeedLog'
+import Auth from './pages/Auth'
 import DesignSystem from './pages/DesignSystem'
 import { Layout } from './components/Layout'
 import { useAppStore } from './store'
@@ -46,6 +47,8 @@ export default function App() {
           <Route path="/baby" element={<Baby />} />
           <Route path="/family" element={<Family />} />
           <Route path="/feed" element={<FeedLog />} />
+          <Route path="/signin" element={<Auth mode="signin" />} />
+          <Route path="/signup" element={<Auth mode="signup" />} />
         </Route>
         <Route path="/design-system" element={<DesignSystem />} />
         <Route path="*" element={<Navigate to="/" replace />} />

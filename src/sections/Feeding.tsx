@@ -32,27 +32,54 @@ export function Feeding() {
       </div>
       <p className="mb-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">{tf.tableNote}</p>
       <Card className="mb-10">
-        <CardContent className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{tf.headers.age}</TableHead>
-                <TableHead>{tf.headers.frequency}</TableHead>
-                <TableHead>{tf.headers.amount}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {feedingRows.map((_, i) => (
-                <TableRow key={tf.rows[i].age} className={cn(i === activeRow && 'bg-primary/10')}>
-                  <TableCell className="font-semibold text-foreground">{tf.rows[i].age}</TableCell>
-                  <TableCell className="text-muted-foreground">{tf.rows[i].frequency}</TableCell>
-                  <TableCell className="text-muted-foreground">{tf.rows[i].amount}</TableCell>
+        <CardContent>
+          {/* Phones get one stacked block per age band. The three columns are
+              all `whitespace-nowrap` text, so a real table here could only be
+              read by scrolling it sideways inside the card — the least
+              discoverable gesture on a touch screen. The table itself returns
+              from `sm` up, where the row fits. */}
+          <ul className="flex flex-col gap-3 sm:hidden">
+            {feedingRows.map((_, i) => (
+              <li
+                key={tf.rows[i].age}
+                className={cn(
+                  'rounded-xl border p-3',
+                  i === activeRow ? 'border-primary/40 bg-primary/10' : 'border-border bg-muted/40',
+                )}
+              >
+                <p className="font-semibold text-foreground">{tf.rows[i].age}</p>
+                <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[13px]">
+                  <dt className="text-muted-foreground">{tf.headers.frequency}</dt>
+                  <dd className="m-0 text-foreground">{tf.rows[i].frequency}</dd>
+                  <dt className="text-muted-foreground">{tf.headers.amount}</dt>
+                  <dd className="m-0 text-foreground">{tf.rows[i].amount}</dd>
+                </dl>
+              </li>
+            ))}
+          </ul>
+
+          <div className="hidden sm:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{tf.headers.age}</TableHead>
+                  <TableHead>{tf.headers.frequency}</TableHead>
+                  <TableHead>{tf.headers.amount}</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {feedingRows.map((_, i) => (
+                  <TableRow key={tf.rows[i].age} className={cn(i === activeRow && 'bg-primary/10')}>
+                    <TableCell className="font-semibold text-foreground">{tf.rows[i].age}</TableCell>
+                    <TableCell className="text-muted-foreground">{tf.rows[i].frequency}</TableCell>
+                    <TableCell className="text-muted-foreground">{tf.rows[i].amount}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
           <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Utensils className="size-3.5" /> {tf.max}
+            <Utensils className="size-3.5 shrink-0" /> {tf.max}
           </p>
         </CardContent>
       </Card>

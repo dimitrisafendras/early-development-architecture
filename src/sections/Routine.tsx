@@ -52,7 +52,7 @@ export function Routine() {
           truth); this page teaches the routine as a framework. */}
       <Link
         to="/daily"
-        className="mb-6 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+        className="mb-6 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-primary hover:underline sm:min-h-0"
       >
         {t.routine.nowLink} <ArrowRight className="size-3.5" />
       </Link>
