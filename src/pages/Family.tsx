@@ -80,7 +80,18 @@ export default function Family() {
                     {pending.map((inv) => (
                       <li key={inv.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted p-3">
                         <span className="text-sm text-muted-foreground">{tf.from}</span>
-                        <Button size="sm" disabled={busy === inv.id} onClick={() => void run(inv.id, () => acceptInvite(inv.id))}>
+                        <Button
+                          size="sm"
+                          disabled={busy === inv.id}
+                          onClick={() =>
+                            void run(inv.id, async () => {
+                              await acceptInvite(inv.id)
+                              // Joining a household reveals its shared babies —
+                              // refresh so they show without a manual reload.
+                              await refreshBabies()
+                            })
+                          }
+                        >
                           <Check className="mr-1 size-4" />
                           {busy === inv.id ? tf.accepting : tf.accept}
                         </Button>
