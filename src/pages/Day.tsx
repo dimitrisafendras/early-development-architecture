@@ -74,7 +74,7 @@ export default function Day() {
         <AgeBadge />
       </div>
 
-      <NowBanner schedule={schedule} currentSlot={currentSlot} now={now} onSelectSlot={selectSlot} />
+      <NowHero schedule={schedule} currentSlot={currentSlot} now={now} onSelectSlot={selectSlot} />
 
       {/* Fixed-height split so the page never jumps as you switch activities:
           both columns are the same stable height and scroll internally when a
@@ -92,7 +92,6 @@ export default function Day() {
           <ActivityPanel
             schedule={schedule}
             slot={activeIdx}
-            now={now}
             isNow={activeIdx === currentSlot}
             onJumpToNow={() => setSelected(null)}
           />
@@ -127,11 +126,13 @@ function slotProgress(schedule: ScheduleSlot[], idx: number, now: Date) {
   return { nextIdx, remaining, pct }
 }
 
-/* ------------------------------------------------------------------ now banner */
+/* ------------------------------------------------------------------ now hero */
 
-/** Compact live status that used to sit in the header: what's happening now,
- *  progress through it, and the hand-off to what's next. */
-function NowBanner({
+/** The single live "now" surface — what's happening, how far through it we are
+ *  (the ring around the icon), and the hand-off to what's next. This is the ONLY
+ *  place the day announces "now"; the activity panel stays a lean tool surface so
+ *  the moment is never described twice on one screen. */
+function NowHero({
   schedule,
   currentSlot,
   now,
@@ -144,17 +145,24 @@ function NowBanner({
 }) {
   const t = useT()
   const tl = t.routineLive
-  const type = schedule[currentSlot].type
+  const slot = schedule[currentSlot]
+  const type = slot.type
   const meta = dayActivityMeta[type]
   const Icon = meta.icon
   const { nextIdx, remaining, pct } = slotProgress(schedule, currentSlot, now)
-  const nextMeta = dayActivityMeta[schedule[nextIdx].type]
+  const next = schedule[nextIdx]
+  const nextMeta = dayActivityMeta[next.type]
   const NextIcon = nextMeta.icon
 
   return (
-    <Card className="mt-6 overflow-hidden border-primary/30 bg-primary/5">
-      <CardContent className="py-5">
-        <p className="mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+    <Card className="relative mt-6 overflow-hidden border-primary/30 bg-primary/5">
+      {/* Soft activity-hued glow so the hero takes on the current moment's colour. */}
+      <div
+        aria-hidden
+        className={cn('pointer-events-none absolute -right-16 -top-24 size-64 rounded-full opacity-40 blur-3xl', meta.dot)}
+      />
+      <CardContent className="relative py-6">
+        <p className="mb-5 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
           <span className="relative flex size-2">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/60 motion-reduce:hidden" />
             <span className="relative inline-flex size-2 rounded-full bg-primary" />
@@ -162,65 +170,51 @@ function NowBanner({
           {t.daily.nowTitle}
         </p>
 
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-4">
-            <span className={cn('inline-flex size-14 shrink-0 items-center justify-center rounded-2xl', meta.dot)}>
-              <Icon className="size-7" />
-            </span>
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-6">
+          {/* Ring-wrapped activity icon = identity + progress in one compact mark. */}
+          <div className="flex items-center gap-4 sm:flex-1">
+            <ProgressRing progress={pct / 100} size={76} stroke={6}>
+              <span className={cn('inline-flex size-[3.25rem] items-center justify-center rounded-2xl', meta.dot)}>
+                <Icon className="size-7" />
+              </span>
+            </ProgressRing>
             <div className="min-w-0">
               <div className="flex flex-wrap items-baseline gap-x-2.5">
                 <span className="font-heading text-xl font-semibold tracking-tight text-foreground">
-                  {schedule[currentSlot].title}
+                  {slot.title}
                 </span>
                 <span className={cn('text-[11px] font-semibold uppercase tracking-wider', meta.text)}>
                   {t.fullDay.types[type]}
                 </span>
               </div>
-              <p className="mt-1 max-w-md text-[13px] leading-relaxed text-muted-foreground">
-                {schedule[currentSlot].detail}
+              <p className="mt-1 max-w-md text-[13px] leading-relaxed text-muted-foreground">{slot.detail}</p>
+              <p className="mt-1.5 text-[13px] font-medium tabular-nums">
+                <span className={meta.text}>{formatCountdown(remaining, tl.hour, tl.minute)}</span>{' '}
+                <span className="text-muted-foreground">{t.daily.timeLeft}</span>
               </p>
             </div>
           </div>
 
-          {/* Up next hand-off — jumps the panel + timeline to that slot. */}
+          {/* Up-next hand-off — full width on mobile, jumps timeline + panel to it. */}
           <button
             type="button"
             onClick={() => onSelectSlot(nextIdx)}
-            className="group flex shrink-0 items-center gap-3 rounded-2xl border border-border bg-card/70 p-3 text-left outline-none transition-[border-color,box-shadow] hover:border-primary/40 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring/70"
+            className="group flex w-full shrink-0 items-center gap-3 rounded-2xl border border-border bg-card/70 p-3 text-left outline-none transition-[border-color,box-shadow] hover:border-primary/40 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring/70 sm:w-auto"
           >
             <span className={cn('inline-flex size-10 shrink-0 items-center justify-center rounded-xl', nextMeta.dot)}>
               <NextIcon className="size-5" />
             </span>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 {tl.upNext}
               </div>
-              <div className="truncate font-heading text-sm font-semibold text-foreground">
-                {schedule[nextIdx].title}
-              </div>
-              <div className="text-[11px] text-muted-foreground">
-                {schedule[nextIdx].time} · {tl.in} {formatCountdown(remaining, tl.hour, tl.minute)}
+              <div className="truncate font-heading text-sm font-semibold text-foreground">{next.title}</div>
+              <div className="text-[11px] tabular-nums text-muted-foreground">
+                {next.time} · {tl.in} {formatCountdown(remaining, tl.hour, tl.minute)}
               </div>
             </div>
             <ArrowRight className="size-4 shrink-0 self-center text-muted-foreground transition-transform group-hover:translate-x-0.5" />
           </button>
-        </div>
-
-        {/* Progress through the current slot, in the activity's own hue. */}
-        <div className="mt-5">
-          <div className="mb-1.5 flex items-baseline justify-between text-[11px] font-medium tabular-nums text-muted-foreground">
-            <span>{schedule[currentSlot].time}</span>
-            <span className={meta.text}>
-              {formatCountdown(remaining, tl.hour, tl.minute)} {t.daily.timeLeft}
-            </span>
-            <span>{schedule[nextIdx].time}</span>
-          </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
-            <div
-              className={cn('h-full rounded-full transition-[width] duration-700 ease-out', meta.bar)}
-              style={{ width: `${pct}%` }}
-            />
-          </div>
         </div>
       </CardContent>
     </Card>
@@ -377,13 +371,11 @@ function Timeline({
 function ActivityPanel({
   schedule,
   slot,
-  now,
   isNow,
   onJumpToNow,
 }: {
   schedule: ScheduleSlot[]
   slot: number
-  now: Date
   isNow: boolean
   onJumpToNow: () => void
 }) {
@@ -391,35 +383,33 @@ function ActivityPanel({
   const type = schedule[slot].type
   const meta = dayActivityMeta[type]
   const Icon = meta.icon
-  const { remaining, pct } = slotProgress(schedule, slot, now)
 
   return (
     <Card className="flex h-full flex-col overflow-hidden">
       <CardContent className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto py-6">
-        {/* Header */}
-        <div>
-          <div className="flex items-center justify-between gap-2">
-            <span
-              className={cn(
-                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider',
-                isNow ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground',
-              )}
-            >
-              {isNow ? (
-                <>
-                  <span className="relative flex size-1.5">
-                    <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary/60 motion-reduce:hidden" />
-                    <span className="relative inline-flex size-1.5 rounded-full bg-primary" />
-                  </span>
-                  {t.day.panelNowTag}
-                </>
-              ) : (
-                <>
-                  <Clock className="size-3.5" /> {t.day.panelSelectedTag}
-                </>
-              )}
+        {/* Header. When this is the live slot the NowHero above already owns the
+            "now" identity + detail + progress, so we stay lean and lead straight
+            into the tool. When previewing another slot we show its full context. */}
+        {isNow ? (
+          <div className="flex items-center gap-3">
+            <span className={cn('inline-flex size-11 shrink-0 items-center justify-center rounded-2xl', meta.dot)}>
+              <Icon className="size-5" />
             </span>
-            {!isNow && (
+            <div className="min-w-0">
+              <div className="font-heading text-base font-semibold tracking-tight text-foreground">
+                {schedule[slot].title}
+              </div>
+              <div className="text-xs font-medium tabular-nums text-muted-foreground">
+                {schedule[slot].time} · {t.day.panelToolHint}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <Clock className="size-3.5" /> {t.day.panelSelectedTag}
+              </span>
               <button
                 type="button"
                 onClick={onJumpToNow}
@@ -427,37 +417,28 @@ function ActivityPanel({
               >
                 {t.day.jumpToNow}
               </button>
-            )}
-          </div>
+            </div>
 
-          <div className="mt-4 flex items-start gap-3">
-            <span className={cn('inline-flex size-12 shrink-0 items-center justify-center rounded-2xl', meta.dot)}>
-              <Icon className="size-6" />
-            </span>
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-baseline gap-x-2">
-                <span className="font-heading text-lg font-semibold tracking-tight text-foreground">
-                  {schedule[slot].title}
-                </span>
-                <span className="text-xs font-medium tabular-nums text-muted-foreground">
-                  {schedule[slot].time}
-                </span>
+            <div className="mt-4 flex items-start gap-3">
+              <span className={cn('inline-flex size-12 shrink-0 items-center justify-center rounded-2xl', meta.dot)}>
+                <Icon className="size-6" />
+              </span>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-baseline gap-x-2">
+                  <span className="font-heading text-lg font-semibold tracking-tight text-foreground">
+                    {schedule[slot].title}
+                  </span>
+                  <span className="text-xs font-medium tabular-nums text-muted-foreground">
+                    {schedule[slot].time}
+                  </span>
+                </div>
+                <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+                  {schedule[slot].detail}
+                </p>
               </div>
-              <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-                {schedule[slot].detail}
-              </p>
             </div>
           </div>
-
-          {isNow && (
-            <div className="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-              <div
-                className={cn('h-full rounded-full transition-[width] duration-700 ease-out', meta.bar)}
-                style={{ width: `${pct}%` }}
-              />
-            </div>
-          )}
-        </div>
+        )}
 
         {/* The tool, or useful info when there's no tool for this activity. */}
         {type === 'feed' ? (
@@ -478,11 +459,6 @@ function ActivityPanel({
           <BookOpen className="size-4" /> {t.day.learnFull}
           <ArrowRight className="size-3.5" />
         </Link>
-        {isNow && (
-          <p className="text-[11px] tabular-nums text-muted-foreground">
-            {formatCountdown(remaining, t.routineLive.hour, t.routineLive.minute)} {t.daily.timeLeft}
-          </p>
-        )}
       </CardContent>
     </Card>
   )
@@ -534,35 +510,64 @@ function TummyWidget() {
   const target = tummyTargetForAgeMonths(currentBaby ? ageInMonths(currentBaby.birth_date) : null)
   const runningMin = tracker.isRunning ? tracker.elapsedSeconds / 60 : 0
   const total = tracker.completedMinutes + runningMin
+  const pct = Math.round((total / target) * 100)
+  const done = total >= target
   const clock = tracker.isRunning
     ? `${String(Math.floor(tracker.elapsedSeconds / 60)).padStart(2, '0')}:${String(tracker.elapsedSeconds % 60).padStart(2, '0')}`
     : null
   return (
-    <div className="flex flex-col items-center gap-4">
-      <p className="self-start text-[15px] font-semibold text-foreground">{t.daily.tummyTitle}</p>
-      <ProgressRing progress={total / target} size={148} stroke={12} complete={total >= target}>
-        <div>
-          <div className="font-heading text-2xl font-semibold tabular-nums text-foreground">
-            {clock ?? Math.round(total)}
-            {!clock && <span className="text-base text-muted-foreground"> / {target}</span>}
-          </div>
-          <div className="mt-0.5 text-[10px] uppercase tracking-wider text-muted-foreground">
-            {tracker.isRunning ? t.tracker.running : `${Math.round((total / target) * 100)}% ${t.daily.ofTarget}`}
-          </div>
+    <div className="relative flex flex-col items-center gap-4 py-1">
+      {/* Soft emerald wash so the ring reads as "tummy" even at 0% — never a
+          dead grey donut. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-1 mx-auto size-36 rounded-full bg-emerald-500/10 blur-2xl"
+      />
+      <ProgressRing progress={total / target} size={140} stroke={11} accent="#10b981" complete={done}>
+        <div className="flex flex-col items-center leading-none">
+          {clock ? (
+            <>
+              <span className="font-heading text-[1.7rem] font-semibold tabular-nums text-foreground">{clock}</span>
+              <span className="mt-2 text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                {t.tracker.running}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="font-heading text-[2rem] font-semibold tabular-nums text-foreground">
+                {Math.round(total)}
+                <span className="text-lg font-normal text-muted-foreground">/{target}</span>
+              </span>
+              <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {t.daily.tummyMinutes}
+              </span>
+            </>
+          )}
         </div>
       </ProgressRing>
+
+      <p className="-mt-0.5 text-xs font-medium">
+        {done ? (
+          <span className="text-emerald-600 dark:text-emerald-400">{t.daily.tummyDone}</span>
+        ) : (
+          <span className="text-muted-foreground">
+            <span className="tabular-nums text-foreground">{pct}%</span> {t.daily.ofTarget}
+          </span>
+        )}
+      </p>
+
       {tracker.isRunning ? (
-        <Button variant="destructive" onClick={() => void tracker.stop()}>
+        <Button variant="destructive" className="w-44" onClick={() => void tracker.stop()}>
           <Square className="mr-2 size-4" /> {t.daily.stopSession}
         </Button>
       ) : (
-        <Button onClick={() => void tracker.start()}>
+        <Button className="w-44" onClick={() => void tracker.start()}>
           <Play className="mr-2 size-4" /> {t.daily.startSession}
         </Button>
       )}
       <Link
         to="/tracker"
-        className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-primary hover:underline sm:min-h-0"
+        className="inline-flex min-h-11 items-center gap-1 self-start text-sm font-medium text-primary hover:underline sm:min-h-0"
       >
         {t.daily.openTracker} <ArrowRight className="size-3.5" />
       </Link>

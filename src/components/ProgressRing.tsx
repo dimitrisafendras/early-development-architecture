@@ -5,6 +5,9 @@ interface Props {
   stroke?: number
   /** Target reached — turn the ring green and pulse to celebrate. */
   complete?: boolean
+  /** Fill colour for the in-progress arc. Any CSS colour; defaults to the
+   *  palette primary. Use to match a specific activity's hue. */
+  accent?: string
   children?: React.ReactNode
 }
 
@@ -13,12 +16,19 @@ interface Props {
  * (`--muted` / `--primary`) so it adapts to both themes and both palettes.
  * Once `complete`, the fill turns success-green and a soft ring pulses out.
  */
-export function ProgressRing({ progress, size = 220, stroke = 14, complete = false, children }: Props) {
+export function ProgressRing({
+  progress,
+  size = 220,
+  stroke = 14,
+  complete = false,
+  accent = 'var(--primary)',
+  children,
+}: Props) {
   const radius = (size - stroke) / 2
   const circumference = 2 * Math.PI * radius
   const clamped = Math.max(0, Math.min(1, progress))
   const offset = circumference * (1 - clamped)
-  const fill = complete ? '#10b981' : 'var(--primary)'
+  const fill = complete ? '#10b981' : accent
   return (
     <div className="relative inline-grid place-items-center" style={{ width: size, height: size }}>
       {complete && (
