@@ -38,12 +38,12 @@ Shared daily logic is hook-first: `useDailyChecklist` (checklist + streak + sync
 | Path | Purpose |
 |---|---|
 | `src/pages/` | Route components (`Day.tsx` = home split view, `Wiki.tsx` / `WikiTopic.tsx`, `Tracker.tsx`, `FeedLog.tsx`, `Baby.tsx`, `Family.tsx`, `Auth.tsx`, `DesignSystem.tsx`) |
-| `src/components/` | Shared app components — `NavBar`, `Footer`, `SectionHeader`, `StatTile`, `AgeBadge`, `ProgressRing`, `WidgetPage`, `dayActivity`, `charts.tsx` |
+| `src/components/` | Shared app components — `Layout` (app shell), `SideNav` (desktop rail) / `NavBar` (mobile bar) / `BottomNav`, `SettingsMenu`, `AuroraBackground`, `PageFrame`, `WidgetPage`, `SectionHeader`, `StatTile`, `AgeBadge`, `ProgressRing`, `dayActivity`, `charts.tsx` |
 | `src/components/ui/` | Vendored shadcn primitives. These are **owned source, not a dependency** — edit them directly to extend variants/behavior |
 | `src/sections/` | The infographic topic sections (registry-driven, rendered on the Wiki topic pages) |
 | `src/design-system/` | Design system: `tokens.ts` (typed design tokens), `ds.css` (glass material + `.ds-scroll-glass`), `components/` — `GlassSurface`, `GlassNav`, `GlassButton`, `GlassToggleGroup` (Liquid Glass material) and `GlassScrollArea` (content scroll utility) |
 | `src/data.ts` | All infographic content/data |
-| `src/store.ts` | zustand store — `dark` / `toggleTheme`, `palette` (`'blue' | 'red'`) / `setPalette`, latency simulator state, checklist state |
+| `src/store.ts` | zustand store — `dark` / `toggleTheme`, `palette` (`'blue' | 'red'`) / `setPalette`, `navCollapsed` / `toggleNav` (sidebar), latency simulator state, checklist state |
 
 ## Theming
 
@@ -56,15 +56,22 @@ Theming is a **dual axis**: theme (light/dark) × palette (soft blue "boy" / sof
 
 When adding UI, always test both palettes × both themes (4 combinations).
 
+## App shell & page frame
+
+- `Layout` is the shell. Navigation has **two forms, one per breakpoint**: the `SideNav` glass rail from `xl` up (slim icon rail by default, expandable to labelled rows — the choice persists via `navCollapsed` in the store), and the floating `NavBar` (collapsed to a hamburger) + `BottomNav` tab bar below `xl`. There is no footer.
+- From `xl` the shell is exactly **one viewport tall and never scrolls itself** (`xl:h-svh xl:overflow-hidden`); the content column scrolls (`#app-scroll`, see `APP_SCROLL_ID`). A page that fills the column (the Day dashboard) therefore keeps a stable height and scrolls **inside its cards**; long documents scroll the column. Below `xl` the document scrolls normally. Anything that resets or measures scroll must handle the column, not just `window`.
+- `AuroraBackground` is mounted **once** in `Layout`: a fixed, palette-tinted, slowly drifting aurora behind everything. Pages must not add their own background glow, and nothing in the shell may create a containing block for `position: fixed` (no `transform`/`filter`/`contain` on an ancestor).
+- **`PageFrame` is the one page frame** — `max-w-6xl`, `page-px`, `py-10`, `gap-8`, plus the canonical header row (`SectionHeader` + optional `aside`) and an optional full-width `toolbar` under it. Every route uses it (`WidgetPage` is built on top of it); `/signin` is the only sanctioned width exception (`className="max-w-md"`). Never hand-roll a `<main>` frame in a page — that is what made titles and card edges jump by up to 256px between routes.
+
 ## Widget page pattern (glance → input → detail)
 
 **Every logging page is a widget page** — any page whose job is "check one thing, then record one thing": `/tracker`, `/feed`, `/baby`, and any new one. (`/daily` and `/routine` are dashboards, not widget pages.) A widget page always reads top-to-bottom in three tiers:
 
-1. **glance — short info.** Where am I right now, in one screenful: a hero metric and/or a `WidgetStatGrid` of `StatTile`s. Read-only; no forms, history or charts.
-2. **input — the one thing you came to do.** Start the timer, log the feed, add the measurement. Reachable without scrolling past reference material. The tier's eyebrow names the action, so the card inside carries **no title of its own**.
+1. **glance — the four quick tiles, nothing else.** Where am I right now, in one glance: a `WidgetStatGrid` of `StatTile`s. Read-only; no hero visuals, no forms, history or charts — the input is the page's most important thing, so the tiles are all that may stand above it.
+2. **input — the one thing you came to do.** Start the timer, log the feed, add the measurement. Sits directly under the tiles. The tier's eyebrow names the action, so the card inside carries **no title of its own**; a hero visual that belongs with the action (the tracker's ring) lives *inside* this card, beside its control.
 3. **detail — extensive info.** History lists, charts, guidance, profile editing and destructive actions. Everything you read rather than answer.
 
-Build it with `WidgetPage` (`src/components/WidgetPage.tsx`), which takes the tiers as **slot props** (`glance` / `input` / `detail`) so the order can't be got wrong, and owns the shared page frame: max-width, aura glow, `SectionHeader`, tier eyebrows and divider. Never hand-roll that frame in a page.
+Build it with `WidgetPage` (`src/components/WidgetPage.tsx`), which takes the tiers as **slot props** (`glance` / `input` / `detail`) so the order can't be got wrong, adds the tier eyebrows and divider, and delegates the page frame itself to `PageFrame`. Never hand-roll that frame in a page.
 
 - `toolbar` — full-width context switcher under the header (e.g. which baby).
 - `aside` — small trailing header content (e.g. `AgeBadge`).
@@ -76,7 +83,7 @@ Documented on `/design-system` under **Patterns** (`src/design-system/docs/Patte
 
 ## When to use which technology
 
-- **Design system first (respect the DS)** — always reach for an existing shared component before writing markup: shadcn primitives in `src/components/ui/*`, the Liquid Glass components in `src/design-system/components/*`, and the shared app components in `src/components/*` (`WidgetPage`, `SectionHeader`, `StatTile`, `AgeBadge`, `ProgressRing`, `GlassScrollArea`, charts, …). If a component almost fits but lacks a variant or behavior, **extend that component** (it's owned source) rather than hand-rolling a one-off. If a pattern is used on more than one screen (stat tiles, scroll regions, page headers, empty states), **extract it into a shared component** instead of duplicating it per page. Never reintroduce a bespoke version of something the DS already provides.
+- **Design system first (respect the DS)** — always reach for an existing shared component before writing markup: shadcn primitives in `src/components/ui/*`, the Liquid Glass components in `src/design-system/components/*`, and the shared app components in `src/components/*` (`PageFrame`, `WidgetPage`, `SectionHeader`, `StatTile`, `AgeBadge`, `ProgressRing`, `GlassScrollArea`, charts, …). If a component almost fits but lacks a variant or behavior, **extend that component** (it's owned source) rather than hand-rolling a one-off. If a pattern is used on more than one screen (stat tiles, scroll regions, page headers, empty states), **extract it into a shared component** instead of duplicating it per page. Never reintroduce a bespoke version of something the DS already provides.
 - **shadcn primitives (`src/components/ui/*`)** — default for all standard UI: buttons, cards, form controls, overlays, etc. Never hand-roll a raw `<button>` or `<input>` when a primitive already exists.
 - **Liquid Glass material (`GlassSurface` / `GlassNav` / `GlassButton` / `GlassToggleGroup`)** — only for the floating navigation/control layer (nav bars, floating toolbars, capsule controls), per Liquid Glass guidance. Never use the glass *material* for content surfaces, and never stack glass on glass. (`GlassScrollArea` is a content utility — a scroll viewport with edge fades + a frosted self-hiding scrollbar — not a glass material surface; use it for any in-card scroll region.)
 - **Plain Tailwind + semantic HTML** — layout, typography, one-off decorative elements only. If it's reusable, promote it to a shared component (see "Design system first").

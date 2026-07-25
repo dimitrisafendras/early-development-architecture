@@ -6,16 +6,16 @@ const tiers = [
   {
     icon: Gauge,
     n: '1',
-    name: 'Glance — short info',
+    name: 'Glance — the four quick tiles',
     slot: 'glance',
-    body: 'The answer to "where am I right now?" in one screenful: a hero metric and/or a row of StatTiles. Read-only. No forms, no history, no charts.',
+    body: 'The answer to "where am I right now?" in one glance: a WidgetStatGrid of StatTiles, and nothing else. Read-only. No hero visuals, no forms, no history, no charts — the tiles are all that may stand above the input.',
   },
   {
     icon: PenLine,
     n: '2',
     name: 'Input — the one thing you came to do',
     slot: 'input',
-    body: 'Start the timer, log the feed, add the measurement. Reachable without scrolling past reference material. Its tier eyebrow names the action, so the card inside carries no title of its own.',
+    body: 'Start the timer, log the feed, add the measurement. Sits directly under the tiles, reachable without scrolling. Its tier eyebrow names the action, so the card inside carries no title of its own — and a hero visual that belongs with the action (the tracker ring) lives inside this card, beside its control.',
   },
   {
     icon: BookOpen,
@@ -29,14 +29,14 @@ const tiers = [
 const pages = [
   {
     route: '/tracker',
-    glance: 'Progress ring + 4 stat tiles',
-    input: 'Start / stop session',
+    glance: '4 stat tiles',
+    input: 'Timer console — ring + start / stop',
     detail: 'Session history · 7-day chart',
   },
   {
     route: '/feed',
-    glance: '4 stat tiles + today-vs-typical bar',
-    input: 'Log a feed',
+    glance: '4 stat tiles',
+    input: 'Today vs typical + log a feed',
     detail: "Today's feeds · 7-day chart",
   },
   {
@@ -156,14 +156,14 @@ export function PatternsSection() {
         <DoDont
           dos={[
             'Build every logging page with WidgetPage and its three slots.',
-            'Keep the glance read-only — state, not controls.',
+            'Keep the glance to the four tiles — read-only state, nothing else.',
             'Let the input tier eyebrow name the action; leave its card untitled.',
             'Put charts, history and destructive actions in the detail tier.',
             'Use children only for loading, gated and first-run states.',
           ]}
           donts={[
             'Hand-roll the page frame (max-width, aura glow, header) per page.',
-            'Put a chart or a history list above the input.',
+            'Put a chart, hero visual or history list above the input.',
             'Bury the primary action below reference material.',
             'Title the input card and its tier eyebrow with the same words.',
             'Use the glass material for any of the three tiers.',

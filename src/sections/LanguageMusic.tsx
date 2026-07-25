@@ -1,7 +1,6 @@
 import { Ear, Music2, Volume1, type LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { SectionHeader } from '../components/SectionHeader'
 import { ParenteseChart } from '../components/charts'
 import { useT } from '../i18n'
 
@@ -17,7 +16,6 @@ export function LanguageMusic() {
   const tl = t.languageMusic
   return (
     <section id="language-music">
-      <SectionHeader module={3} title={tl.title} description={tl.description} />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <Card className="lg:col-span-7">
           <CardContent>

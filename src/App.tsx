@@ -10,7 +10,7 @@ import Family from './pages/Family'
 import FeedLog from './pages/FeedLog'
 import Auth from './pages/Auth'
 import DesignSystem from './pages/DesignSystem'
-import { Layout } from './components/Layout'
+import { Layout, APP_SCROLL_ID } from './components/Layout'
 import { useAppStore } from './store'
 import { isSupabaseEnabled } from './lib/supabase'
 
@@ -71,12 +71,17 @@ function TopicRedirect() {
 }
 
 /** Reset scroll to the top on every route change so pages don't open mid-scroll —
- *  unless the URL carries a hash (a deep-link to an in-page anchor). */
+ *  unless the URL carries a hash (a deep-link to an in-page anchor).
+ *
+ *  From `xl` the document doesn't scroll: the shell is one viewport tall and the
+ *  content column is the scroller, so reset that element too (the window call
+ *  stays for the mobile layout, where the document is the scroller). */
 function ScrollToTop() {
   const { pathname, hash } = useLocation()
   useEffect(() => {
     if (hash) return
     window.scrollTo(0, 0)
+    document.getElementById(APP_SCROLL_ID)?.scrollTo(0, 0)
   }, [pathname, hash])
   return null
 }

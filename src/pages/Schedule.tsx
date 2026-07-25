@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ChevronUp, ChevronDown, Trash2, Plus, RotateCcw, Check } from 'lucide-react'
-import { SectionHeader } from '../components/SectionHeader'
+import { PageFrame } from '../components/PageFrame'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -56,20 +56,21 @@ export default function Schedule() {
   }
 
   return (
-    <main className="relative mx-auto flex w-full max-w-3xl flex-col gap-6 page-px py-10">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-8 -z-10 mx-auto h-56 max-w-2xl rounded-full bg-primary/15 opacity-60 blur-3xl"
-      />
-      <Link
-        to="/"
-        className="inline-flex min-h-11 w-fit items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70"
-      >
-        <ArrowLeft className="size-4" /> {ts.done}
-      </Link>
-
-      <SectionHeader title={ts.title} description={ts.subtitle} />
-
+    <PageFrame
+      title={ts.title}
+      description={ts.subtitle}
+      // Under the header, never above it: as the first child it pushed the title
+      // ~44px lower than every other route's. Hidden from `xl`, where the SideNav
+      // rail is always on screen and already offers the way back.
+      toolbar={
+        <Link
+          to="/"
+          className="inline-flex min-h-11 w-fit items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70 xl:hidden"
+        >
+          <ArrowLeft className="size-4" /> {ts.done}
+        </Link>
+      }
+    >
       {rows.length === 0 ? (
         <Card>
           <CardContent className="py-10 text-center text-muted-foreground">{ts.empty}</CardContent>
@@ -109,7 +110,7 @@ export default function Schedule() {
           <RotateCcw className="mr-2 size-4" /> {ts.reset}
         </Button>
       </div>
-    </main>
+    </PageFrame>
   )
 }
 

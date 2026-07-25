@@ -2,7 +2,6 @@ import { TriangleAlert } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
-import { SectionHeader } from '../components/SectionHeader'
 import { TummyTimeChart } from '../components/charts'
 import { useBabyAge } from '../components/AgeBadge'
 import { tummyTargetForAgeMonths } from '../lib/schedule'
@@ -14,7 +13,6 @@ export function TummyTime() {
   const baby = useBabyAge()
   return (
     <section id="tummy-time">
-      <SectionHeader module={4} title={tt.title} description={tt.description} />
       {baby && (
         <div className="mb-6 rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm font-medium text-foreground">
           {tt.ageTarget

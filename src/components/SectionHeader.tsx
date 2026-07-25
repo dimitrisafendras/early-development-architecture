@@ -16,14 +16,17 @@ interface Props {
 export function SectionHeader({ title, description, compact = false, className }: Props) {
   return (
     <div className={cn('max-w-3xl', compact ? 'mb-3 sm:mb-8' : 'mb-8', className)}>
-      <h2
+      {/* `h1`: this is the page title on every route now that `PageFrame` owns the
+          header — the sections that used to render their own heading no longer do,
+          so an `h2` here left every page without an `h1`. */}
+      <h1
         className={cn(
           'font-heading font-semibold tracking-tight text-foreground sm:text-4xl',
           compact ? 'text-2xl' : 'text-3xl',
         )}
       >
         {title}
-      </h2>
+      </h1>
       <p
         className={cn(
           'leading-relaxed text-muted-foreground',

@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Baby as BabyIcon, Trash2, Ruler, Weight, Pencil } from 'lucide-react'
+import { AgeBadge } from '../components/AgeBadge'
 import { ChoiceGroup } from '../components/ChoiceGroup'
 import { StatTile } from '../components/StatTile'
 import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
@@ -46,7 +47,13 @@ export default function Baby() {
   const onCreate = (input: { name: string; birth_date: string; palette: Palette }) =>
     createBaby({ ...input, household_id: household?.id ?? null })
 
-  const page = { title: t.baby.title, description: t.baby.subtitle }
+  // Shared header props for every state below (gated / loading / first-run /
+  // full), so the age pill is always in the header — same as /feed and /tracker.
+  const page = {
+    title: t.baby.title,
+    description: t.baby.subtitle,
+    aside: <AgeBadge />,
+  }
 
   const toolbar =
     babies.length > 1 ? (
@@ -80,11 +87,12 @@ export default function Baby() {
     return (
       <WidgetPage {...page}>
         <div className="flex flex-col gap-6">
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {/* The real stat row's grid, so the skeleton can never drift from it. */}
+          <WidgetStatGrid>
             {Array.from({ length: 4 }).map((_, i) => (
               <Skeleton key={i} className="h-20" />
             ))}
-          </div>
+          </WidgetStatGrid>
           <Skeleton className="h-40" />
           <Skeleton className="h-56" />
         </div>
@@ -147,7 +155,7 @@ function CreateBabyForm({
         <p className="mb-4 flex items-center gap-2 text-[15px] font-semibold text-foreground">
           <BabyIcon className="size-4 text-primary" /> {t.baby.addTitle}
         </p>
-        <form onSubmit={submit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <form onSubmit={submit} className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="baby-name">{t.baby.nameLabel}</Label>
             <Input
@@ -199,7 +207,7 @@ function BabyDetail({
   deleteBaby,
   onCreate,
 }: {
-  page: { title: string; description: string }
+  page: { title: string; description: string; aside?: ReactNode }
   toolbar: ReactNode
   baby: BabyRecord
   updateBaby: (id: string, patch: { name?: string; birth_date?: string; palette?: Palette }) => Promise<unknown>
@@ -397,7 +405,7 @@ function EditBabyForm({
   }
 
   return (
-    <form onSubmit={submit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <form onSubmit={submit} className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2">
       <div className="space-y-1.5">
         <Label htmlFor="edit-name">{t.baby.nameLabel}</Label>
         <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} required />
@@ -486,7 +494,10 @@ function AddMeasurementForm({
     <Card>
       <CardContent>
         {/* No card title — the input tier's eyebrow already names the action. */}
-        <form onSubmit={submit} className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+        {/* `items-end`: labels wrap to two lines at some widths (notably in
+            Greek), so every cell bottom-aligns to keep the controls and the
+            submit button on one baseline whatever the label height. */}
+        <form onSubmit={submit} className="grid grid-cols-2 items-end gap-4 sm:grid-cols-5">
           <div className="space-y-1.5">
             <Label htmlFor="m-date">{t.baby.dateLabel}</Label>
             <DatePicker
@@ -533,16 +544,15 @@ function AddMeasurementForm({
               {...fields.stepper}
             />
           </div>
-          <div className="flex items-end">
-            <Button type="submit" disabled={busy} className="w-full">
-              {busy ? t.baby.saving : t.baby.save}
-            </Button>
-          </div>
-          <div className="space-y-1.5 sm:col-span-5">
+          {/* Full width on a phone, one column from `sm` — never a lonely half cell. */}
+          <Button type="submit" disabled={busy} className="col-span-2 w-full sm:col-span-1">
+            {busy ? t.baby.saving : t.baby.save}
+          </Button>
+          <div className="col-span-2 space-y-1.5 sm:col-span-5">
             <Label htmlFor="m-note">{t.baby.noteLabel}</Label>
             <Input id="m-note" value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
-          {error && <p className="text-sm text-destructive sm:col-span-5">{error}</p>}
+          {error && <p className="col-span-2 text-sm text-destructive sm:col-span-5">{error}</p>}
         </form>
       </CardContent>
     </Card>

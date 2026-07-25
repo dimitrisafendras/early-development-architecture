@@ -19,6 +19,9 @@ import { useT } from '../i18n'
 export function BottomNav() {
   const t = useT()
   const { pathname } = useLocation()
+  // -1 on the routes that aren't tabs (`/wiki`, `/design-system`, the auth
+  // pages), where no tab is lit and the indicator stays out of the way.
+  const activeIndex = appAreas.findIndex((a) => a.to === pathname)
 
   return (
     <nav
@@ -34,7 +37,23 @@ export function BottomNav() {
           GlassSurface's `radius` prop: that prop writes an inline style, which a
           `sm:` utility could never override. */}
       <GlassSurface className="border-t border-border/50 px-1.5 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] [--ds-glass-radius:0px] sm:mx-auto sm:max-w-md sm:border-t-0 sm:p-1.5 sm:pb-1.5 sm:[--ds-glass-radius:26px]">
-        <ul className="grid grid-cols-5">
+        <ul className="relative grid grid-cols-5">
+          {/* The selected-tab indicator is one sliding element rather than a
+              background on each tab, so switching tabs glides the way the
+              segmented control's thumb does — same `.ds-seg-thumb` easing, so
+              the two capsule controls move alike (and it inherits that class's
+              reduced-motion guard). Tinted, not solid: a solid primary thumb
+              under five tabs reads as a fill rather than as glass lensing. */}
+          {activeIndex >= 0 && (
+            <span
+              aria-hidden="true"
+              className="ds-seg-thumb pointer-events-none absolute inset-y-0 left-0 rounded-[20px] bg-primary/15"
+              style={{
+                width: `${100 / appAreas.length}%`,
+                transform: `translateX(${activeIndex * 100}%)`,
+              }}
+            />
+          )}
           {appAreas.map(({ to, Icon, tabLabel }) => {
             const active = pathname === to
             return (
@@ -43,10 +62,10 @@ export function BottomNav() {
                   to={to}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'flex min-h-13 flex-col items-center justify-center gap-1 rounded-[20px] px-1 py-1.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/70',
-                    active
-                      ? 'bg-primary/15 text-primary'
-                      : 'text-foreground/60 active:bg-foreground/5',
+                    // `relative` keeps the label above the indicator, and keeps
+                    // the tap wash on the inactive tabs paintable over it.
+                    'relative flex min-h-13 flex-col items-center justify-center gap-1 rounded-[20px] px-1 py-1.5 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring/70',
+                    active ? 'text-primary' : 'text-foreground/60 active:bg-foreground/5',
                   )}
                 >
                   <Icon className="size-5 shrink-0" aria-hidden />

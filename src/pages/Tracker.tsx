@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { GlassScrollArea } from '@/design-system/components'
+import { AgeBadge } from '../components/AgeBadge'
 import { ProgressRing } from '../components/ProgressRing'
 import { StatTile } from '../components/StatTile'
 import { TummyWeekChart } from '../components/charts'
@@ -98,43 +99,10 @@ export default function Tracker() {
     <WidgetPage
       title={t.tracker.title}
       description={t.tracker.subtitle}
+      aside={<AgeBadge />}
       inputLabel={t.tracker.sessionLabel}
       glance={
         <>
-          <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-card via-card to-primary/5">
-            <span
-              aria-hidden
-              className="pointer-events-none absolute left-1/2 top-1/2 size-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl"
-            />
-            <CardContent className="relative flex flex-col items-center py-8">
-              <ProgressRing progress={totalWithRunning / target} complete={metTarget}>
-                <div>
-                  {tracker.isRunning ? (
-                    <div className="font-heading text-4xl font-semibold tabular-nums text-foreground">
-                      {fmtClock(tracker.elapsedSeconds)}
-                    </div>
-                  ) : (
-                    <div className="font-heading text-4xl font-semibold text-foreground">
-                      {Math.round(totalWithRunning)}
-                      <span className="text-lg text-muted-foreground"> / {target}</span>
-                    </div>
-                  )}
-                  <div
-                    className={`mt-1 text-xs uppercase tracking-wider ${
-                      metTarget ? 'font-semibold text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
-                    }`}
-                  >
-                    {tracker.isRunning && !metTarget
-                      ? t.tracker.running
-                      : metTarget
-                        ? t.tracker.targetMet
-                        : `${remaining} ${t.tracker.toGo}`}
-                  </div>
-                </div>
-              </ProgressRing>
-            </CardContent>
-          </Card>
-
           <WidgetStatGrid>
             <StatTile
               icon={<Target className="size-4" />}
@@ -163,22 +131,65 @@ export default function Tracker() {
         </>
       }
       input={
-        <Card>
-          <CardContent className="flex flex-col items-center gap-4 py-6">
-            {tracker.isRunning ? (
-              <Button size="lg" variant="destructive" onClick={() => void tracker.stop()}>
-                <Square className="mr-2 size-4" /> {t.tracker.stop}
-              </Button>
-            ) : (
-              <Button size="lg" onClick={() => void tracker.start()}>
-                <Play className="mr-2 size-4" /> {t.tracker.start}
-              </Button>
-            )}
-            <p className="text-center text-xs text-muted-foreground">
-              {targetContext}
-              <br />
-              {tracker.signedIn ? t.tracker.synced : t.tracker.localOnly}
-            </p>
+        /* The timer console: the live ring and the one control that drives it in a
+           single card, so the action never reads as a stray button in an empty
+           section. Ring left, action right from `sm`; stacked on a phone. */
+        <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-card via-card to-primary/5">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -left-10 top-1/2 size-64 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl"
+          />
+          <CardContent className="relative flex flex-col items-center gap-6 py-6 sm:flex-row sm:items-center sm:gap-8">
+            <ProgressRing
+              progress={totalWithRunning / target}
+              complete={metTarget}
+              size={168}
+              stroke={12}
+            >
+              <div>
+                {tracker.isRunning ? (
+                  <div className="font-heading text-3xl font-semibold tabular-nums text-foreground">
+                    {fmtClock(tracker.elapsedSeconds)}
+                  </div>
+                ) : (
+                  <div className="font-heading text-3xl font-semibold text-foreground">
+                    {Math.round(totalWithRunning)}
+                    <span className="text-base text-muted-foreground"> / {target}</span>
+                  </div>
+                )}
+                <div
+                  className={`mt-1 text-[11px] uppercase tracking-wider ${
+                    metTarget ? 'font-semibold text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
+                  }`}
+                >
+                  {tracker.isRunning && !metTarget
+                    ? t.tracker.running
+                    : metTarget
+                      ? t.tracker.targetMet
+                      : `${remaining} ${t.tracker.toGo}`}
+                </div>
+              </div>
+            </ProgressRing>
+
+            <div className="flex min-w-0 flex-1 flex-col items-center gap-3 sm:items-start">
+              <p className="text-center font-heading text-lg font-semibold tracking-tight text-foreground sm:text-left">
+                {tracker.isRunning ? t.tracker.running : t.tracker.sessionLabel}
+              </p>
+              {tracker.isRunning ? (
+                <Button size="lg" variant="destructive" className="w-full sm:w-auto" onClick={() => void tracker.stop()}>
+                  <Square className="mr-2 size-4" /> {t.tracker.stop}
+                </Button>
+              ) : (
+                <Button size="lg" className="w-full sm:w-auto" onClick={() => void tracker.start()}>
+                  <Play className="mr-2 size-4" /> {t.tracker.start}
+                </Button>
+              )}
+              <p className="text-center text-xs leading-relaxed text-muted-foreground sm:text-left">
+                {targetContext}
+                <br />
+                {tracker.signedIn ? t.tracker.synced : t.tracker.localOnly}
+              </p>
+            </div>
           </CardContent>
         </Card>
       }

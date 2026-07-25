@@ -1,6 +1,5 @@
 import { MoonStar, Bed, DoorOpen, Ban } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { SectionHeader } from '../components/SectionHeader'
 import { sleepStats, safeSleepRules, type StatusTone } from '../data'
 import { AgeBadge, useBabyAge } from '../components/AgeBadge'
 import { cn } from '@/lib/utils'
@@ -21,8 +20,8 @@ export function Sleep() {
   const activeStat = baby ? (baby.months < 4 ? 0 : baby.months < 12 ? 1 : -1) : -1
   return (
     <section id="sleep">
-      <SectionHeader module={9} title={ts.title} description={ts.description} />
-
+      {/* The age badge rides the first content row — the page header above is the
+          frame's, so this is where the "which baby / which band" cue belongs. */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">
           {ts.statsTitle}

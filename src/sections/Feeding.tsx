@@ -8,7 +8,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { SectionHeader } from '../components/SectionHeader'
 import { feedingRows, feedingUppers } from '../data'
 import { AgeBadge, useBabyAge } from '../components/AgeBadge'
 import { bandIndex } from '../lib/schedule'
@@ -22,8 +21,8 @@ export function Feeding() {
   const activeRow = baby ? bandIndex(baby.months, feedingUppers) : -1
   return (
     <section id="feeding">
-      <SectionHeader module={10} title={tf.title} description={tf.description} />
-
+      {/* The age badge rides the first content row — the page header above is the
+          frame's, so this is where the "which baby / which band" cue belongs. */}
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">
           {tf.tableTitle}

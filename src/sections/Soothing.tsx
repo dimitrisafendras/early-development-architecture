@@ -10,7 +10,6 @@ import {
   LifeBuoy,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { SectionHeader } from '../components/SectionHeader'
 import { useT } from '../i18n'
 
 const sIcons = [Baby, MoveHorizontal, Volume2, Activity, CircleDot]
@@ -21,8 +20,6 @@ export function Soothing() {
   const ts = t.soothing
   return (
     <section id="soothing">
-      <SectionHeader title={ts.title} description={ts.description} />
-
       {/* Key numbers */}
       <div className="mb-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {ts.facts.map((f, i) => (

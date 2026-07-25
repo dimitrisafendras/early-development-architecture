@@ -44,7 +44,10 @@ export function ProgressRing({
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke="var(--muted)"
+          // Mixed from the foreground rather than flat `--muted`: on the tinted
+          // cards the ring sits on (the moment card, the timer console) a `--muted`
+          // track all but disappears, so a ring at 0% read as a ghost.
+          stroke="color-mix(in oklab, var(--muted-foreground) 24%, transparent)"
           strokeWidth={stroke}
         />
         <circle

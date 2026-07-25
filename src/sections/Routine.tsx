@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Check, ArrowRight } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { SectionHeader } from '../components/SectionHeader'
 import { scheduleBlocks, type ScheduleTone } from '../data'
 import { useT } from '../i18n'
 
@@ -46,8 +45,6 @@ export function Routine() {
 
   return (
     <section id="routine">
-      <SectionHeader module={5} title={t.routine.title} description={t.routine.description} />
-
       {/* The live "what's now" view lives on the Day page (one source of
           truth); this page teaches the routine as a framework. */}
       <Link

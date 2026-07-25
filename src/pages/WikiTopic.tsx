@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link, Navigate, useParams, useLocation } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, ChevronRight, BookOpen } from 'lucide-react'
+import { PageFrame } from '../components/PageFrame'
 import { wikiTopics, wikiPath, findTopic, groupOfTopic } from '../sections/registry'
 import { useT } from '../i18n'
 
@@ -8,6 +9,14 @@ import { useT } from '../i18n'
  * A single Wiki topic on its own route (`/wiki/:slug`). Renders the matching
  * theory section standalone, with a breadcrumb back to the Wiki home and a
  * prev/next pager across the ordered list of Wiki topics.
+ *
+ * The page header is the frame's, not the section's: the topic's editorial title
+ * and blurb go through `PageFrame` so this route's title sits at exactly the same
+ * X and Y as every other route's. The sections themselves are pure content — they
+ * no longer render a `SectionHeader`, and the long title they used to own now
+ * lives on the registry entry as `title`. The breadcrumb goes in the `toolbar`
+ * slot (under the header) for the same reason — above the title it pushed the
+ * heading ~40px down and made this the one page whose title never lined up.
  */
 export default function WikiTopic() {
   const { slug } = useParams()
@@ -34,29 +43,32 @@ export default function WikiTopic() {
   const Section = topic.Component
 
   return (
-    <main className="mx-auto flex w-full max-w-7xl flex-col gap-10 page-px py-10">
-      {/* Breadcrumb */}
-      <nav
-        aria-label="Breadcrumb"
-        className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground"
-      >
-        <Link
-          to="/wiki"
-          className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 font-medium transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70"
+    <PageFrame
+      title={topic.title(t)}
+      description={topic.blurb(t)}
+      toolbar={
+        <nav
+          aria-label="Breadcrumb"
+          className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground"
         >
-          <BookOpen className="size-4" />
-          {t.wiki.index}
-        </Link>
-        {group && (
-          <>
-            <ChevronRight className="size-3.5 shrink-0" aria-hidden />
-            <span className="text-muted-foreground">{t.hub.groups[group]}</span>
-          </>
-        )}
-        <ChevronRight className="size-3.5 shrink-0" aria-hidden />
-        <span className="font-medium text-foreground">{topic.label(t)}</span>
-      </nav>
-
+          <Link
+            to="/wiki"
+            className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 font-medium transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70"
+          >
+            <BookOpen className="size-4" />
+            {t.wiki.index}
+          </Link>
+          {group && (
+            <>
+              <ChevronRight className="size-3.5 shrink-0" aria-hidden />
+              <span className="text-muted-foreground">{t.hub.groups[group]}</span>
+            </>
+          )}
+          <ChevronRight className="size-3.5 shrink-0" aria-hidden />
+          <span className="font-medium text-foreground">{topic.label(t)}</span>
+        </nav>
+      }
+    >
       <Section />
 
       {/* Pager */}
@@ -79,7 +91,7 @@ export default function WikiTopic() {
           />
         )}
       </nav>
-    </main>
+    </PageFrame>
   )
 }
 

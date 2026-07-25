@@ -3,7 +3,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { SectionHeader } from '../components/SectionHeader'
 import { checklistItems } from '../data'
 import { useDailyChecklist } from '../lib/useDailyChecklist'
 import { useT } from '../i18n'
@@ -14,7 +13,6 @@ export function Summary() {
 
   return (
     <section id="summary">
-      <SectionHeader module={7} title={t.summary.title} description={t.summary.description} />
       <Card>
         <CardContent>
           {(streak > 0 || allDone) && (

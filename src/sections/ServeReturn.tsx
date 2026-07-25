@@ -2,7 +2,6 @@ import { SlidersHorizontal } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { SectionHeader } from '../components/SectionHeader'
 import { serveReturnSteps, latencyOutcomes, type StepTone, type StatusTone } from '../data'
 import { useAppStore, type LatencyMode } from '../store'
 import { useT } from '../i18n'
@@ -46,7 +45,6 @@ export function ServeReturn() {
 
   return (
     <section id="serve-return">
-      <SectionHeader module={2} title={tr.title} description={tr.description} />
       <Card>
         <CardContent>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">

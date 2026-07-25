@@ -17,35 +17,44 @@ import { useT } from '../i18n'
  * `pages/Auth.tsx`). Signed in it keeps a popover, which is safe: identity plus
  * a sign-out button, no text inputs and no keyboard.
  *
- * `variant="row"` is the full-width labelled form used inside the nav dropdown;
- * `"inline"` is the compact icon-first form for the desktop nav row.
+ * `variant="row"` is the full-width labelled form used inside the nav dropdown
+ * and the expanded sidebar; `"rail"` is the icon-only square for the collapsed
+ * sidebar; `"inline"` is the compact icon-first form for a horizontal nav row.
  *
  * The sign-in entry point always shows; the signed-in popover only appears when
  * Supabase is configured (there can be no session otherwise).
  */
-export function AccountControl({ variant = 'inline' }: { variant?: 'inline' | 'row' }) {
+export function AccountControl({ variant = 'inline' }: { variant?: 'inline' | 'row' | 'rail' }) {
   const t = useT()
   const { pathname, search } = useLocation()
   const { session, loading } = useSession()
   const [open, setOpen] = useState(false)
 
   const isRow = variant === 'row'
+  const isRail = variant === 'rail'
   const triggerClass = cn(
     'inline-flex items-center gap-2 text-sm font-medium text-foreground/70 transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70',
-    isRow
-      ? 'min-h-11 w-full justify-start rounded-xl px-3 active:bg-foreground/10'
-      : 'min-h-11 rounded-full px-3 sm:min-h-0 sm:px-2.5 sm:py-1.5',
+    isRow && 'min-h-11 w-full justify-start rounded-xl px-3 active:bg-foreground/10',
+    isRail && 'size-10 justify-center rounded-xl',
+    !isRow && !isRail && 'min-h-11 rounded-full px-3 sm:min-h-0 sm:px-2.5 sm:py-1.5',
   )
 
   if (!session || !isSupabaseEnabled || !supabase) {
     // Come back to wherever the user was once they're in.
     const next = encodeURIComponent(`${pathname}${search}`)
     return (
-      <Link to={`/signin?next=${next}`} aria-label={t.auth.signIn} className={triggerClass}>
+      <Link
+        to={`/signin?next=${next}`}
+        aria-label={t.auth.signIn}
+        title={t.auth.signIn}
+        className={triggerClass}
+      >
         <LogIn className="size-4 shrink-0" aria-hidden />
-        <span className={isRow ? undefined : 'hidden lg:inline'}>
-          {loading ? '…' : t.auth.signIn}
-        </span>
+        {!isRail && (
+          <span className={isRow ? undefined : 'hidden lg:inline'}>
+            {loading ? '…' : t.auth.signIn}
+          </span>
+        )}
       </Link>
     )
   }
@@ -64,11 +73,11 @@ export function AccountControl({ variant = 'inline' }: { variant?: 'inline' | 'r
         }
       >
         <UserRound className="size-4 shrink-0 text-primary" aria-hidden />
-        <span
-          className={cn('truncate', isRow ? 'max-w-[22ch]' : 'hidden max-w-[12ch] lg:inline')}
-        >
-          {shortName}
-        </span>
+        {!isRail && (
+          <span className={cn('truncate', isRow ? 'max-w-[22ch]' : 'hidden max-w-[12ch] lg:inline')}>
+            {shortName}
+          </span>
+        )}
       </PopoverTrigger>
       <PopoverContent align="end" sideOffset={10} className="p-4">
         <div className="flex flex-col gap-3">

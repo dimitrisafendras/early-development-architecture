@@ -56,7 +56,7 @@ export default function DesignSystem() {
   const activeHref = useActiveSection()
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-svh bg-background text-foreground">
       <GlassNav
         activeHref={activeHref}
         links={SECTIONS}
@@ -108,7 +108,7 @@ export default function DesignSystem() {
           aria-hidden
           className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-black/55 via-black/15 to-transparent"
         />
-        <div className="relative z-10 mx-auto flex max-w-6xl flex-col items-start px-5 py-24 sm:px-8 sm:py-32">
+        <div className="page-px relative z-10 mx-auto flex max-w-6xl flex-col items-start py-24 sm:py-32">
           <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-[0.16em] text-white uppercase backdrop-blur">
             Design System
           </span>
@@ -149,7 +149,7 @@ export default function DesignSystem() {
       </main>
 
       <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
+        <div className="page-px mx-auto flex max-w-6xl flex-col gap-2 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
           <p>Liquid Glass — design system for the early-development architecture.</p>
           <Link
             to="/"

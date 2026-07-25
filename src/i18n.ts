@@ -14,6 +14,8 @@ const en = {
   nav: {
     menuOpen: 'Open menu',
     menuClose: 'Close menu',
+    expandNav: 'Expand sidebar',
+    collapseNav: 'Collapse sidebar',
     sections: 'Sections',
     language: 'Language',
     brand: 'Early Development',
@@ -811,11 +813,6 @@ const en = {
     sourcesLabel:
       'Illustrative schedule synthesized from AAP HealthyChildren.org routines, ZERO TO THREE, and infant sleep/awake-window guidance.',
   },
-  footer: {
-    title: '🧠 The Architecture of Early Development',
-    body: 'Synthesized from peer-reviewed early infant psychology publications, Harvard Center on the Developing Child research, AAP guidelines, and contemporary developmental neuroscience.',
-    tagline: 'Designed for Caregivers, Pediatric Educators, and Early Interventionists.',
-  },
   charts: {
     brainGrowth: [
       'Newborn Brain Mass (25%)',
@@ -836,6 +833,8 @@ const el: Messages = {
   nav: {
     menuOpen: 'Άνοιγμα μενού',
     menuClose: 'Κλείσιμο μενού',
+    expandNav: 'Άνοιγμα πλαϊνής μπάρας',
+    collapseNav: 'Σύμπτυξη πλαϊνής μπάρας',
     sections: 'Ενότητες',
     language: 'Γλώσσα',
     brand: 'Πρώιμη Ανάπτυξη',
@@ -1629,11 +1628,6 @@ const el: Messages = {
     ],
     sourcesLabel:
       'Ενδεικτικό πρόγραμμα βασισμένο σε ρουτίνες AAP HealthyChildren.org, ZERO TO THREE και οδηγίες ύπνου/παραθύρων εγρήγορσης.',
-  },
-  footer: {
-    title: '🧠 Η Αρχιτεκτονική της Πρώιμης Ανάπτυξης',
-    body: 'Συντέθηκε από δημοσιεύσεις βρεφικής ψυχολογίας με κριτές, έρευνα του Harvard Center on the Developing Child, κατευθυντήριες οδηγίες της AAP και σύγχρονη αναπτυξιακή νευροεπιστήμη.',
-    tagline: 'Σχεδιασμένο για Φροντιστές, Παιδαγωγούς και Ειδικούς Πρώιμης Παρέμβασης.',
   },
   charts: {
     brainGrowth: [

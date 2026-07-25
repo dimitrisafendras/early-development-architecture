@@ -19,7 +19,7 @@ import { dayActivityMeta } from '../components/dayActivity'
 import { AddFeedForm } from '../components/AddFeedForm'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { GlassScrollArea, type GlassScrollAreaHandle } from '@/design-system/components'
+import { GlassButton, GlassScrollArea, type GlassScrollAreaHandle } from '@/design-system/components'
 import { cn } from '@/lib/utils'
 import { feedingRows, feedingUppers, type DayActivity, type ScheduleSlot } from '../data'
 import { activeTimeIndex, tummyTargetForAgeMonths, ageInMonths, bandIndex } from '../lib/schedule'
@@ -69,9 +69,9 @@ export default function Day() {
   const selectSlot = (i: number) => setSelected(i === currentSlot ? null : i)
 
   return (
-    <main className="mx-auto w-full max-w-6xl page-px py-5 sm:py-10">
+    <main className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col page-px py-5 sm:py-10">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <SectionHeader compact title={t.day.title} description={t.day.subtitle} />
+        <SectionHeader compact className="mb-0" title={t.day.title} description={t.day.subtitle} />
         <AgeBadge />
       </div>
 
@@ -80,7 +80,10 @@ export default function Day() {
           Fixed height at lg so switching activities never makes the page jump —
           each card scrolls internally instead. On mobile the moment card still
           leads; `order` only kicks in once they sit side by side. */}
-      <div className="mt-3 grid grid-cols-1 gap-4 sm:mt-6 sm:gap-6 lg:h-[calc(100dvh-22rem)] lg:min-h-[30rem] lg:grid-cols-[minmax(0,23rem)_minmax(0,1fr)]">
+      {/* `grid-rows-[minmax(0,1fr)]` lets the single row shrink below its content
+          so the cards take the row's height and scroll inside; an `auto` row would
+          grow to the full schedule list and push the page past the viewport. */}
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:mt-8 sm:gap-6 lg:min-h-[24rem] lg:flex-1 lg:grid-cols-[minmax(0,23rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] xl:min-h-0">
         <div className="min-h-0 lg:order-2">
           <MomentCard
             schedule={schedule}
@@ -195,39 +198,40 @@ function MomentCard({
       )}
 
       <CardContent className="relative flex min-h-0 flex-1 flex-col gap-5 py-6">
-        <div className="flex items-center justify-between gap-3">
-          {isNow ? (
-            <p className={cn('flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]', meta.text)}>
-              <span className="relative flex size-2">
-                <span
-                  className="absolute inline-flex size-full animate-ping rounded-full opacity-60 motion-reduce:hidden"
-                  style={{ backgroundColor: a }}
-                />
-                <span className="relative inline-flex size-2 rounded-full" style={{ backgroundColor: a }} />
-              </span>
-              {t.daily.nowTitle}
-            </p>
-          ) : (
-            <>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                <Clock className="size-3.5" /> {t.day.panelSelectedTag}
-              </span>
-              <button
-                type="button"
-                onClick={onJumpToNow}
-                className="text-xs font-medium text-primary transition-colors hover:text-primary/80"
-              >
-                {t.day.jumpToNow}
-              </button>
-            </>
-          )}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
+            {isNow ? (
+              <p className={cn('flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]', meta.text)}>
+                <span className="relative flex size-2">
+                  <span
+                    className="absolute inline-flex size-full animate-ping rounded-full opacity-60 motion-reduce:hidden"
+                    style={{ backgroundColor: a }}
+                  />
+                  <span className="relative inline-flex size-2 rounded-full" style={{ backgroundColor: a }} />
+                </span>
+                {t.daily.nowTitle}
+              </p>
+            ) : (
+              <>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                  <Clock className="size-3.5" /> {t.day.panelSelectedTag}
+                </span>
+                <button
+                  type="button"
+                  onClick={onJumpToNow}
+                  className="text-xs font-medium text-primary transition-colors hover:text-primary/80"
+                >
+                  {t.day.jumpToNow}
+                </button>
+              </>
+            )}
+          </div>
+
         </div>
 
-        {/* A compact moment strip across the top, the tool filling everything
-            below it, then the hand-off to what's next as the card's last line —
-            so the card reads now → do → next, with no dead middle whatever the
-            activity's tool happens to be. */}
-        <div className="flex min-w-0 items-center gap-4">
+        {/* A compact moment strip, then the tool filling everything below it —
+            so the card has no dead middle whatever the activity's tool is. */}
+        <div className="flex items-center gap-4">
             {/* Ring-wrapped icon = identity + progress in one mark, in the
                 activity's hue; the previewed state keeps the same 84px footprint
                 (a soft halo instead of the ring) so nothing shifts. */}
@@ -249,7 +253,7 @@ function MomentCard({
             )}
             {/* Type + countdown on one line, then the title. The slot's detail
                 lives in the schedule beside this card — no need to repeat it. */}
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
                 <span className={cn('text-[11px] font-semibold uppercase tracking-[0.16em]', meta.text)}>
                   {t.fullDay.types[type]}
@@ -276,31 +280,27 @@ function MomentCard({
               {cur.title}
             </div>
           </div>
+
+          {/* Up-next hand-off, condensed to a square on the title's line: the
+              next activity's mark over its time. The full title rides along as
+              the accessible name / tooltip, since a square has no room for it. */}
+          <button
+            type="button"
+            onClick={() => onSelectSlot(nextIdx)}
+            title={`${tl.upNext}: ${next.title} · ${next.time}`}
+            aria-label={`${tl.upNext}: ${next.title}, ${next.time}`}
+            className="group flex size-14 shrink-0 flex-col items-center justify-center gap-1 rounded-2xl bg-card/80 outline-none ring-1 ring-foreground/10 transition-[transform,box-shadow,background-color] hover:-translate-y-0.5 hover:bg-card hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring/70"
+          >
+            <span className={cn('inline-flex size-7 items-center justify-center rounded-lg', nextMeta.dot)}>
+              <NextIcon className="size-4" />
+            </span>
+            <span className="text-[10px] font-semibold tabular-nums leading-none text-muted-foreground">
+              {next.time}
+            </span>
+          </button>
         </div>
 
         <MomentTool type={type} isNow={isNow} accent={a} />
-
-        {/* Up-next hand-off — the card's closing line, under the tool. */}
-        <button
-          type="button"
-          onClick={() => onSelectSlot(nextIdx)}
-          className="group flex w-full items-center gap-3 rounded-2xl bg-card/80 p-3 text-left outline-none ring-1 ring-foreground/10 transition-[transform,box-shadow,background-color] hover:-translate-y-0.5 hover:bg-card hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring/70"
-        >
-          <span className={cn('inline-flex size-10 shrink-0 items-center justify-center rounded-xl', nextMeta.dot)}>
-            <NextIcon className="size-5" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-              {tl.upNext}
-            </div>
-            <div className="truncate font-heading text-sm font-semibold text-foreground">{next.title}</div>
-            <div className="text-[11px] tabular-nums text-muted-foreground">
-              {next.time}
-              {isNow && <> · {tl.in} {formatCountdown(remaining, tl.hour, tl.minute)}</>}
-            </div>
-          </div>
-          <ArrowRight className="size-4 shrink-0 self-center text-muted-foreground transition-transform group-hover:translate-x-0.5" />
-        </button>
       </CardContent>
     </Card>
   )
@@ -394,7 +394,7 @@ function Timeline({
   }
 
   return (
-    <Card className="flex h-full flex-col">
+    <Card className="flex h-full min-h-0 flex-col">
       <CardContent className="flex min-h-0 flex-1 flex-col">
         <div className="mb-4 flex items-center justify-between gap-2">
           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
@@ -412,13 +412,15 @@ function Timeline({
           className="max-h-[21rem] lg:max-h-none"
           overlay={
             !nowInView && (
-              <button
-                type="button"
+              /* A floating control over content — the one place on this page the
+                 glass material belongs (per the Liquid Glass guidance). */
+              <GlassButton
+                size="sm"
                 onClick={recenter}
-                className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-border bg-card/85 px-3 py-1.5 text-xs font-semibold text-foreground shadow-lg backdrop-blur transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+                className="pointer-events-auto text-xs font-semibold"
               >
                 <LocateFixed className="size-3.5 text-primary" /> {t.day.jumpToNow}
-              </button>
+              </GlassButton>
             )
           }
         >
@@ -471,11 +473,6 @@ function Timeline({
                         <span className={cn('text-[11px] font-semibold uppercase tracking-wider', a.text)}>
                           {t.fullDay.types[slot.type]}
                         </span>
-                        {isNow && (
-                          <span className="rounded-full bg-primary px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary-foreground">
-                            {t.routineLive.nowBadge}
-                          </span>
-                        )}
                       </div>
                       <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
                         {slot.detail}

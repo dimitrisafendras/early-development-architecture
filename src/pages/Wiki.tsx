@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { PageFrame } from '../components/PageFrame'
 import {
   learnGroups,
   groupMeta,
@@ -18,31 +19,24 @@ import { useT } from '../i18n'
 export default function Wiki() {
   const t = useT()
   return (
-    <main className="relative mx-auto w-full max-w-6xl page-px py-12">
-      {/* Soft brand glow behind the header. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-10 -z-10 mx-auto h-64 max-w-3xl rounded-full bg-primary/15 opacity-60 blur-3xl"
-      />
-
-      <header className="max-w-2xl">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
-          <Sparkles className="size-3.5" /> {t.wiki.eyebrow}
+    <PageFrame
+      title={t.wiki.title}
+      description={t.wiki.subtitle}
+      // The eyebrow pill stays in the header row as trailing content — the same
+      // slot every other route uses for a badge. Above the title it would push
+      // the H2 down and break the cross-route alignment this frame exists for.
+      aside={
+        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-primary">
+          <Sparkles className="size-3.5" aria-hidden /> {t.wiki.eyebrow}
         </span>
-        <h1 className="mt-4 font-heading text-4xl font-bold tracking-tight sm:text-5xl">
-          <span className="bg-gradient-to-br from-foreground via-foreground to-primary bg-clip-text text-transparent">
-            {t.wiki.title}
-          </span>
-        </h1>
-        <p className="mt-4 text-base leading-relaxed text-muted-foreground">{t.wiki.subtitle}</p>
-      </header>
-
-      <div className="mt-12 flex flex-col gap-12">
+      }
+    >
+      <div className="flex flex-col gap-12">
         {learnGroups.map((group, i) => (
           <Chapter key={group} group={group} number={i + 1} />
         ))}
       </div>
-    </main>
+    </PageFrame>
   )
 }
 
@@ -76,7 +70,7 @@ function Chapter({ group, number }: { group: TopicGroup; number: number }) {
       </p>
       <div className="mt-4 h-px w-full bg-gradient-to-r from-primary/40 via-border to-transparent" />
 
-      <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4">
+      <ul className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-4">
         {topics.map((topic) => {
           const TopicIcon = topic.icon
           return (

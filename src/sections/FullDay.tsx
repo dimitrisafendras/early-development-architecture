@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Card, CardContent } from '@/components/ui/card'
-import { SectionHeader } from '../components/SectionHeader'
 import { dayActivityMeta as activity, dayActivityOrder as legendOrder } from '../components/dayActivity'
 import { fullDaySchedule } from '../data'
 import { activeTimeIndex } from '../lib/schedule'
@@ -39,8 +38,6 @@ export function FullDay() {
   }, [hash])
   return (
     <section id="full-day">
-      <SectionHeader module={11} title={tf.title} description={tf.description} />
-
       {/* Legend */}
       <div className="mb-8 flex flex-wrap items-center gap-x-5 gap-y-2">
         <span className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">

@@ -1,30 +1,40 @@
 import type { ReactNode } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { SectionHeader } from './SectionHeader'
+import { PageFrame } from './PageFrame'
 import { useT } from '../i18n'
 
 /**
  * The widget-page shell. Every tool page (`/tracker`, `/feed`, `/baby`, …) is a
  * widget page, and a widget page always reads top-to-bottom in three tiers:
  *
- *   1. **glance**  — short info. The answer to "where am I right now?" in one
- *      screenful: a hero metric and/or a row of `StatTile`s. No forms here.
+ *   1. **glance**  — the four quick `StatTile`s, and nothing else. The answer to
+ *      "where am I right now?" in one glance. No hero visuals, no forms: the
+ *      input is the most important thing on the page, so the tiles are all that
+ *      may stand above it.
  *   2. **input**   — the one thing you came to do: start the timer, log the
- *      feed, add the measurement. Directly reachable without scrolling past
- *      reference material.
+ *      feed, add the measurement. Reachable without scrolling, directly under
+ *      the tiles. A hero visual that belongs with the action (the tracker's
+ *      ring) goes *inside* this tier's card, not above it.
  *   3. **detail**  — extensive info. History lists, charts, guidance, profile
  *      editing and destructive actions. Everything you read rather than answer.
  *
  * The tiers are slots rather than children so the order can't be got wrong: you
  * cannot render the input above the glance. `children` is the escape hatch for
  * pre-tier states only (loading skeletons, sign-in gating, first-run forms).
+ *
+ * The page *frame* — max-width, gutter, padding, gap and the header/aside row —
+ * is not this component's business: it delegates all of it to `PageFrame`, the
+ * single canonical frame every route shares. Only the tiers below are the widget
+ * page's own contribution.
  */
 export function WidgetPage({
   title,
   description,
   aside,
   toolbar,
+  compact,
+  className,
   glance,
   input,
   inputLabel,
@@ -38,7 +48,12 @@ export function WidgetPage({
   aside?: ReactNode
   /** Full-width context switcher under the header (e.g. which baby). */
   toolbar?: ReactNode
-  /** Tier 1 — short info. */
+  /** Forwarded to `PageFrame`/`SectionHeader` — a tighter header on a phone. */
+  compact?: boolean
+  /** Forwarded to `PageFrame`. Reserved for the frame's sanctioned width
+   *  exception; widget pages should not normally need it. */
+  className?: string
+  /** Tier 1 — the quick stat tiles only. */
   glance?: ReactNode
   /** Tier 2 — the input. */
   input?: ReactNode
@@ -54,18 +69,14 @@ export function WidgetPage({
   const t = useT()
 
   return (
-    <main className="relative mx-auto flex w-full max-w-5xl flex-col gap-8 page-px py-10">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-8 -z-10 mx-auto h-56 max-w-2xl rounded-full bg-primary/15 opacity-60 blur-3xl"
-      />
-
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <SectionHeader title={title} description={description} className="mb-0" />
-        {aside}
-      </div>
-
-      {toolbar}
+    <PageFrame
+      title={title}
+      description={description}
+      aside={aside}
+      toolbar={toolbar}
+      compact={compact}
+      className={className}
+    >
       {children}
 
       {glance && <div className="flex flex-col gap-4">{glance}</div>}
@@ -83,7 +94,7 @@ export function WidgetPage({
           {detail}
         </section>
       )}
-    </main>
+    </PageFrame>
   )
 }
 

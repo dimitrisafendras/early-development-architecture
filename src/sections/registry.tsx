@@ -44,6 +44,13 @@ export interface Topic {
   icon: ComponentType<{ className?: string }>
   /** Short localized label (nav + card title). */
   label: (t: Messages) => string
+  /**
+   * Long editorial title — the heading of the topic's own page. Lives here rather
+   * than inside the section component so `/wiki/:slug` renders the page header
+   * through `PageFrame`, and the section stays pure content with no header of its
+   * own (it used to render one, which showed up as a duplicate heading).
+   */
+  title: (t: Messages) => string
   /** Longer localized blurb for the hub card. */
   blurb: (t: Messages) => string
   Component: ComponentType
@@ -57,22 +64,22 @@ export interface Topic {
  */
 export const topics: Topic[] = [
   // Foundations — why the early window matters
-  { slug: 'brain-growth', module: 1, group: 'foundations', icon: Brain, label: (t) => t.nav.links.neurobiology, blurb: (t) => t.neurobiology.description, Component: Neurobiology },
-  { slug: 'video-deficit', module: 6, group: 'foundations', icon: MonitorOff, label: (t) => t.nav.links.environment, blurb: (t) => t.environment.description, Component: Environment },
+  { slug: 'brain-growth', module: 1, group: 'foundations', icon: Brain, label: (t) => t.nav.links.neurobiology, title: (t) => t.neurobiology.title, blurb: (t) => t.neurobiology.description, Component: Neurobiology },
+  { slug: 'video-deficit', module: 6, group: 'foundations', icon: MonitorOff, label: (t) => t.nav.links.environment, title: (t) => t.environment.title, blurb: (t) => t.environment.description, Component: Environment },
   // Connection — how you bond, respond, and talk
-  { slug: 'serve-return', module: 2, group: 'connection', icon: Repeat, label: (t) => t.nav.links.serveReturn, blurb: (t) => t.serveReturn.description, Component: ServeReturn },
-  { slug: 'parentese-music', module: 3, group: 'connection', icon: Music, label: (t) => t.nav.links.languageMusic, blurb: (t) => t.languageMusic.description, Component: LanguageMusic },
-  { slug: 'interaction-time', module: 8, group: 'connection', icon: MessagesSquare, label: (t) => t.nav.links.interaction, blurb: (t) => t.interaction.description, Component: Interaction },
-  { slug: 'soothing', module: 13, group: 'connection', icon: HeartHandshake, label: (t) => t.nav.links.soothing, blurb: (t) => t.soothing.description, Component: Soothing },
+  { slug: 'serve-return', module: 2, group: 'connection', icon: Repeat, label: (t) => t.nav.links.serveReturn, title: (t) => t.serveReturn.title, blurb: (t) => t.serveReturn.description, Component: ServeReturn },
+  { slug: 'parentese-music', module: 3, group: 'connection', icon: Music, label: (t) => t.nav.links.languageMusic, title: (t) => t.languageMusic.title, blurb: (t) => t.languageMusic.description, Component: LanguageMusic },
+  { slug: 'interaction-time', module: 8, group: 'connection', icon: MessagesSquare, label: (t) => t.nav.links.interaction, title: (t) => t.interaction.title, blurb: (t) => t.interaction.description, Component: Interaction },
+  { slug: 'soothing', module: 13, group: 'connection', icon: HeartHandshake, label: (t) => t.nav.links.soothing, title: (t) => t.soothing.title, blurb: (t) => t.soothing.description, Component: Soothing },
   // Daily rhythm — the physical care routine
-  { slug: 'tummy-time', module: 4, group: 'rhythm', icon: Baby, label: (t) => t.nav.links.tummyTime, blurb: (t) => t.tummyTime.description, Component: TummyTime },
-  { slug: 'daily-routine', module: 5, group: 'rhythm', icon: CalendarClock, label: (t) => t.nav.links.routine, blurb: (t) => t.routine.description, Component: Routine },
-  { slug: 'full-day', module: 11, group: 'rhythm', icon: CalendarDays, label: (t) => t.nav.links.fullDay, blurb: (t) => t.fullDay.description, Component: FullDay },
-  { slug: 'sleep', module: 9, group: 'rhythm', icon: MoonStar, label: (t) => t.nav.links.sleep, blurb: (t) => t.sleep.description, Component: Sleep },
-  { slug: 'feeding', module: 10, group: 'rhythm', icon: Utensils, label: (t) => t.nav.links.feeding, blurb: (t) => t.feeding.description, Component: Feeding },
-  { slug: 'bathing', module: 12, group: 'rhythm', icon: Bath, label: (t) => t.nav.links.bathing, blurb: (t) => t.bathing.description, Component: Bathing },
+  { slug: 'tummy-time', module: 4, group: 'rhythm', icon: Baby, label: (t) => t.nav.links.tummyTime, title: (t) => t.tummyTime.title, blurb: (t) => t.tummyTime.description, Component: TummyTime },
+  { slug: 'daily-routine', module: 5, group: 'rhythm', icon: CalendarClock, label: (t) => t.nav.links.routine, title: (t) => t.routine.title, blurb: (t) => t.routine.description, Component: Routine },
+  { slug: 'full-day', module: 11, group: 'rhythm', icon: CalendarDays, label: (t) => t.nav.links.fullDay, title: (t) => t.fullDay.title, blurb: (t) => t.fullDay.description, Component: FullDay },
+  { slug: 'sleep', module: 9, group: 'rhythm', icon: MoonStar, label: (t) => t.nav.links.sleep, title: (t) => t.sleep.title, blurb: (t) => t.sleep.description, Component: Sleep },
+  { slug: 'feeding', module: 10, group: 'rhythm', icon: Utensils, label: (t) => t.nav.links.feeding, title: (t) => t.feeding.title, blurb: (t) => t.feeding.description, Component: Feeding },
+  { slug: 'bathing', module: 12, group: 'rhythm', icon: Bath, label: (t) => t.nav.links.bathing, title: (t) => t.bathing.title, blurb: (t) => t.bathing.description, Component: Bathing },
   // Put it into practice
-  { slug: 'action-items', module: 7, group: 'practice', icon: ListChecks, label: (t) => t.nav.links.summary, blurb: (t) => t.summary.description, Component: Summary },
+  { slug: 'action-items', module: 7, group: 'practice', icon: ListChecks, label: (t) => t.nav.links.summary, title: (t) => t.summary.title, blurb: (t) => t.summary.description, Component: Summary },
 ]
 
 /** Topics belonging to a group, in registry order. */

@@ -119,13 +119,18 @@ export default function FeedLog() {
               value={feed.lastFeed ? fmtTime(feed.lastFeed.fed_at, locale) : tf.never}
             />
           </WidgetStatGrid>
-
-          {feedsRange && <FeedProgress count={feed.todayFeeds.length} range={feedsRange} tf={tf} />}
         </>
       }
       input={
         <Card>
           <CardContent>
+            {/* Progress against the day's expected range sits with the form it
+                frames, so only the quick tiles stand above the input. */}
+            {feedsRange && (
+              <div className="mb-5">
+                <FeedProgress count={feed.todayFeeds.length} range={feedsRange} tf={tf} />
+              </div>
+            )}
             <AddFeedForm last={feed.lastFeed} onAdd={feed.add} />
             {guideAmount && (
               <p className="mt-3 text-xs text-muted-foreground">{tf.guide.replace('{amount}', guideAmount)}</p>
@@ -289,8 +294,9 @@ function FeedProgress({
   const p = (v: number) => Math.min(100, (v / scaleMax) * 100)
 
   return (
-    <Card>
-      <CardContent className="py-4">
+    /* Flat — it sits inside the input card, and glass/cards never stack. */
+    <div>
+      <div>
         <div className="flex items-baseline justify-between gap-3">
           <p className="flex items-center gap-2 text-[15px] font-semibold text-foreground">
             <Utensils className="size-4 text-primary" /> {tf.progressTitle}
@@ -323,7 +329,7 @@ function FeedProgress({
           {status}
         </p>
         <p className="mt-1 text-xs text-muted-foreground">{tf.progressNote}</p>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   )
 }

@@ -12,6 +12,12 @@ export interface GlassSurfaceProps extends React.HTMLAttributes<HTMLDivElement> 
   interactive?: boolean
   /** Corner radius in px. Pass the outer radius; nest with `--inset` for concentric children. */
   radius?: number
+  /**
+   * Classes for the inner content layer. Needed when the surface has to lay its
+   * children out (e.g. a full-height flex column in a sidebar) — the content
+   * layer, not the root, is the children's containing block.
+   */
+  contentClassName?: string
 }
 
 /**
@@ -27,7 +33,19 @@ export interface GlassSurfaceProps extends React.HTMLAttributes<HTMLDivElement> 
  * transparency / motion are handled in `ds.css`.
  */
 export const GlassSurface = React.forwardRef<HTMLDivElement, GlassSurfaceProps>(
-  ({ variant = 'regular', interactive = false, radius, className, style, children, ...props }, ref) => {
+  (
+    {
+      variant = 'regular',
+      interactive = false,
+      radius,
+      className,
+      contentClassName,
+      style,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
     return (
       <div
         ref={ref}
@@ -40,7 +58,7 @@ export const GlassSurface = React.forwardRef<HTMLDivElement, GlassSurfaceProps>(
       >
         <span className="ds-glass__illumination" aria-hidden="true" />
         <span className="ds-glass__highlight" aria-hidden="true" />
-        <div className="ds-glass__content">{children}</div>
+        <div className={cn('ds-glass__content', contentClassName)}>{children}</div>
       </div>
     )
   }

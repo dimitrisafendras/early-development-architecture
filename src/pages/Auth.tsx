@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
+import { PageFrame } from '../components/PageFrame'
 import { supabase, isSupabaseEnabled, setRememberMe, getRememberMe } from '@/lib/supabase'
 import { useSession, authRedirectUrl } from '@/lib/use-session'
 import { useT } from '../i18n'
@@ -83,31 +84,28 @@ export default function Auth({ mode }: { mode: AuthMode }) {
   }
 
   return (
-    <main className="page-px relative mx-auto flex w-full max-w-md flex-col gap-6 py-10">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-6 -z-10 mx-auto h-52 max-w-sm rounded-full bg-primary/15 opacity-60 blur-3xl"
-      />
-      <Link
-        to="/"
-        className="inline-flex min-h-11 w-fit items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70"
-      >
-        <ArrowLeft className="size-4" aria-hidden />
-        {t.auth.back}
-      </Link>
-
-      <div>
-        <span className="inline-flex rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 p-3 text-primary ring-1 ring-inset ring-primary/20">
+    // The one sanctioned width exception to the shared frame: sign-in is a single
+    // narrow card, so it keeps `max-w-md` (twMerge lets it win over `max-w-6xl`)
+    // while inheriting the frame's gutter, padding and title styling.
+    <PageFrame
+      className="max-w-md"
+      title={isSignUp ? t.auth.titleSignUp : t.auth.title}
+      description={isSignUp ? t.auth.subtitleSignUp : t.auth.subtitleSignIn}
+      aside={
+        <span className="inline-flex shrink-0 rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 p-3 text-primary ring-1 ring-inset ring-primary/20">
           {isSignUp ? <UserPlus className="size-6" /> : <LogIn className="size-6" />}
         </span>
-        <h1 className="mt-4 font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-          {isSignUp ? t.auth.titleSignUp : t.auth.title}
-        </h1>
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          {isSignUp ? t.auth.subtitleSignUp : t.auth.subtitleSignIn}
-        </p>
-      </div>
-
+      }
+      toolbar={
+        <Link
+          to="/"
+          className="inline-flex min-h-11 w-fit items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70"
+        >
+          <ArrowLeft className="size-4" aria-hidden />
+          {t.auth.back}
+        </Link>
+      }
+    >
       {confirmSent ? (
         <Card>
           <CardContent className="flex items-start gap-3 py-6">
@@ -192,6 +190,6 @@ export default function Auth({ mode }: { mode: AuthMode }) {
       >
         {isSignUp ? t.auth.toggleToSignIn : t.auth.toggleToSignUp}
       </Link>
-    </main>
+    </PageFrame>
   )
 }

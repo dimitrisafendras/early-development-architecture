@@ -3,7 +3,7 @@ import { Milk, Copy, Plus, Repeat } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { NumberInput } from '@/components/ui/number-input'
+import { NumberInput, type NumberInputProps } from '@/components/ui/number-input'
 import { DateTimePicker } from '@/components/ui/date-time-picker'
 import { ChoiceGroup } from './ChoiceGroup'
 import { nowDateTimeKey, useDateLocale } from '../lib/dates'
@@ -27,9 +27,10 @@ export interface AddFeedInput {
 
 /**
  * Log-a-feed form, shared by the /feed page (full) and the /daily widget
- * (`compact`). Compact drops the time + note fields and the copy-last button,
- * stamps the feed at "now", and lays out as a single tight column so it fits
- * inside the day's feed widget.
+ * (`compact`). Compact drops the time + note fields, stamps the feed at "now",
+ * and lays out as one column of full-width, equal-height controls — method
+ * pills, then the amount stepper, then the actions — so it reads top-to-bottom
+ * and every target stays thumb-sized inside the day's narrow feed widget.
  */
 export function AddFeedForm({
   last,
@@ -117,29 +118,37 @@ export function AddFeedForm({
   const isBreast = method === 'breast'
   const amountId = isBreast ? 'f-min' : 'f-amt'
   const amountLabelText = isBreast ? tf.minutesLabel : tf.amountLabel
-  const amountControl = isBreast ? (
-    <NumberInput
-      id="f-min"
-      value={minutes}
-      onValueChange={setMinutes}
-      floor={0}
-      step={5}
-      smallStep={1}
-      largeStep={15}
-      {...fields.stepper}
-    />
-  ) : (
-    <NumberInput
-      id="f-amt"
-      value={amount}
-      onValueChange={setAmount}
-      floor={0}
-      step={10}
-      smallStep={5}
-      largeStep={50}
-      {...fields.stepper}
-    />
-  )
+  /**
+   * One source of truth for the stepper's numeric behaviour — breast logs
+   * minutes, everything else millilitres — so the two layouts below can differ
+   * in presentation without the step scales drifting apart.
+   */
+  // `unit` + a placeholder drawn from the last feed keep the capsule from ever
+  // reading as an empty box, and hint the amount you probably want.
+  const amountProps: NumberInputProps = isBreast
+    ? {
+        id: 'f-min',
+        value: minutes,
+        onValueChange: setMinutes,
+        floor: 0,
+        step: 5,
+        smallStep: 1,
+        largeStep: 15,
+        unit: tf.minShort,
+        placeholder: last?.minutes != null ? String(last.minutes) : '15',
+      }
+    : {
+        id: 'f-amt',
+        value: amount,
+        onValueChange: setAmount,
+        floor: 0,
+        step: 10,
+        smallStep: 5,
+        largeStep: 50,
+        unit: tf.mlShort,
+        placeholder: last?.amount_ml != null ? String(last.amount_ml) : '120',
+      }
+  const amountControl = <NumberInput {...amountProps} {...fields.stepper} />
   const amountField = (
     <div className="space-y-1.5">
       <Label htmlFor={amountId}>{amountLabelText}</Label>
@@ -163,15 +172,26 @@ export function AddFeedForm({
           </div>
         )}
         {methodTabs}
+        {/* The stepper gets a row to itself. Sharing one with the submit button
+            left ~40px of value between the −/+ caps in the day's ~21rem tool
+            zone: unreadable, and impossible to aim a thumb at. The `max-w` is
+            the other half of the same problem — in a wide zone a full-bleed
+            stepper throws the two caps to opposite edges, so it stops growing
+            once it is a comfortable field and stays left-aligned under its
+            label. Value is bumped a step: it is this form's whole payload. */}
         <div className="space-y-1.5">
           <Label htmlFor={amountId}>{amountLabelText}</Label>
-          <div className="flex items-center gap-2">
-            <div className="flex-1">{amountControl}</div>
-            <Button type="submit" disabled={busy}>
-              <Milk className="mr-2 size-4" /> {tf.save}
-            </Button>
-          </div>
+          <NumberInput
+            {...amountProps}
+            {...fields.stepper}
+            className="max-w-[16rem]"
+          />
         </div>
+        {/* Primary, then the one-tap shortcut: one column of equal-height,
+            full-width controls, each its own unambiguous target. */}
+        <Button type="submit" disabled={busy} className="w-full">
+          <Milk className="mr-2 size-4" /> {tf.save}
+        </Button>
         {last && (
           <Button type="button" variant="secondary" onClick={submitLast} disabled={busy} className="w-full">
             <Repeat className="mr-2 size-4" /> {tf.repeatLast}

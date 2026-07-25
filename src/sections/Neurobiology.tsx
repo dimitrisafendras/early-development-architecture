@@ -1,6 +1,5 @@
 import { HeartPulse, Scissors, Zap } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { SectionHeader } from '../components/SectionHeader'
 import { BrainGrowthChart } from '../components/charts'
 import { useT } from '../i18n'
 
@@ -9,7 +8,6 @@ export function Neurobiology() {
   const tn = t.neurobiology
   return (
     <section id="neurobiology">
-      <SectionHeader module={1} title={tn.title} description={tn.description} />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <Card className="lg:col-span-5">
           <CardContent>

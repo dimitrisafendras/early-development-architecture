@@ -1,6 +1,5 @@
 import { Ban, EyeOff, Users, type LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { SectionHeader } from '../components/SectionHeader'
 import { efficiencyScores, type StatusTone } from '../data'
 import { useT } from '../i18n'
 
@@ -24,7 +23,6 @@ export function Environment() {
   const te = t.environment
   return (
     <section id="environment">
-      <SectionHeader module={6} title={te.title} description={te.description} />
       <Card>
         <CardContent>
           <div className="grid grid-cols-1 items-center gap-8 md:grid-cols-2">

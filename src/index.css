@@ -98,6 +98,13 @@ section {
      link or the jump nav scrolls a section into view. */
   scroll-margin-top: calc(84px + env(safe-area-inset-top));
 }
+@media (min-width: 80rem) {
+  /* From `xl` the top bar is gone — navigation is the left rail — so a hash
+     target that still reserved the bar's height would land 84px too low. */
+  section {
+    scroll-margin-top: 0;
+  }
+}
 
 @theme inline {
   /* Comfortaa — one rounded, friendly typeface for every language (full Greek
@@ -263,9 +270,9 @@ section {
     }
   }
 
-  /* Reserves room for the bottom tab bar so the footer and the last card are
-     never trapped underneath it. Released at `xl`, where the bar is hidden and
-     the nav renders its links inline instead. */
+  /* Reserves room for the bottom tab bar so the last card on a page is never
+     trapped underneath it. Released at `xl`, where the bar is hidden and the
+     left rail is the navigation. */
   .pb-bottom-nav {
     padding-bottom: calc(var(--app-bottom-nav-h) + env(safe-area-inset-bottom));
   }

@@ -10,7 +10,6 @@ import {
   MoonStar,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { SectionHeader } from '../components/SectionHeader'
 import { useT } from '../i18n'
 
 const practiceIcons = [Clock, Droplets, Bath, CalendarDays]
@@ -21,8 +20,6 @@ export function Bathing() {
   const tb = t.bathing
   return (
     <section id="bathing">
-      <SectionHeader title={tb.title} description={tb.description} />
-
       {/* Key numbers */}
       <div className="mb-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {tb.facts.map((f, i) => (

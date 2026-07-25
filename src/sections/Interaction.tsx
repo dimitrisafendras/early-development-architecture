@@ -1,6 +1,5 @@
 import { Repeat, MessageCircle, BookOpen, Smile, Hand, MonitorOff, Clock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
-import { SectionHeader } from '../components/SectionHeader'
 import {
   interactionStats,
   awakeWindows,
@@ -37,8 +36,6 @@ export function Interaction() {
   const activeWindow = baby ? bandIndex(baby.months, awakeWindowUppers) : -1
   return (
     <section id="interaction">
-      <SectionHeader module={8} title={ti.title} description={ti.description} />
-
       {/* How much — daily dose */}
       <h3 className="mb-4 text-sm font-semibold uppercase tracking-[0.16em] text-primary">
         {ti.howMuchTitle}

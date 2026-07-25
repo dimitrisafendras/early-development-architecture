@@ -29,6 +29,10 @@ interface AppState {
   /** A user-customized day schedule. `null` = use the built-in localized one. */
   customSchedule: ScheduleSlot[] | null
   setCustomSchedule: (slots: ScheduleSlot[] | null) => void
+  /** Desktop sidebar collapsed to an icon rail. Defaults to collapsed so the
+   *  page gets the width; expanded state persists across sessions. */
+  navCollapsed: boolean
+  toggleNav: () => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -67,6 +71,8 @@ export const useAppStore = create<AppState>()(
       setCardOrder: (cardOrder) => set({ cardOrder }),
       customSchedule: null,
       setCustomSchedule: (customSchedule) => set({ customSchedule }),
+      navCollapsed: true,
+      toggleNav: () => set((state) => ({ navCollapsed: !state.navCollapsed })),
     }),
     {
       name: 'eda-theme',
@@ -79,6 +85,7 @@ export const useAppStore = create<AppState>()(
         checklistHistory: state.checklistHistory,
         cardOrder: state.cardOrder,
         customSchedule: state.customSchedule,
+        navCollapsed: state.navCollapsed,
       }),
     },
   ),
