@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
-import Home from './pages/Home'
-import Topic from './pages/Topic'
-import LearnGroup from './pages/LearnGroup'
-import Daily from './pages/Daily'
+import { Routes, Route, Navigate, useLocation, useParams } from 'react-router-dom'
+import Day from './pages/Day'
+import Schedule from './pages/Schedule'
+import Wiki from './pages/Wiki'
+import WikiTopic from './pages/WikiTopic'
 import Tracker from './pages/Tracker'
 import Baby from './pages/Baby'
 import Family from './pages/Family'
@@ -39,22 +39,35 @@ export default function App() {
       <ScrollToTop />
       <Routes>
         <Route element={<Layout />}>
-          <Route path="/" element={<Home />} />
-          <Route path="/topic/:slug" element={<Topic />} />
-          <Route path="/learn/:group" element={<LearnGroup />} />
-          <Route path="/daily" element={<Daily />} />
+          <Route path="/" element={<Day />} />
+          <Route path="/schedule" element={<Schedule />} />
+          <Route path="/wiki" element={<Wiki />} />
+          <Route path="/wiki/:slug" element={<WikiTopic />} />
           <Route path="/tracker" element={<Tracker />} />
           <Route path="/baby" element={<Baby />} />
           <Route path="/family" element={<Family />} />
           <Route path="/feed" element={<FeedLog />} />
           <Route path="/signin" element={<Auth mode="signin" />} />
           <Route path="/signup" element={<Auth mode="signup" />} />
+          {/* Back-compat redirects for the pre-refactor routes. */}
+          <Route path="/daily" element={<Navigate to="/" replace />} />
+          <Route path="/learn/:group" element={<Navigate to="/wiki" replace />} />
+          <Route path="/topic/:slug" element={<TopicRedirect />} />
         </Route>
         <Route path="/design-system" element={<DesignSystem />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>
   )
+}
+
+/** Redirect the legacy `/topic/:slug` route to its new home: the two promoted
+ *  topics became first-class surfaces (full-day → the Day page, action-items →
+ *  the Day checklist); every other topic now lives under `/wiki/:slug`. */
+function TopicRedirect() {
+  const { slug } = useParams()
+  if (slug === 'full-day' || slug === 'action-items') return <Navigate to="/" replace />
+  return <Navigate to={`/wiki/${slug}`} replace />
 }
 
 /** Reset scroll to the top on every route change so pages don't open mid-scroll —

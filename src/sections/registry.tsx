@@ -11,6 +11,8 @@ import {
   MessagesSquare,
   MoonStar,
   Utensils,
+  Bath,
+  HeartHandshake,
 } from 'lucide-react'
 import type { Messages } from '../i18n'
 import { Neurobiology } from './Neurobiology'
@@ -24,6 +26,8 @@ import { Interaction } from './Interaction'
 import { FullDay } from './FullDay'
 import { Sleep } from './Sleep'
 import { Feeding } from './Feeding'
+import { Bathing } from './Bathing'
+import { Soothing } from './Soothing'
 
 export type TopicGroup = 'foundations' | 'connection' | 'rhythm' | 'practice'
 
@@ -59,12 +63,14 @@ export const topics: Topic[] = [
   { slug: 'serve-return', module: 2, group: 'connection', icon: Repeat, label: (t) => t.nav.links.serveReturn, blurb: (t) => t.serveReturn.description, Component: ServeReturn },
   { slug: 'parentese-music', module: 3, group: 'connection', icon: Music, label: (t) => t.nav.links.languageMusic, blurb: (t) => t.languageMusic.description, Component: LanguageMusic },
   { slug: 'interaction-time', module: 8, group: 'connection', icon: MessagesSquare, label: (t) => t.nav.links.interaction, blurb: (t) => t.interaction.description, Component: Interaction },
+  { slug: 'soothing', module: 13, group: 'connection', icon: HeartHandshake, label: (t) => t.nav.links.soothing, blurb: (t) => t.soothing.description, Component: Soothing },
   // Daily rhythm — the physical care routine
   { slug: 'tummy-time', module: 4, group: 'rhythm', icon: Baby, label: (t) => t.nav.links.tummyTime, blurb: (t) => t.tummyTime.description, Component: TummyTime },
   { slug: 'daily-routine', module: 5, group: 'rhythm', icon: CalendarClock, label: (t) => t.nav.links.routine, blurb: (t) => t.routine.description, Component: Routine },
   { slug: 'full-day', module: 11, group: 'rhythm', icon: CalendarDays, label: (t) => t.nav.links.fullDay, blurb: (t) => t.fullDay.description, Component: FullDay },
   { slug: 'sleep', module: 9, group: 'rhythm', icon: MoonStar, label: (t) => t.nav.links.sleep, blurb: (t) => t.sleep.description, Component: Sleep },
   { slug: 'feeding', module: 10, group: 'rhythm', icon: Utensils, label: (t) => t.nav.links.feeding, blurb: (t) => t.feeding.description, Component: Feeding },
+  { slug: 'bathing', module: 12, group: 'rhythm', icon: Bath, label: (t) => t.nav.links.bathing, blurb: (t) => t.bathing.description, Component: Bathing },
   // Put it into practice
   { slug: 'action-items', module: 7, group: 'practice', icon: ListChecks, label: (t) => t.nav.links.summary, blurb: (t) => t.summary.description, Component: Summary },
 ]
@@ -74,8 +80,9 @@ export function topicsInGroup(group: TopicGroup): Topic[] {
   return topics.filter((topic) => topic.group === group)
 }
 
-/** Learn groups shown as combined pages (`/learn/:group`). "practice" (the
- *  daily checklist) lives on the /daily dashboard, so it isn't a Learn page. */
+/** Theme groups that form the Wiki's chapters (in reading order). "practice"
+ *  (the daily checklist) is a daily tool that lives on the Day page, so it isn't
+ *  a Wiki chapter. */
 export const learnGroups: TopicGroup[] = ['foundations', 'connection', 'rhythm']
 
 export const groupMeta: Record<TopicGroup, { icon: ComponentType<{ className?: string }> }> = {
@@ -89,8 +96,32 @@ export function isLearnGroup(value: string | undefined): value is TopicGroup {
   return learnGroups.includes(value as TopicGroup)
 }
 
-export const groupPath = (group: TopicGroup) => `/learn/${group}`
+/** Topics that are NOT part of the Wiki: they became first-class app surfaces —
+ *  the full-day timeline is the Day page (`/`) and the checklist is a Day tool. */
+const WIKI_HIDDEN = new Set(['full-day', 'action-items'])
 
+/** Wiki topics in a chapter, in registry order (excludes the promoted topics). */
+export function wikiTopicsInGroup(group: TopicGroup): Topic[] {
+  return topicsInGroup(group).filter((topic) => !WIKI_HIDDEN.has(topic.slug))
+}
+
+/** All Wiki topics as one ordered list — drives the in-chapter prev/next pager. */
+export const wikiTopics: Topic[] = learnGroups.flatMap(wikiTopicsInGroup)
+
+export function isWikiTopic(slug: string | undefined): boolean {
+  return wikiTopics.some((topic) => topic.slug === slug)
+}
+
+/** The theme group a topic belongs to, or undefined if it isn't a Wiki topic. */
+export function groupOfTopic(slug: string | undefined): TopicGroup | undefined {
+  return wikiTopics.find((topic) => topic.slug === slug)?.group
+}
+
+export const wikiPath = (slug: string) => `/wiki/${slug}`
+
+/** Legacy path helpers — kept only so the old-route redirects in App.tsx and any
+ *  external deep links resolve. New links use {@link wikiPath}. */
+export const groupPath = (group: TopicGroup) => `/learn/${group}`
 export const topicPath = (slug: string) => `/topic/${slug}`
 
 export function findTopic(slug: string | undefined): Topic | undefined {

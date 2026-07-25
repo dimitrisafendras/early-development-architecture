@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { todayKey } from './lib/schedule'
+import type { ScheduleSlot } from './data'
 
 export type LatencyMode = 'optimal' | 'delayed' | 'none'
 export type Palette = 'blue' | 'red'
@@ -25,6 +26,9 @@ interface AppState {
   /** User's preferred hub card order (topic slugs). Empty = registry order. */
   cardOrder: string[]
   setCardOrder: (order: string[]) => void
+  /** A user-customized day schedule. `null` = use the built-in localized one. */
+  customSchedule: ScheduleSlot[] | null
+  setCustomSchedule: (slots: ScheduleSlot[] | null) => void
 }
 
 export const useAppStore = create<AppState>()(
@@ -61,6 +65,8 @@ export const useAppStore = create<AppState>()(
         })),
       cardOrder: [],
       setCardOrder: (cardOrder) => set({ cardOrder }),
+      customSchedule: null,
+      setCustomSchedule: (customSchedule) => set({ customSchedule }),
     }),
     {
       name: 'eda-theme',
@@ -72,6 +78,7 @@ export const useAppStore = create<AppState>()(
         locale: state.locale,
         checklistHistory: state.checklistHistory,
         cardOrder: state.cardOrder,
+        customSchedule: state.customSchedule,
       }),
     },
   ),

@@ -20,16 +20,14 @@ import { useT } from '../i18n'
  * `variant="row"` is the full-width labelled form used inside the nav dropdown;
  * `"inline"` is the compact icon-first form for the desktop nav row.
  *
- * Renders nothing when Supabase is not configured.
+ * The sign-in entry point always shows; the signed-in popover only appears when
+ * Supabase is configured (there can be no session otherwise).
  */
 export function AccountControl({ variant = 'inline' }: { variant?: 'inline' | 'row' }) {
   const t = useT()
   const { pathname, search } = useLocation()
   const { session, loading } = useSession()
   const [open, setOpen] = useState(false)
-
-  if (!isSupabaseEnabled || !supabase) return null
-  const sb = supabase
 
   const isRow = variant === 'row'
   const triggerClass = cn(
@@ -39,7 +37,7 @@ export function AccountControl({ variant = 'inline' }: { variant?: 'inline' | 'r
       : 'min-h-11 rounded-full px-3 sm:min-h-0 sm:px-2.5 sm:py-1.5',
   )
 
-  if (!session) {
+  if (!session || !isSupabaseEnabled || !supabase) {
     // Come back to wherever the user was once they're in.
     const next = encodeURIComponent(`${pathname}${search}`)
     return (
@@ -51,6 +49,7 @@ export function AccountControl({ variant = 'inline' }: { variant?: 'inline' | 'r
       </Link>
     )
   }
+  const sb = supabase
 
   const email = session.user.email ?? t.auth.anonymousUser
   // The local part is the recognisable bit and fits the bar; the full address is

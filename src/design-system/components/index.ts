@@ -7,6 +7,11 @@ export {
 } from './GlassNav'
 export { GlassButton, glassButtonVariants, type GlassButtonProps } from './GlassButton'
 export {
+  GlassScrollArea,
+  type GlassScrollAreaProps,
+  type GlassScrollAreaHandle,
+} from './GlassScrollArea'
+export {
   GlassToggleGroup,
   type GlassToggleGroupProps,
   type GlassToggleOption,

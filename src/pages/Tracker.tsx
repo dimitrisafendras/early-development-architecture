@@ -1,12 +1,16 @@
-import type { ReactNode } from 'react'
-import { Play, Square, Trash2, Timer, CalendarDays, Flame, Hourglass, Target } from 'lucide-react'
+import { useState } from 'react'
+import { Play, Square, Trash2, Pencil, Check, Timer, CalendarDays, Flame, Hourglass, Target } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { GlassScrollArea } from '@/design-system/components'
 import { ProgressRing } from '../components/ProgressRing'
+import { StatTile } from '../components/StatTile'
 import { TummyWeekChart } from '../components/charts'
 import { SectionHeader } from '../components/SectionHeader'
 import { useBabies } from '../lib/useBabies'
-import { useTummyTracker, useWeeklyMinutes } from '../lib/useTummyTracker'
+import { useTummyTracker, useWeeklyMinutes, type TrackerSession } from '../lib/useTummyTracker'
 import { tummyTargetForAgeMonths, ageInMonths, todayKey } from '../lib/schedule'
 import { formatDateKey, useDateLocale } from '../lib/dates'
 import { useT } from '../i18n'
@@ -15,6 +19,19 @@ function fmtClock(totalSeconds: number): string {
   const m = Math.floor(totalSeconds / 60)
   const s = totalSeconds % 60
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
+/** "HH:MM" for a time input, from an ISO timestamp. */
+function timeOfDay(iso: string): string {
+  const d = new Date(iso)
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+/** Re-stamp an ISO timestamp's time-of-day (same calendar day) from "HH:MM". */
+function withTimeOfDay(iso: string, hhmm: string): string {
+  const d = new Date(iso)
+  const [h, m] = hhmm.split(':').map(Number)
+  d.setHours(h || 0, m || 0, 0, 0)
+  return d.toISOString()
 }
 
 /** Uses the app's locale, not the browser's, so times read the same everywhere. */
@@ -79,11 +96,19 @@ export default function Tracker() {
 
   return (
     <>
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 page-px py-10">
+      <main className="relative mx-auto flex w-full max-w-5xl flex-col gap-10 page-px py-10">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 -top-8 -z-10 mx-auto h-56 max-w-2xl rounded-full bg-primary/15 opacity-60 blur-3xl"
+        />
         <SectionHeader title={t.tracker.title} description={t.tracker.subtitle} />
 
-        <Card>
-          <CardContent className="flex flex-col items-center gap-6 py-8">
+        <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-card via-card to-primary/5">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-1/2 size-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl"
+          />
+          <CardContent className="relative flex flex-col items-center gap-6 py-8">
             <ProgressRing progress={totalWithRunning / target} complete={metTarget}>
               <div>
                 {tracker.isRunning ? (
@@ -164,47 +189,28 @@ export default function Tracker() {
               {tracker.sessions.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t.tracker.noHistory}</p>
               ) : (
-                <div className="max-h-[10.5rem] space-y-4 overflow-y-auto pr-1">
+                <GlassScrollArea className="max-h-[10.5rem]">
+                  <div className="space-y-4 pr-1">
                   {historyDays.map(([key, list]) => (
                     <div key={key}>
                       <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         {dayLabel(key)}
                       </p>
                       <ul className="divide-y divide-border">
-                        {list.map((s) => {
-                          const mins = Math.max(
-                            0,
-                            Math.round(
-                              (new Date(s.ended_at).getTime() - new Date(s.started_at).getTime()) / 60000,
-                            ),
-                          )
-                          return (
-                            <li key={s.id} className="flex items-center justify-between py-2.5 text-sm">
-                              <span className="text-muted-foreground">
-                                {fmtTime(s.started_at, locale)} – {fmtTime(s.ended_at, locale)}
-                              </span>
-                              <span className="flex items-center gap-3">
-                                <span className="font-semibold text-foreground">
-                                  {mins} {t.tracker.minutesShort}
-                                </span>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="icon"
-                                  aria-label={t.tracker.delete}
-                                  onClick={() => void tracker.remove(s.id)}
-                                  className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                                >
-                                  <Trash2 className="size-4" />
-                                </Button>
-                              </span>
-                            </li>
-                          )
-                        })}
+                        {list.map((s) => (
+                          <SessionRow
+                            key={s.id}
+                            session={s}
+                            locale={locale}
+                            onSave={(patch) => tracker.update(s.id, patch)}
+                            onRemove={() => tracker.remove(s.id)}
+                          />
+                        ))}
                       </ul>
                     </div>
                   ))}
-                </div>
+                  </div>
+                </GlassScrollArea>
               )}
               <div className="mt-4 border-t border-border pt-3 text-sm">
                 <span className="text-muted-foreground">{t.tracker.cumulativeToday}: </span>
@@ -231,29 +237,95 @@ export default function Tracker() {
   )
 }
 
-function StatTile({
-  icon,
-  label,
-  value,
-  unit,
+/** One session in the history. Tap the pencil to adjust its start/end times
+ *  inline; saving re-derives the duration and persists via `onSave`. */
+function SessionRow({
+  session,
+  locale,
+  onSave,
+  onRemove,
 }: {
-  icon: ReactNode
-  label: string
-  value: string
-  unit?: string
+  session: TrackerSession
+  locale: string
+  onSave: (patch: { started_at: string; ended_at: string }) => Promise<void>
+  onRemove: () => void
 }) {
+  const t = useT()
+  const [editing, setEditing] = useState(false)
+  const [start, setStart] = useState(timeOfDay(session.started_at))
+  const [end, setEnd] = useState(timeOfDay(session.ended_at))
+  const [busy, setBusy] = useState(false)
+  const mins = Math.max(
+    0,
+    Math.round((new Date(session.ended_at).getTime() - new Date(session.started_at).getTime()) / 60000),
+  )
+
+  async function save() {
+    setBusy(true)
+    try {
+      await onSave({
+        started_at: withTimeOfDay(session.started_at, start),
+        ended_at: withTimeOfDay(session.ended_at, end),
+      })
+      setEditing(false)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (!editing) {
+    return (
+      <li className="flex items-center justify-between py-2.5 text-sm">
+        <span className="text-muted-foreground">
+          {fmtTime(session.started_at, locale)} – {fmtTime(session.ended_at, locale)}
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="mr-1.5 font-semibold text-foreground">
+            {mins} {t.tracker.minutesShort}
+          </span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t.common.edit}
+            onClick={() => setEditing(true)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Pencil className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t.tracker.delete}
+            onClick={onRemove}
+            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </span>
+      </li>
+    )
+  }
+
   return (
-    <Card>
-      <CardContent className="py-4">
-        <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
-          <span className="shrink-0 text-primary">{icon}</span>
-          <span className="truncate">{label}</span>
-        </div>
-        <div className="mt-1 truncate font-heading text-2xl font-semibold text-foreground">
-          {value}
-          {unit && <span className="ml-1 text-sm font-medium text-muted-foreground">{unit}</span>}
-        </div>
-      </CardContent>
-    </Card>
+    <li className="flex flex-wrap items-end gap-3 py-3">
+      <div className="space-y-1.5">
+        <Label>{t.tracker.start}</Label>
+        <Input type="time" value={start} onChange={(e) => setStart(e.target.value)} className="w-28 tabular-nums" />
+      </div>
+      <div className="space-y-1.5">
+        <Label>{t.tracker.stop}</Label>
+        <Input type="time" value={end} onChange={(e) => setEnd(e.target.value)} className="w-28 tabular-nums" />
+      </div>
+      <div className="flex items-center gap-2">
+        <Button type="button" onClick={save} disabled={busy}>
+          <Check className="mr-1.5 size-4" /> {t.common.save}
+        </Button>
+        <Button type="button" variant="ghost" onClick={() => setEditing(false)}>
+          {t.common.cancel}
+        </Button>
+      </div>
+    </li>
   )
 }

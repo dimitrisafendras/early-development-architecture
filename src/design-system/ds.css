@@ -284,3 +284,46 @@
     transition: none;
   }
 }
+
+/* ---- GlassScrollArea: frosted, self-hiding scrollbar --------------------- */
+/* A thin translucent sliver that stays invisible until the area is scrolled or
+   hovered, then fades back out. More specific than the global scrollbar rule in
+   index.css, so it wins for this viewport only. */
+.ds-scroll-glass {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.35s ease;
+}
+.ds-scroll-glass:hover,
+.ds-scroll-glass.is-scrolling {
+  scrollbar-color: color-mix(in oklab, var(--foreground) 26%, transparent) transparent;
+}
+.ds-scroll-glass::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.ds-scroll-glass::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ds-scroll-glass::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border: 3px solid transparent;
+  border-radius: 9999px;
+  background-clip: content-box;
+  transition: background-color 0.35s ease;
+}
+.ds-scroll-glass:hover::-webkit-scrollbar-thumb,
+.ds-scroll-glass.is-scrolling::-webkit-scrollbar-thumb {
+  background-color: color-mix(in oklab, var(--foreground) 26%, transparent);
+  background-clip: content-box;
+}
+.ds-scroll-glass::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in oklab, var(--foreground) 44%, transparent);
+  background-clip: content-box;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ds-scroll-glass,
+  .ds-scroll-glass::-webkit-scrollbar-thumb {
+    transition: none;
+  }
+}

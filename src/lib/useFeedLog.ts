@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { isSupabaseEnabled } from './supabase'
 import { useSession } from './use-session'
 import { todayKey } from './schedule'
-import { listFeedsSince, addFeed, deleteFeed, type FeedMethod, type FeedLog } from './db'
+import { listFeedsSince, addFeed, updateFeed, deleteFeed, type FeedMethod, type FeedLog } from './db'
 
 const LOCAL_KEY = 'eda-feeds-local'
 
@@ -98,6 +98,15 @@ export function useFeedLog(babyId: string | null, householdId: string | null) {
     [signedIn, babyId, householdId, refresh],
   )
 
+  const update = useCallback(
+    async (id: string, patch: Partial<AddFeedInput>) => {
+      if (signedIn) await updateFeed(id, patch).catch(() => {})
+      else saveLocal(loadLocal().map((f) => (f.id === id ? { ...f, ...patch } : f)))
+      await refresh().catch(() => {})
+    },
+    [signedIn, refresh],
+  )
+
   const remove = useCallback(
     async (id: string) => {
       if (signedIn) await deleteFeed(id).catch(() => {})
@@ -115,5 +124,5 @@ export function useFeedLog(babyId: string | null, householdId: string | null) {
     ? Math.floor((Date.now() - new Date(lastFeed.fed_at).getTime()) / 60000)
     : null
 
-  return { signedIn, feeds, todayFeeds, todayMl, lastFeed, minsSinceLast, add, remove }
+  return { signedIn, feeds, todayFeeds, todayMl, lastFeed, minsSinceLast, add, update, remove }
 }

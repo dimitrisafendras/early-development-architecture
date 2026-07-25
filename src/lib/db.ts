@@ -204,6 +204,14 @@ export async function insertClosedSession(
   return data as TummySession
 }
 
+export async function updateSession(
+  id: string,
+  patch: { started_at?: string; ended_at?: string },
+): Promise<void> {
+  const { error } = await client().from('tummy_sessions').update(patch).eq('id', id)
+  if (error) throw error
+}
+
 export async function deleteSession(id: string): Promise<void> {
   const { error } = await client().from('tummy_sessions').delete().eq('id', id)
   if (error) throw error
@@ -240,6 +248,20 @@ export async function addFeed(input: {
     .single()
   if (error) throw error
   return data as FeedLog
+}
+
+export async function updateFeed(
+  id: string,
+  patch: {
+    fed_at?: string
+    method?: FeedMethod
+    amount_ml?: number | null
+    minutes?: number | null
+    note?: string | null
+  },
+): Promise<void> {
+  const { error } = await client().from('feed_logs').update(patch).eq('id', id)
+  if (error) throw error
 }
 
 export async function deleteFeed(id: string): Promise<void> {

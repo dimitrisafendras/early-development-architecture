@@ -37,11 +37,11 @@ Shared daily logic is hook-first: `useDailyChecklist` (checklist + streak + sync
 
 | Path | Purpose |
 |---|---|
-| `src/pages/` | Route components (`Home.tsx`, `DesignSystem.tsx`) |
-| `src/components/` | Shared app components — `Hero`, `NavBar`, `Footer`, `SectionHeader`, `charts.tsx` |
+| `src/pages/` | Route components (`Day.tsx` = home split view, `Wiki.tsx` / `WikiTopic.tsx`, `Tracker.tsx`, `FeedLog.tsx`, `Baby.tsx`, `Family.tsx`, `Auth.tsx`, `DesignSystem.tsx`) |
+| `src/components/` | Shared app components — `NavBar`, `Footer`, `SectionHeader`, `StatTile`, `AgeBadge`, `ProgressRing`, `dayActivity`, `charts.tsx` |
 | `src/components/ui/` | Vendored shadcn primitives. These are **owned source, not a dependency** — edit them directly to extend variants/behavior |
-| `src/sections/` | The 7 infographic sections rendered on `/` |
-| `src/design-system/` | Design system: `tokens.ts` (typed design tokens), `components/` — `GlassSurface`, `GlassNav`, `GlassButton` (Liquid Glass material components) |
+| `src/sections/` | The infographic topic sections (registry-driven, rendered on the Wiki topic pages) |
+| `src/design-system/` | Design system: `tokens.ts` (typed design tokens), `ds.css` (glass material + `.ds-scroll-glass`), `components/` — `GlassSurface`, `GlassNav`, `GlassButton`, `GlassToggleGroup` (Liquid Glass material) and `GlassScrollArea` (content scroll utility) |
 | `src/data.ts` | All infographic content/data |
 | `src/store.ts` | zustand store — `dark` / `toggleTheme`, `palette` (`'blue' | 'red'`) / `setPalette`, latency simulator state, checklist state |
 
@@ -58,9 +58,10 @@ When adding UI, always test both palettes × both themes (4 combinations).
 
 ## When to use which technology
 
+- **Design system first (respect the DS)** — always reach for an existing shared component before writing markup: shadcn primitives in `src/components/ui/*`, the Liquid Glass components in `src/design-system/components/*`, and the shared app components in `src/components/*` (`SectionHeader`, `StatTile`, `AgeBadge`, `ProgressRing`, `GlassScrollArea`, charts, …). If a component almost fits but lacks a variant or behavior, **extend that component** (it's owned source) rather than hand-rolling a one-off. If a pattern is used on more than one screen (stat tiles, scroll regions, page headers, empty states), **extract it into a shared component** instead of duplicating it per page. Never reintroduce a bespoke version of something the DS already provides.
 - **shadcn primitives (`src/components/ui/*`)** — default for all standard UI: buttons, cards, form controls, overlays, etc. Never hand-roll a raw `<button>` or `<input>` when a primitive already exists.
-- **Glass components (`src/design-system/components/*`)** — only for the floating navigation/control layer (nav bars, floating toolbars, capsule controls), per Liquid Glass guidance. Never use them for content surfaces, and never stack glass on glass.
-- **Plain Tailwind + semantic HTML** — layout, typography, one-off decorative elements.
+- **Liquid Glass material (`GlassSurface` / `GlassNav` / `GlassButton` / `GlassToggleGroup`)** — only for the floating navigation/control layer (nav bars, floating toolbars, capsule controls), per Liquid Glass guidance. Never use the glass *material* for content surfaces, and never stack glass on glass. (`GlassScrollArea` is a content utility — a scroll viewport with edge fades + a frosted self-hiding scrollbar — not a glass material surface; use it for any in-card scroll region.)
+- **Plain Tailwind + semantic HTML** — layout, typography, one-off decorative elements only. If it's reusable, promote it to a shared component (see "Design system first").
 - **Color** — always use shadcn token classes (`bg-background`, `text-muted-foreground`, `bg-primary`, `border-border`, ...) so both themes and both palettes work correctly. Raw Tailwind palette classes (e.g. `bg-red-500`) are only for semantically fixed colors like success/warning/danger.
 - **State** — zustand for anything shared across components/routes (theme, palette, checklist, simulator). Local `useState` for everything component-local. Don't add a new state library.
 - **Charts** — chart.js via `react-chartjs-2` for any chart; pull theme-aware colors from the store's `dark` flag via `useChartColors` in `src/components/charts.tsx`.

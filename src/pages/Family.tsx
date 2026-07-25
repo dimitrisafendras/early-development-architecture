@@ -49,7 +49,11 @@ export default function Family() {
 
   return (
     <>
-      <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 page-px py-10">
+      <main className="relative mx-auto flex w-full max-w-3xl flex-col gap-6 page-px py-10">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 -top-8 -z-10 mx-auto h-56 max-w-2xl rounded-full bg-primary/15 opacity-60 blur-3xl"
+        />
         <SectionHeader title={tf.title} description={tf.subtitle} />
 
         {!ready ? (

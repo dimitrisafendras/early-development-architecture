@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
-import { Sun, Moon, Palette, SlidersHorizontal, Download } from 'lucide-react'
+import { Sun, Moon, Palette, SlidersHorizontal, Download, BookOpen } from 'lucide-react'
 import { GlassNav, GlassToggleGroup } from '@/design-system/components'
 import '@/design-system/ds.css'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -12,33 +12,35 @@ import { useAppStore } from '../store'
 import { useInstall } from '../lib/useInstall'
 import { appAreas } from '../lib/appAreas'
 import { useT } from '../i18n'
-import { learnGroups, groupPath } from '../sections/registry'
 
 /**
- * The shared floating nav. The top row stays lean: brand, the app-area icons, a
- * Settings popover (theme / palette / language + Design System), and the account
- * control. The theme's Learn groups sit on the second tier.
+ * The shared floating nav, kept deliberately lean: brand + "you are here" title,
+ * the two top-level destinations (Day, Wiki) as text links, then the tool-area
+ * icons (tracker / feed / baby / family), a Settings popover, and the account
+ * control. The live "what's now" status that used to live up here now sits on
+ * the Day page.
  *
- * Below `xl` all of that collapses into the dropdown, where the same app areas
- * render as full-width labelled rows instead of bare icons — on a phone an
- * unlabelled icon in a menu is a guessing game. Below `xl` the app areas are
- * also always one tap away in the `BottomNav` tab bar.
+ * Below `xl` the links and icons collapse into the dropdown, where every
+ * destination renders as a full-width labelled row — on a phone an unlabelled
+ * icon in a menu is a guessing game. The core areas are also one tap away in the
+ * `BottomNav` tab bar.
  */
 export function NavBar() {
   const t = useT()
   const { pathname } = useLocation()
 
-  const links = learnGroups.map((group) => ({
-    href: groupPath(group),
-    label: t.hub.groups[group],
-  }))
+  // The two top-level destinations. Everything else is a tool area (icons).
+  const links = [
+    { href: '/', label: t.nav.day },
+    { href: '/wiki', label: t.nav.wiki },
+  ]
 
   const iconLink =
     'inline-flex size-11 items-center justify-center rounded-full text-foreground/70 transition-colors hover:bg-foreground/5 hover:text-foreground sm:size-9'
 
-  // `/daily` gets the labelled pill; the rest are icon-only in the inline row.
-  const [today, ...rest] = appAreas
-  const TodayIcon = today.Icon
+  // Day is the home destination (a text link + bottom-tab); the tool areas after
+  // it stay as quick-access icons in the inline row.
+  const toolAreas = appAreas.filter((a) => a.to !== '/')
 
   return (
     <GlassNav
@@ -72,15 +74,7 @@ export function NavBar() {
       }
       actions={
         <>
-          <Link
-            to={today.to}
-            aria-label={today.label(t)}
-            className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/20"
-          >
-            <TodayIcon className="size-4" aria-hidden />
-            {today.label(t)}
-          </Link>
-          {rest.map(({ to, Icon, label }) => (
+          {toolAreas.map(({ to, Icon, label }) => (
             <Link key={to} to={to} aria-label={label(t)} title={label(t)} className={iconLink}>
               <Icon className="size-4" aria-hidden />
             </Link>
@@ -100,11 +94,16 @@ export function NavBar() {
  */
 function MobileActions({ activeHref }: { activeHref: string }) {
   const t = useT()
+  // Day + the tool areas, plus the Wiki, as labelled dropdown rows.
+  const destinations = [
+    ...appAreas.map((a) => ({ to: a.to, Icon: a.Icon, label: a.label(t) })),
+    { to: '/wiki', Icon: BookOpen, label: t.nav.wiki },
+  ]
   return (
     <div className="flex flex-col gap-3">
       <HeaderIdentity />
       <ul className="grid grid-cols-2 gap-1">
-        {appAreas.map(({ to, Icon, label }) => {
+        {destinations.map(({ to, Icon, label }) => {
           const active = activeHref === to
           return (
             <li key={to}>
@@ -119,7 +118,7 @@ function MobileActions({ activeHref }: { activeHref: string }) {
                 )}
               >
                 <Icon className="size-4 shrink-0 text-primary" aria-hidden />
-                <span className="truncate">{label(t)}</span>
+                <span className="truncate">{label}</span>
               </Link>
             </li>
           )

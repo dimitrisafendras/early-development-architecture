@@ -271,6 +271,16 @@ export const feedingUppers = [1, 2, 4, 999]
  *  + the legend; the slot text is localized in i18n (`fullDay.slots`). */
 export type DayActivity = 'feed' | 'sleep' | 'play' | 'tummy' | 'care' | 'wind'
 
+/** A fully-resolved schedule slot (time + type + its own text). The built-in
+ *  {@link fullDaySchedule} pairs with localized text in i18n by index; a
+ *  user-customized schedule (edited on /schedule) stores its text inline. */
+export interface ScheduleSlot {
+  time: string
+  type: DayActivity
+  title: string
+  detail: string
+}
+
 /** A realistic ~3–4-month sample day, in order. Time is locale-independent;
  *  each entry's title/detail live in i18n at the same index. */
 export const fullDaySchedule: { time: string; type: DayActivity }[] = [

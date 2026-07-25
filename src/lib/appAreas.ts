@@ -17,7 +17,7 @@ export interface AppArea {
  */
 export const appAreas: AppArea[] = [
   {
-    to: '/daily',
+    to: '/',
     Icon: CalendarCheck,
     label: (t) => t.nav.today,
     tabLabel: (t) => t.nav.tabs.today,

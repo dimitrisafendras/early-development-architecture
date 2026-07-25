@@ -48,10 +48,10 @@ export function Routine() {
     <section id="routine">
       <SectionHeader module={5} title={t.routine.title} description={t.routine.description} />
 
-      {/* The live "what's now" view lives on /daily + /full-day (one source of
+      {/* The live "what's now" view lives on the Day page (one source of
           truth); this page teaches the routine as a framework. */}
       <Link
-        to="/daily"
+        to="/"
         className="mb-6 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-primary hover:underline sm:min-h-0"
       >
         {t.routine.nowLink} <ArrowRight className="size-3.5" />

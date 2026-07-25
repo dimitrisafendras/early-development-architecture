@@ -1,16 +1,38 @@
-import { Milk, Trash2, Baby as BabyIcon, Utensils, Clock, Hash } from 'lucide-react'
+import { useState } from 'react'
+import { Milk, Trash2, Baby as BabyIcon, Utensils, Clock, Hash, Pencil, Check } from 'lucide-react'
 import { SectionHeader } from '../components/SectionHeader'
 import { AgeBadge, useBabyAge } from '../components/AgeBadge'
 import { AddFeedForm } from '../components/AddFeedForm'
+import { ChoiceGroup } from '../components/ChoiceGroup'
+import { StatTile } from '../components/StatTile'
+import { FeedWeekChart } from '../components/charts'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
+import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { useBabies } from '../lib/useBabies'
-import { useFeedLog } from '../lib/useFeedLog'
-import { bandIndex } from '../lib/schedule'
-import { useDateLocale } from '../lib/dates'
+import { useFeedLog, type FeedEntry } from '../lib/useFeedLog'
+import { useFieldLabels } from '../lib/useFieldLabels'
+import { bandIndex, todayKey } from '../lib/schedule'
+import { formatDateKey, useDateLocale } from '../lib/dates'
 import { feedingRows, feedingUppers } from '../data'
+import type { FeedMethod } from '../lib/db'
 import { useT } from '../i18n'
+
+/** "HH:MM" for a time input, from an ISO timestamp (app locale-independent). */
+function timeOfDay(iso: string): string {
+  const d = new Date(iso)
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+/** Re-stamp an ISO timestamp's time-of-day (same calendar day) from "HH:MM". */
+function withTimeOfDay(iso: string, hhmm: string): string {
+  const d = new Date(iso)
+  const [h, m] = hhmm.split(':').map(Number)
+  d.setHours(h || 0, m || 0, 0, 0)
+  return d.toISOString()
+}
 
 /** Uses the app's locale, not the browser's, so it agrees with the time field. */
 function fmtTime(iso: string, locale: string): string {
@@ -36,8 +58,30 @@ export default function FeedLog() {
   const guideAmount = band != null ? t.feeding.rows[band].amount : null
   const feedsRange = band != null ? feedingRows[band].feedsPerDay : null
 
+  // Last 7 days of volume + feed count, oldest → newest, for the week chart.
+  const week = (() => {
+    const days: { key: string; ml: number; count: number }[] = []
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      days.push({ key: todayKey(d), ml: 0, count: 0 })
+    }
+    for (const f of feed.feeds) {
+      const bucket = days.find((d) => d.key === todayKey(new Date(f.fed_at)))
+      if (bucket) {
+        bucket.ml += f.amount_ml ?? 0
+        bucket.count += 1
+      }
+    }
+    return days
+  })()
+
   return (
-    <main className="mx-auto flex w-full max-w-5xl flex-col gap-6 page-px py-10">
+    <main className="relative mx-auto flex w-full max-w-5xl flex-col gap-6 page-px py-10">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 -top-8 -z-10 mx-auto h-56 max-w-2xl rounded-full bg-primary/15 opacity-60 blur-3xl"
+      />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <SectionHeader title={tf.title} description={tf.subtitle} />
         <AgeBadge />
@@ -45,10 +89,10 @@ export default function FeedLog() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat icon={<Milk className="size-4" />} label={tf.totalToday} value={`${Math.round(feed.todayMl)}`} unit={tf.mlShort} />
-        <Stat icon={<Hash className="size-4" />} label={tf.countToday} value={`${feed.todayFeeds.length}`} />
-        <Stat icon={<Clock className="size-4" />} label={tf.sinceLast} value={sinceText} />
-        <Stat
+        <StatTile icon={<Milk className="size-4" />} label={tf.totalToday} value={`${Math.round(feed.todayMl)}`} unit={tf.mlShort} />
+        <StatTile icon={<Hash className="size-4" />} label={tf.countToday} value={`${feed.todayFeeds.length}`} />
+        <StatTile icon={<Clock className="size-4" />} label={tf.sinceLast} value={sinceText} />
+        <StatTile
           icon={<BabyIcon className="size-4" />}
           label={tf.lastFeed}
           value={feed.lastFeed ? fmtTime(feed.lastFeed.fed_at, locale) : tf.never}
@@ -56,6 +100,23 @@ export default function FeedLog() {
       </div>
 
       {feedsRange && <FeedProgress count={feed.todayFeeds.length} range={feedsRange} tf={tf} />}
+
+      {feed.feeds.length > 0 && (
+        <Card>
+          <CardContent>
+            <p className="mb-4 flex items-center gap-2 text-[15px] font-semibold text-foreground">
+              <Milk className="size-4 text-primary" /> {t.tracker.weekTitle}
+            </p>
+            <FeedWeekChart
+              labels={week.map((d) => formatDateKey(d.key, locale, { weekday: 'short' }))}
+              ml={week.map((d) => Math.round(d.ml))}
+              counts={week.map((d) => d.count)}
+              mlLabel={tf.mlShort}
+              feedsLabel={tf.progressFeeds}
+            />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent>
@@ -80,32 +141,12 @@ export default function FeedLog() {
           ) : (
             <ul className="divide-y divide-border">
               {feed.todayFeeds.map((f) => (
-                <li key={f.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
-                  <span className="flex items-center gap-3">
-                    <span className="font-heading font-bold tabular-nums text-foreground">
-                      {fmtTime(f.fed_at, locale)}
-                    </span>
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                      {tf[f.method]}
-                    </span>
-                  </span>
-                  <span className="flex items-center gap-3">
-                    <span className="font-semibold text-foreground">
-                      {f.amount_ml != null ? `${f.amount_ml} ${tf.mlShort}` : ''}
-                      {f.minutes != null ? `${f.amount_ml != null ? ' · ' : ''}${f.minutes} ${tf.minShort}` : ''}
-                    </span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label={tf.delete}
-                      onClick={() => void feed.remove(f.id)}
-                      className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </span>
-                </li>
+                <FeedRow
+                  key={f.id}
+                  entry={f}
+                  onSave={(patch) => feed.update(f.id, patch)}
+                  onRemove={() => feed.remove(f.id)}
+                />
               ))}
             </ul>
           )}
@@ -115,6 +156,123 @@ export default function FeedLog() {
         </CardContent>
       </Card>
     </main>
+  )
+}
+
+/** One feed in today's list. Tap the pencil to edit method / amount / time
+ *  inline; saving persists via `onSave` (local-first, syncs when signed in). */
+function FeedRow({
+  entry,
+  onSave,
+  onRemove,
+}: {
+  entry: FeedEntry
+  onSave: (patch: { fed_at: string; method: FeedMethod; amount_ml: number | null; minutes: number | null }) => Promise<void>
+  onRemove: () => void
+}) {
+  const t = useT()
+  const tf = t.feed
+  const locale = useDateLocale()
+  const fields = useFieldLabels()
+  const [editing, setEditing] = useState(false)
+  const [method, setMethod] = useState<FeedMethod>(entry.method)
+  const [amount, setAmount] = useState<number | null>(entry.amount_ml)
+  const [minutes, setMinutes] = useState<number | null>(entry.minutes)
+  const [time, setTime] = useState(timeOfDay(entry.fed_at))
+  const [busy, setBusy] = useState(false)
+
+  async function save() {
+    setBusy(true)
+    try {
+      await onSave({
+        fed_at: withTimeOfDay(entry.fed_at, time),
+        method,
+        amount_ml: method === 'breast' ? null : amount,
+        minutes: method === 'breast' ? minutes : null,
+      })
+      setEditing(false)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (!editing) {
+    return (
+      <li className="flex items-center justify-between gap-3 py-2.5 text-sm">
+        <span className="flex items-center gap-3">
+          <span className="font-heading font-bold tabular-nums text-foreground">
+            {fmtTime(entry.fed_at, locale)}
+          </span>
+          <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+            {tf[entry.method]}
+          </span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="mr-1.5 font-semibold text-foreground">
+            {entry.amount_ml != null ? `${entry.amount_ml} ${tf.mlShort}` : ''}
+            {entry.minutes != null ? `${entry.amount_ml != null ? ' · ' : ''}${entry.minutes} ${tf.minShort}` : ''}
+          </span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={t.common.edit}
+            onClick={() => setEditing(true)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            <Pencil className="size-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label={tf.delete}
+            onClick={onRemove}
+            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        </span>
+      </li>
+    )
+  }
+
+  return (
+    <li className="flex flex-col gap-3 py-3">
+      <ChoiceGroup
+        ariaLabel={tf.method}
+        value={method}
+        onChange={setMethod}
+        options={(['bottle', 'breast', 'solid'] as const).map((m) => ({ value: m, label: tf[m] }))}
+      />
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="space-y-1.5">
+          <Label>{tf.timeLabel}</Label>
+          <Input
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="w-32 tabular-nums"
+          />
+        </div>
+        <div className="min-w-[8rem] flex-1 space-y-1.5">
+          <Label>{method === 'breast' ? tf.minutesLabel : tf.amountLabel}</Label>
+          {method === 'breast' ? (
+            <NumberInput value={minutes} onValueChange={setMinutes} floor={0} step={5} smallStep={1} {...fields.stepper} />
+          ) : (
+            <NumberInput value={amount} onValueChange={setAmount} floor={0} step={10} smallStep={5} {...fields.stepper} />
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button type="button" onClick={save} disabled={busy}>
+            <Check className="mr-1.5 size-4" /> {t.common.save}
+          </Button>
+          <Button type="button" variant="ghost" onClick={() => setEditing(false)}>
+            {t.common.cancel}
+          </Button>
+        </div>
+      </div>
+    </li>
   )
 }
 
@@ -169,33 +327,6 @@ function FeedProgress({
           {status}
         </p>
         <p className="mt-1 text-xs text-muted-foreground">{tf.progressNote}</p>
-      </CardContent>
-    </Card>
-  )
-}
-
-function Stat({
-  icon,
-  label,
-  value,
-  unit,
-}: {
-  icon: React.ReactNode
-  label: string
-  value: string
-  unit?: string
-}) {
-  return (
-    <Card>
-      <CardContent className="py-4">
-        <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
-          <span className="shrink-0 text-primary">{icon}</span>
-          <span className="truncate">{label}</span>
-        </div>
-        <div className="mt-1 truncate font-heading text-2xl font-semibold text-foreground">
-          {value}
-          {unit && <span className="ml-1 text-sm font-medium text-muted-foreground">{unit}</span>}
-        </div>
       </CardContent>
     </Card>
   )

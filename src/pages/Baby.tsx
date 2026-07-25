@@ -2,6 +2,8 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Baby as BabyIcon, Plus, Trash2, Ruler, Weight, Pencil } from 'lucide-react'
 import { SectionHeader } from '../components/SectionHeader'
 import { ChoiceGroup } from '../components/ChoiceGroup'
+import { StatTile } from '../components/StatTile'
+import { GlassScrollArea } from '@/design-system/components'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -46,7 +48,11 @@ export default function Baby() {
 
   return (
     <>
-      <main className="mx-auto flex w-full max-w-5xl flex-col gap-10 page-px py-10">
+      <main className="relative mx-auto flex w-full max-w-5xl flex-col gap-10 page-px py-10">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 -top-8 -z-10 mx-auto h-56 max-w-2xl rounded-full bg-primary/15 opacity-60 blur-3xl"
+        />
         <SectionHeader title={t.baby.title} description={t.baby.subtitle} />
 
         {!ready ? (
@@ -228,10 +234,10 @@ function BabyDetail({
   return (
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Stat label={t.baby.ageLabel} value={`${months} ${t.baby.monthsShort}`} icon={<BabyIcon className="size-4" />} />
-        <Stat label={t.baby.latestWeight} value={latestWeight != null ? `${latestWeight} kg` : '—'} icon={<Weight className="size-4" />} />
-        <Stat label={t.baby.latestHeight} value={latestHeight != null ? `${latestHeight} cm` : '—'} icon={<Ruler className="size-4" />} />
-        <Stat label={t.baby.selectLabel} value={name} icon={<BabyIcon className="size-4" />} />
+        <StatTile label={t.baby.ageLabel} value={`${months} ${t.baby.monthsShort}`} icon={<BabyIcon className="size-4" />} />
+        <StatTile label={t.baby.latestWeight} value={latestWeight != null ? `${latestWeight} kg` : '—'} icon={<Weight className="size-4" />} />
+        <StatTile label={t.baby.latestHeight} value={latestHeight != null ? `${latestHeight} cm` : '—'} icon={<Ruler className="size-4" />} />
+        <StatTile label={t.baby.selectLabel} value={name} icon={<BabyIcon className="size-4" />} />
       </div>
 
       {/* Edit profile + danger zone */}
@@ -315,7 +321,8 @@ function BabyDetail({
           ) : rows.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t.baby.noMeasurements}</p>
           ) : (
-            <ul className="divide-y divide-border">
+            <GlassScrollArea className="max-h-[18rem]">
+            <ul className="divide-y divide-border pr-1">
               {[...rows].reverse().map((r) => (
                 <li key={r.id} className="flex items-center justify-between py-2.5 text-sm">
                   <span className="text-muted-foreground">
@@ -341,24 +348,11 @@ function BabyDetail({
                 </li>
               ))}
             </ul>
+            </GlassScrollArea>
           )}
         </CardContent>
       </Card>
     </div>
-  )
-}
-
-function Stat({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
-  return (
-    <Card>
-      <CardContent className="py-4">
-        <div className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
-          <span className="shrink-0 text-primary">{icon}</span>
-          <span className="truncate">{label}</span>
-        </div>
-        <div className="mt-1 truncate font-heading text-xl font-semibold text-foreground">{value}</div>
-      </CardContent>
-    </Card>
   )
 }
 

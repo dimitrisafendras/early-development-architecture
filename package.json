@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed:supabase": "node scripts/seed-supabase.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",

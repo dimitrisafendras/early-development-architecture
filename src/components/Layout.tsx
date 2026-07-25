@@ -16,14 +16,19 @@ import { InstallPrompt } from './InstallPrompt'
  */
 export function Layout() {
   return (
-    <>
+    <div className="flex min-h-svh flex-col">
       <NavBar />
-      <div className="pb-bottom-nav">
-        <Outlet />
+      {/* Grow the content region so the footer sits at the bottom of the
+          viewport on short pages (e.g. sign-in) instead of floating mid-page.
+          Tall pages push past the viewport and the footer trails as usual. */}
+      <div className="flex flex-1 flex-col pb-bottom-nav">
+        <div className="flex flex-1 flex-col">
+          <Outlet />
+        </div>
         <Footer />
       </div>
       <BottomNav />
       <InstallPrompt />
-    </>
+    </div>
   )
 }

@@ -5,7 +5,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { supabase, isSupabaseEnabled } from '@/lib/supabase'
+import { Checkbox } from '@/components/ui/checkbox'
+import { supabase, isSupabaseEnabled, setRememberMe, getRememberMe } from '@/lib/supabase'
 import { useSession, authRedirectUrl } from '@/lib/use-session'
 import { useT } from '../i18n'
 
@@ -17,7 +18,7 @@ export type AuthMode = 'signin' | 'signup'
  * URL, not a local path.
  */
 function safeNext(raw: string | null): string {
-  if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return '/daily'
+  if (!raw || !raw.startsWith('/') || raw.startsWith('//')) return '/'
   return raw
 }
 
@@ -41,6 +42,7 @@ export default function Auth({ mode }: { mode: AuthMode }) {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [remember, setRemember] = useState(getRememberMe)
   const [busy, setBusy] = useState(false)
   const [errorText, setErrorText] = useState('')
   const [confirmSent, setConfirmSent] = useState(false)
@@ -55,6 +57,9 @@ export default function Auth({ mode }: { mode: AuthMode }) {
   async function submit(e: React.FormEvent) {
     e.preventDefault()
     if (!email.trim() || !password) return
+    // Decide where the session is stored *before* it's created, so the auth
+    // storage adapter routes the tokens to local- or sessionStorage.
+    setRememberMe(remember)
     setBusy(true)
     setErrorText('')
     try {
@@ -78,7 +83,11 @@ export default function Auth({ mode }: { mode: AuthMode }) {
   }
 
   return (
-    <main className="page-px mx-auto flex w-full max-w-md flex-col gap-6 py-10">
+    <main className="page-px relative mx-auto flex w-full max-w-md flex-col gap-6 py-10">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 -top-6 -z-10 mx-auto h-52 max-w-sm rounded-full bg-primary/15 opacity-60 blur-3xl"
+      />
       <Link
         to="/"
         className="inline-flex min-h-11 w-fit items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70"
@@ -88,7 +97,7 @@ export default function Auth({ mode }: { mode: AuthMode }) {
       </Link>
 
       <div>
-        <span className="inline-flex rounded-2xl bg-primary/10 p-3 text-primary">
+        <span className="inline-flex rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 p-3 text-primary ring-1 ring-inset ring-primary/20">
           {isSignUp ? <UserPlus className="size-6" /> : <LogIn className="size-6" />}
         </span>
         <h1 className="mt-4 font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
@@ -150,6 +159,17 @@ export default function Auth({ mode }: { mode: AuthMode }) {
                 />
                 {isSignUp && <p className="text-xs text-muted-foreground">{t.auth.passwordHint}</p>}
               </div>
+              <Label
+                htmlFor="auth-remember"
+                className="group/field flex w-fit cursor-pointer items-center gap-2.5 text-sm font-normal text-muted-foreground"
+              >
+                <Checkbox
+                  id="auth-remember"
+                  checked={remember}
+                  onCheckedChange={(value) => setRemember(value === true)}
+                />
+                {t.auth.rememberMe}
+              </Label>
               {/* Deliberately not gated on the session probe: signing in does not
                   depend on knowing the current session, and gating here would
                   leave a dead button if that request were slow. */}

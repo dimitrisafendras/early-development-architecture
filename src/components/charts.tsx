@@ -212,6 +212,82 @@ export function TummyWeekChart({
   )
 }
 
+/**
+ * Weekly feeding: per-day volume (bars, left axis) with the feed count overlaid
+ * as a line (right axis). Palette/theme aware via useChartColors.
+ */
+export function FeedWeekChart({
+  labels,
+  ml,
+  counts,
+  mlLabel,
+  feedsLabel,
+}: {
+  labels: string[]
+  ml: number[]
+  counts: number[]
+  mlLabel: string
+  feedsLabel: string
+}) {
+  const c = useChartColors()
+  return (
+    <div style={{ position: 'relative', height: 240 }}>
+      <Bar
+        data={
+          {
+            labels,
+            datasets: [
+              {
+                type: 'line' as const,
+                label: feedsLabel,
+                data: counts,
+                yAxisID: 'y1',
+                borderColor: c.neutral,
+                borderWidth: 2,
+                pointRadius: 3,
+                pointBackgroundColor: c.neutral,
+                tension: 0.35,
+                fill: false,
+              },
+              {
+                type: 'bar' as const,
+                label: mlLabel,
+                data: ml,
+                backgroundColor: c.primary,
+                borderRadius: 6,
+                maxBarThickness: 42,
+                yAxisID: 'y',
+              },
+            ],
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } as any
+        }
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              position: 'left',
+              title: { display: true, text: mlLabel, font: { size: 11 }, color: c.text },
+              ticks: { color: c.text },
+              grid: { color: c.grid },
+            },
+            y1: {
+              beginAtZero: true,
+              position: 'right',
+              ticks: { stepSize: 1, precision: 0, color: c.text },
+              grid: { drawOnChartArea: false },
+            },
+            x: { ticks: { color: c.text }, grid: { color: c.grid } },
+          },
+          plugins: { legend: { position: 'top', labels: { font: { size: 11 }, color: c.text } } },
+        }}
+      />
+    </div>
+  )
+}
+
 /** Generic growth line (weight or height) over measurement dates. */
 export function GrowthChart({
   labels,

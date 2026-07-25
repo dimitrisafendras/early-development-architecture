@@ -7,6 +7,7 @@ import {
   findOpenSession,
   openSession,
   closeSession,
+  updateSession,
   deleteSession,
   type TummySession,
 } from './db'
@@ -138,6 +139,18 @@ export function useTummyTracker(babyId: string | null, householdId: string | nul
     await refreshSessions().catch(() => {})
   }, [activeStart, signedIn, refreshSessions])
 
+  const update = useCallback(
+    async (id: string, patch: { started_at?: string; ended_at?: string }) => {
+      if (signedIn) {
+        await updateSession(id, patch).catch(() => {})
+      } else {
+        saveLocal(loadLocal().map((s) => (s.id === id ? { ...s, ...patch } : s)))
+      }
+      await refreshSessions().catch(() => {})
+    },
+    [signedIn, refreshSessions],
+  )
+
   const remove = useCallback(
     async (id: string) => {
       if (signedIn) {
@@ -172,6 +185,7 @@ export function useTummyTracker(babyId: string | null, householdId: string | nul
     completedMinutes: Math.round(completedMinutes),
     start,
     stop,
+    update,
     remove,
     refreshSessions,
   }

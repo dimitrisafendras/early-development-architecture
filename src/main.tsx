@@ -3,6 +3,24 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
+import { seedTestData, clearTestData } from './lib/devSeed'
+
+// Dev-only test-data helpers. Visit `?seed` to load a backlog of tummy/feed
+// data (or `?unseed` to clear), then the URL param is stripped and the page
+// reloads. Also exposed on `window` for the console.
+if (import.meta.env.DEV) {
+  ;(window as unknown as Record<string, unknown>).seedTestData = seedTestData
+  ;(window as unknown as Record<string, unknown>).clearTestData = clearTestData
+  const params = new URLSearchParams(window.location.search)
+  if (params.has('seed') || params.has('unseed')) {
+    if (params.has('unseed')) clearTestData()
+    else seedTestData()
+    params.delete('seed')
+    params.delete('unseed')
+    const qs = params.toString()
+    window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : ''))
+  }
+}
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Milk, Copy, Plus } from 'lucide-react'
+import { Milk, Copy, Plus, Repeat } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -67,6 +67,23 @@ export function AddFeedForm({
     setWhen(nowDateTimeKey())
   }
 
+  // One tap: log an identical feed to the last one, stamped now.
+  async function submitLast() {
+    if (!last) return
+    setBusy(true)
+    try {
+      await onAdd({
+        fed_at: new Date().toISOString(),
+        method: last.method,
+        amount_ml: last.method === 'breast' ? null : last.amount_ml,
+        minutes: last.method === 'breast' ? last.minutes : null,
+        note: null,
+      })
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function submit(e: FormEvent) {
     e.preventDefault()
     setBusy(true)
@@ -97,36 +114,38 @@ export function AddFeedForm({
     />
   )
 
-  const amountField =
-    method === 'breast' ? (
-      <div className="space-y-1.5">
-        <Label htmlFor="f-min">{tf.minutesLabel}</Label>
-        <NumberInput
-          id="f-min"
-          value={minutes}
-          onValueChange={setMinutes}
-          floor={0}
-          step={5}
-          smallStep={1}
-          largeStep={15}
-          {...fields.stepper}
-        />
-      </div>
-    ) : (
-      <div className="space-y-1.5">
-        <Label htmlFor="f-amt">{tf.amountLabel}</Label>
-        <NumberInput
-          id="f-amt"
-          value={amount}
-          onValueChange={setAmount}
-          floor={0}
-          step={10}
-          smallStep={5}
-          largeStep={50}
-          {...fields.stepper}
-        />
-      </div>
-    )
+  const isBreast = method === 'breast'
+  const amountId = isBreast ? 'f-min' : 'f-amt'
+  const amountLabelText = isBreast ? tf.minutesLabel : tf.amountLabel
+  const amountControl = isBreast ? (
+    <NumberInput
+      id="f-min"
+      value={minutes}
+      onValueChange={setMinutes}
+      floor={0}
+      step={5}
+      smallStep={1}
+      largeStep={15}
+      {...fields.stepper}
+    />
+  ) : (
+    <NumberInput
+      id="f-amt"
+      value={amount}
+      onValueChange={setAmount}
+      floor={0}
+      step={10}
+      smallStep={5}
+      largeStep={50}
+      {...fields.stepper}
+    />
+  )
+  const amountField = (
+    <div className="space-y-1.5">
+      <Label htmlFor={amountId}>{amountLabelText}</Label>
+      {amountControl}
+    </div>
+  )
 
   if (compact) {
     return (
@@ -144,12 +163,20 @@ export function AddFeedForm({
           </div>
         )}
         {methodTabs}
-        <div className="flex items-end gap-2">
-          <div className="flex-1">{amountField}</div>
-          <Button type="submit" disabled={busy}>
-            <Milk className="mr-2 size-4" /> {tf.save}
-          </Button>
+        <div className="space-y-1.5">
+          <Label htmlFor={amountId}>{amountLabelText}</Label>
+          <div className="flex items-center gap-2">
+            <div className="flex-1">{amountControl}</div>
+            <Button type="submit" disabled={busy}>
+              <Milk className="mr-2 size-4" /> {tf.save}
+            </Button>
+          </div>
         </div>
+        {last && (
+          <Button type="button" variant="secondary" onClick={submitLast} disabled={busy} className="w-full">
+            <Repeat className="mr-2 size-4" /> {tf.repeatLast}
+          </Button>
+        )}
       </form>
     )
   }
@@ -180,6 +207,11 @@ export function AddFeedForm({
         {last && (
           <Button type="button" variant="secondary" size="lg" onClick={copyLast}>
             <Copy className="mr-2 size-5" /> {tf.copyLast}
+          </Button>
+        )}
+        {last && (
+          <Button type="button" variant="secondary" size="lg" onClick={submitLast} disabled={busy}>
+            <Repeat className="mr-2 size-5" /> {tf.repeatLast}
           </Button>
         )}
         <Button type="submit" size="lg" disabled={busy}>
