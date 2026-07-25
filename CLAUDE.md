@@ -92,6 +92,7 @@ Documented on `/design-system` under **Patterns** (`src/design-system/docs/Patte
 - **State** — zustand for anything shared across components/routes (theme, palette, checklist, simulator). Local `useState` for everything component-local. Don't add a new state library.
 - **Charts** — chart.js via `react-chartjs-2` for any chart; pull theme-aware colors from the store's `dark` flag via `useChartColors` in `src/components/charts.tsx`.
 - **Icons** — lucide-react only.
+- **Units — SI only, no exceptions.** Every quantity the app shows or stores is metric: **ml** (volume), **g / kg** (mass), **cm** (length), **°C** (temperature), **min / h** (time). Never add an imperial unit — not as the primary value, not as a parenthetical conversion, not "for US readers". That means no `oz`, `fl oz`, `lb`, `inch`/`"`, `ft`, `°F`. This applies to i18n strings in **both** locales, `src/data.ts`, chart axes, input labels/placeholders, and `unit` props. There is no unit-preference setting and none should be added.
 - **New dependencies** — check the shadcn registry for an existing component before adding a new npm UI package.
 
 ## Commands

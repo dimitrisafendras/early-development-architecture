@@ -11,6 +11,7 @@ import {
   ShieldCheck,
   LocateFixed,
   Pencil,
+  Check,
 } from 'lucide-react'
 import { PageFrame } from '../components/PageFrame'
 import { AgeBadge } from '../components/AgeBadge'
@@ -103,6 +104,7 @@ export default function Day() {
             schedule={schedule}
             currentSlot={currentSlot}
             activeIdx={activeIdx}
+            now={now}
             onSelect={selectSlot}
           />
         </div>
@@ -365,14 +367,19 @@ function Timeline({
   schedule,
   currentSlot,
   activeIdx,
+  now,
   onSelect,
 }: {
   schedule: ScheduleSlot[]
   currentSlot: number
   activeIdx: number
+  now: Date
   onSelect: (i: number) => void
 }) {
   const t = useT()
+  // How far through the live slot we are — drives both the ring around the NOW
+  // dot and how much of the rail segment leaving it is filled in.
+  const livePct = slotProgress(schedule, currentSlot, now).pct
   const areaRef = useRef<GlassScrollAreaHandle>(null)
   const itemRefs = useRef<(HTMLLIElement | null)[]>([])
   const didCenter = useRef(false)
@@ -446,59 +453,144 @@ function Timeline({
               const Icon = a.icon
               const last = i === schedule.length - 1
               const isNow = i === currentSlot
+              const isPast = i < currentSlot
               const isSelected = i === activeIdx
+              const nextAccent = dayActivityMeta[schedule[(i + 1) % schedule.length].type].accent
+              // The one thing the old rail never said: how much of the day is
+              // behind you. Segments before NOW are filled solid, the segment
+              // leaving NOW fills live, everything after stays unlit.
+              const fill = isPast ? 100 : isNow ? livePct : 0
               return (
                 <li
                   key={`${slot.time}-${i}`}
                   ref={(el) => {
                     itemRefs.current[i] = el
                   }}
-                  className="relative flex gap-4 pb-5 last:pb-0"
+                  className="relative flex gap-3.5 pb-6 last:pb-1"
                 >
-                  {/* Centred on the `w-12` dot column rather than the hand-derived
-                      `left-[1.4375rem]` it used to use — that constant silently
-                      de-centred the rail the moment the dot changed size. */}
+                  {/* The rail segment for the gap *below* this step. It starts at
+                      52px — the 48px dot plus a 4px air gap — and stops 2px short
+                      of the next one, so it can never appear to run under a dot
+                      (the dots are translucent, which is what made the old
+                      `top-11` rail visibly leak through them). Centred on the
+                      `w-12` dot column, not a hand-derived constant. */}
                   {!last && (
                     <span
-                      className="absolute left-6 top-11 bottom-0 w-px -translate-x-1/2 bg-border"
                       aria-hidden
-                    />
+                      className="pointer-events-none absolute left-6 top-[3.25rem] bottom-0.5 w-[3px] -translate-x-1/2 overflow-hidden rounded-full bg-border/70"
+                    >
+                      <span
+                        className="block w-full rounded-full transition-[height] duration-700 ease-out"
+                        style={{
+                          height: `${fill}%`,
+                          // Hands over from this activity's hue to the next one, so
+                          // the rail reads as one continuous gradient down the day.
+                          backgroundImage: `linear-gradient(180deg, ${a.accent}, ${nextAccent})`,
+                          boxShadow: fill > 0 ? `0 0 8px ${a.accent}80` : undefined,
+                        }}
+                      />
+                    </span>
                   )}
                   <button
                     type="button"
                     onClick={() => onSelect(i)}
                     aria-pressed={isSelected}
-                    className="group flex flex-1 items-start gap-4 rounded-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+                    aria-current={isNow ? 'step' : undefined}
+                    className="group flex flex-1 items-start gap-3.5 rounded-2xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
                   >
-                    <div className="flex w-12 shrink-0 flex-col items-center">
-                      <span
-                        className={cn(
-                          'inline-flex size-12 items-center justify-center rounded-full transition-shadow',
-                          a.dot,
-                          isNow && 'ring-2 ring-primary ring-offset-2 ring-offset-card',
-                        )}
-                      >
-                        <Icon className="size-5" />
-                      </span>
+                    <div className="relative flex w-12 shrink-0 justify-center">
+                      {isNow ? (
+                        // Identity + live progress in one 48px mark: the arc is how
+                        // far through this slot we are. Static by request — the
+                        // arc and the lit rail below it already say "this is now",
+                        // so nothing on the stepper pulses.
+                        <ProgressRing progress={livePct / 100} size={48} stroke={3} accent={a.accent}>
+                          <span
+                            className={cn('inline-flex size-9 items-center justify-center rounded-full', a.dot)}
+                          >
+                            <Icon className="size-4.5" />
+                          </span>
+                        </ProgressRing>
+                      ) : (
+                        <span
+                          className={cn(
+                            'relative inline-flex size-12 items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-105',
+                            a.dot,
+                            isPast && 'opacity-60',
+                          )}
+                        >
+                          <Icon className="size-5" />
+                          {/* Done marker. Small, semantic green, ringed in the card
+                              colour so it reads as a badge on the dot. */}
+                          {isPast && (
+                            <span className="absolute -bottom-0.5 -right-0.5 grid size-4 place-items-center rounded-full bg-success text-success-foreground ring-2 ring-card">
+                              <Check className="size-2.5" strokeWidth={3} />
+                            </span>
+                          )}
+                        </span>
+                      )}
                     </div>
                     <div
                       className={cn(
-                        'min-w-0 flex-1 rounded-lg px-3 py-2 transition-colors',
-                        isSelected ? 'bg-primary/5 ring-1 ring-primary/30' : 'group-hover:bg-muted',
+                        'min-w-0 flex-1 rounded-xl px-3 py-2 transition-all duration-300',
+                        !isSelected && 'group-hover:bg-muted/70',
                       )}
+                      // The selected row lights up in its own activity hue instead
+                      // of a flat primary tint, so selection and identity are the
+                      // same signal. Inset ring rather than `ring-*`: it keeps the
+                      // 1px edge inside the row's own box, which is what stopped
+                      // the highlight nudging the text on select.
+                      style={
+                        isSelected
+                          ? {
+                              backgroundImage: `linear-gradient(100deg, ${a.accent}26, ${a.accent}0d 55%, transparent)`,
+                              boxShadow: `inset 0 0 0 1px ${a.accent}59, 0 8px 24px -18px ${a.accent}`,
+                            }
+                          : undefined
+                      }
                     >
-                      {/* `gap-y-1` matters in Greek: these four items wrap, and
-                          without it the wrapped lines collapse to a 0px gutter. */}
-                      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                        <span className="font-heading text-sm font-semibold tabular-nums text-foreground">
+                      {/* Time chip + title only. The activity *type* used to sit
+                          here as a third item, but this column is ~290px wide: on
+                          any slot with a longer title the eyebrow wrapped onto its
+                          own line and every row ended up a different height. The
+                          dot's icon and hue already say which activity it is, and
+                          the moment card beside this one names the selected slot's
+                          type in words — so the rows stay two lines, uniform.
+                          `gap-y-1` still matters in Greek, where the title itself
+                          can wrap. */}
+                      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
+                        <span
+                          className={cn(
+                            'rounded-md px-1.5 py-0.5 font-heading text-[13px] font-bold tabular-nums transition-colors',
+                            isNow || isSelected ? a.text : 'text-muted-foreground',
+                          )}
+                          style={
+                            isNow || isSelected
+                              ? { backgroundColor: `${a.accent}1f` }
+                              : { backgroundColor: 'color-mix(in oklab, var(--muted) 70%, transparent)' }
+                          }
+                        >
                           {slot.time}
                         </span>
-                        <span className="font-semibold text-foreground">{slot.title}</span>
-                        <Eyebrow as="span" tone="inherit" className={a.text}>
-                          {t.fullDay.types[slot.type]}
-                        </Eyebrow>
+                        <span
+                          className={cn(
+                            'font-semibold text-foreground',
+                            isPast && !isSelected && 'text-muted-foreground',
+                          )}
+                        >
+                          {slot.title}
+                        </span>
                       </div>
-                      <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+                      {/* Two lines is enough to recognise a slot; the one you pick
+                          opens to its full detail, which is what the schedule is
+                          for. Cheaper than a second card and it keeps ten slots
+                          reachable without scrolling past prose. */}
+                      <p
+                        className={cn(
+                          'mt-1 text-[13px] leading-relaxed text-muted-foreground',
+                          !isSelected && 'line-clamp-2',
+                        )}
+                      >
                         {slot.detail}
                       </p>
                     </div>
