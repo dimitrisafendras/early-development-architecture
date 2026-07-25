@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Users, UserPlus, Home as HomeIcon, Mail, Check, X, Share2, LogOut, Pencil, Trash2 } from 'lucide-react'
+import { Users, UserPlus, Home as HomeIcon, Mail, Check, X, Share2, LogOut, Pencil, Trash2, Baby as BabyIcon } from 'lucide-react'
 import { SectionHeader } from '../components/SectionHeader'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -19,15 +19,22 @@ import {
   deleteHousehold,
 } from '../lib/household'
 import { useSession } from '../lib/use-session'
+import { useBabies } from '../lib/useBabies'
+import { ageInMonths } from '../lib/schedule'
 import { useT } from '../i18n'
 
 export default function Family() {
   const t = useT()
   const tf = t.family
   const { ready, loading, household, members, invites, pending, refresh } = useHousehold()
+  const { babies, refresh: refreshBabies } = useBabies()
   const { session } = useSession()
   const myId = session?.user?.id
   const isOwner = Boolean(household && household.created_by === myId)
+  // Babies already shared with this family, and the caller's own babies that
+  // aren't shared yet (the only ones the Share button can move).
+  const familyBabies = household ? babies.filter((b) => b.household_id === household.id) : []
+  const shareableCount = babies.filter((b) => b.owner === myId && !b.household_id).length
   const [busy, setBusy] = useState<string>('')
   const [error, setError] = useState('')
   const [editingName, setEditingName] = useState(false)
@@ -208,18 +215,55 @@ export default function Family() {
                   </CardContent>
                 </Card>
 
-                {/* Share + leave */}
+                {/* Shared babies + share + leave */}
                 <Card>
                   <CardContent className="flex flex-col gap-4">
                     <div>
+                      <p className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-foreground">
+                        <BabyIcon className="size-4 text-primary" /> {tf.sharedBabiesTitle}
+                      </p>
+                      {familyBabies.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">{tf.sharedBabiesEmpty}</p>
+                      ) : (
+                        <ul className="divide-y divide-border">
+                          {familyBabies.map((b) => (
+                            <li
+                              key={b.id}
+                              className="flex items-center justify-between gap-3 py-2.5 text-sm"
+                            >
+                              <span className="flex min-w-0 items-center gap-2 text-foreground">
+                                <BabyIcon className="size-4 shrink-0 text-primary" />
+                                <span className="truncate font-medium">{b.name}</span>
+                                <span className="shrink-0 text-muted-foreground">
+                                  · {ageInMonths(b.birth_date)} {t.baby.monthsShort}
+                                </span>
+                              </span>
+                              {b.owner === myId && (
+                                <span className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                  {tf.sharedByYou}
+                                </span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <div className="border-t border-border pt-4">
                       <Button
                         variant="secondary"
-                        disabled={busy === 'share'}
-                        onClick={() => void run('share', () => shareOwnedBabies(household.id))}
+                        disabled={busy === 'share' || shareableCount === 0}
+                        onClick={() =>
+                          void run('share', async () => {
+                            await shareOwnedBabies(household.id)
+                            await refreshBabies()
+                          })
+                        }
                       >
                         <Share2 className="mr-2 size-4" /> {tf.shareBabies}
                       </Button>
-                      <p className="mt-2 text-xs text-muted-foreground">{tf.shareBabiesNote}</p>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {shareableCount > 0 ? tf.shareBabiesNote : tf.shareBabiesAllShared}
+                      </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
                       <Button
