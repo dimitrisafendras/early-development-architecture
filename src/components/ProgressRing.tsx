@@ -15,6 +15,12 @@ interface Props {
  * A palette-tinted circular progress ring. Track + fill use theme tokens
  * (`--muted` / `--primary`) so it adapts to both themes and both palettes.
  * Once `complete`, the fill turns success-green and a soft ring pulses out.
+ *
+ * The completed arc is `var(--success)`, not a literal green: as a hard-coded
+ * `#10b981` it was the same emerald in both themes and only reached 2.54:1
+ * against a light card — under the 3:1 WCAG 1.4.11 floor for a meaningful
+ * graphic. The token is theme-aware (5.67:1 light / 7.70:1 dark) and, being a
+ * semantic state, stays green in both palettes.
  */
 export function ProgressRing({
   progress,
@@ -28,12 +34,14 @@ export function ProgressRing({
   const circumference = 2 * Math.PI * radius
   const clamped = Math.max(0, Math.min(1, progress))
   const offset = circumference * (1 - clamped)
-  const fill = complete ? '#10b981' : accent
+  // An SVG `stroke` needs a real colour value, so this takes the custom property
+  // directly — the same idiom as the `accent` default above.
+  const fill = complete ? 'var(--success)' : accent
   return (
     <div className="relative inline-grid place-items-center" style={{ width: size, height: size }}>
       {complete && (
         <span
-          className="pointer-events-none absolute rounded-full ring-2 ring-emerald-500/50 motion-safe:animate-ping"
+          className="pointer-events-none absolute rounded-full ring-2 ring-success/50 motion-safe:animate-ping"
           style={{ width: size, height: size }}
           aria-hidden
         />

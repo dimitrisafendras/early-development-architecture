@@ -47,6 +47,29 @@ html {
   /* Darkened from 0.577 so `text-destructive` on the `bg-destructive/10` tint
      (destructive Button/Badge variants) clears AA (~5.3:1) in the light theme. */
   --destructive: oklch(0.51 0.21 27.5);
+  /* Semantic state tokens — success / warning, siblings of `--destructive`.
+     These are the *only* sanctioned green and amber in the app; before they
+     existed a dozen call sites hard-coded `emerald-*` / `amber-*` / `#10b981`
+     and disagreed with each other about the shade.
+
+     DELIBERATELY ABSENT FROM THE [data-palette] BLOCKS. Success and warning are
+     states, not brand accents: "you hit the target" must look identical whether
+     the app is in the blue or the pink palette, exactly as `--destructive` does.
+     Do not "fix" this by adding per-palette overrides below.
+
+     Both are tuned for text, not for prettiness — the same trade the darkened
+     `--muted-foreground` above makes. `--success` is essentially Tailwind
+     `emerald-700` (#0d7648 vs #047857), which is already the app's light-theme
+     emerald text shade, so nothing shifts visually; a `-500`-bright green would
+     have been ~2.5:1 on white. Light-theme ratios (see the design system page):
+       text-success on background/card   5.67:1  · on bg-success/10   4.92:1
+       text-warning on background/card   5.59:1  · on bg-warning/10   4.88:1
+       *-foreground on its own fill      5.45:1 / 5.35:1
+     Every value is inside sRGB, so the authored oklch is what actually ships. */
+  --success: oklch(0.5 0.115 157);
+  --success-foreground: oklch(0.985 0.012 157);
+  --warning: oklch(0.52 0.105 80);
+  --warning-foreground: oklch(0.985 0.012 80);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.87 0 0);
@@ -128,6 +151,13 @@ section {
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  /* Generates bg-success/text-success/ring-success/border-success (+ /10, /50 …)
+     and the same for warning. Semantic state colours only — see the note in
+     `:root`; they never follow the palette axis. */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -168,6 +198,19 @@ section {
   --accent: oklch(0.269 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  /* Success/warning invert like every other accent pair: the hue becomes the
+     light one and its foreground the deep one, so `bg-success` fills and
+     `text-success` both stay AA without a second token. Success sits at L 0.72,
+     the app's dark-accent lightness band (`--primary` 0.72, `--destructive`
+     0.704). Warning has to run lighter (L 0.8) to still read as amber rather
+     than mustard. Dark-theme ratios:
+       text-success on background 8.51:1 · on card 7.70:1 · on bg-success/10 6.59:1
+       text-warning on background 10.44:1 · on card 9.44:1 · on bg-warning/10 7.86:1
+       *-foreground on its own fill  7.34:1 / 8.71:1 */
+  --success: oklch(0.72 0.15 158);
+  --success-foreground: oklch(0.22 0.05 158);
+  --warning: oklch(0.8 0.15 80);
+  --warning-foreground: oklch(0.24 0.05 80);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
@@ -197,6 +240,13 @@ section {
    mismatch: it reads unmistakably as pink rather than "alarm red", and it no
    longer collides with `--destructive` (oklch hue ~27), which the old crimson
    primary sat almost on top of.
+
+   SCOPE: these blocks override the three *brand* roles only — primary, accent,
+   ring. The semantic state tokens (`--destructive`, `--success`, `--warning`
+   and their foregrounds) are intentionally not listed here and must stay out:
+   a state has to look the same in both palettes, otherwise "target reached"
+   would be one green for boys and another for girls. If you find yourself
+   wanting a palette-tinted green, you want `--primary`, not `--success`.
 --------------------------------------------------------------------------- */
 /* Values mirror src/design-system/tokens.ts (semantic role mapping).
    primary-foreground on primary is WCAG AA (>=4.5:1) verified in every
@@ -264,37 +314,41 @@ section {
    home indicator, which means every edge-anchored surface has to opt back into
    the safe area itself. These helpers keep that arithmetic in one place instead
    of scattering env() through the JSX.
+
+   These are `@utility`, not `@layer components`. The components layer sorts
+   *before* Tailwind's utilities layer, so as plain `.page-px` / `.pb-bottom-nav`
+   rules any `px-*` or `pb-*` on the same element won a cascade fight they should
+   have lost — the page gutter would silently vanish wherever a page also set its
+   own horizontal padding. `@utility` registers them as first-class utilities, so
+   they now sort *with* `px-*` / `pb-*` by specificity and source order: an
+   explicit later utility can still override them (that is intentional), but
+   nothing beats them by accident of layer position.
 --------------------------------------------------------------------------- */
-@layer components {
-  :root {
-    /* Height of the mobile bottom tab bar (52px targets + capsule padding +
-       the 8px float), excluding the home-indicator inset. */
-    --app-bottom-nav-h: 4.5rem;
-  }
+:root {
+  /* Height of the mobile bottom tab bar (52px targets + capsule padding +
+     the 8px float), excluding the home-indicator inset. Lives on `:root`, not
+     inside the utility, so `pb-bottom-nav` can be overridden per-subtree. */
+  --app-bottom-nav-h: 4.5rem;
+}
 
-  /* Standard page gutter: 1rem on phones, 1.5rem from `sm` up, never narrower
-     than the landscape notch inset. */
-  .page-px {
-    padding-left: max(1rem, env(safe-area-inset-left));
-    padding-right: max(1rem, env(safe-area-inset-right));
+/* Standard page gutter: 1rem on phones, 1.5rem from `sm` up, never narrower
+   than the landscape notch inset. */
+@utility page-px {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+  @media (width >= 40rem) {
+    padding-left: max(1.5rem, env(safe-area-inset-left));
+    padding-right: max(1.5rem, env(safe-area-inset-right));
   }
-  @media (min-width: 40rem) {
-    .page-px {
-      padding-left: max(1.5rem, env(safe-area-inset-left));
-      padding-right: max(1.5rem, env(safe-area-inset-right));
-    }
-  }
+}
 
-  /* Reserves room for the bottom tab bar so the last card on a page is never
-     trapped underneath it. Released at `xl`, where the bar is hidden and the
-     left rail is the navigation. */
-  .pb-bottom-nav {
-    padding-bottom: calc(var(--app-bottom-nav-h) + env(safe-area-inset-bottom));
-  }
-  @media (min-width: 80rem) {
-    .pb-bottom-nav {
-      padding-bottom: 0;
-    }
+/* Reserves room for the bottom tab bar so the last card on a page is never
+   trapped underneath it. Released at `xl`, where the bar is hidden and the
+   left rail is the navigation. */
+@utility pb-bottom-nav {
+  padding-bottom: calc(var(--app-bottom-nav-h) + env(safe-area-inset-bottom));
+  @media (width >= 80rem) {
+    padding-bottom: 0;
   }
 }
 

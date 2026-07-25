@@ -186,7 +186,16 @@ export function AddFeedForm({
           <span className="font-medium text-foreground">{lastDetail}</span>
         </>
       )}
-      {lastTime && <> · {lastTime}</>}
+      {lastTime && (
+        <>
+          {' · '}
+          {/* The entry-time treatment, shared verbatim with the logged-feed rows
+              on `/feed`: heading face, semibold, tabular, sized by its row. It
+              used to be plain muted text here — the only unemphasised value on a
+              line whose method and amount are both `text-foreground`. */}
+          <span className="font-heading font-semibold tabular-nums text-foreground">{lastTime}</span>
+        </>
+      )}
     </>
   )
 

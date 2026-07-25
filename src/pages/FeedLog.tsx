@@ -3,15 +3,16 @@ import { Milk, Trash2, Baby as BabyIcon, Utensils, Clock, Hash, Pencil, Check } 
 import { AgeBadge, useBabyAge } from '../components/AgeBadge'
 import { AddFeedForm } from '../components/AddFeedForm'
 import { ChoiceGroup } from '../components/ChoiceGroup'
+import { FeedProgress } from '../components/FeedProgress'
 import { StatTile } from '../components/StatTile'
 import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
 import { FeedWeekChart } from '../components/charts'
+import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
-import { cn } from '@/lib/utils'
 import { useBabies } from '../lib/useBabies'
 import { useFeedLog, type FeedEntry } from '../lib/useFeedLog'
 import { useFieldLabels } from '../lib/useFieldLabels'
@@ -128,7 +129,7 @@ export default function FeedLog() {
                 frames, so only the quick tiles stand above the input — but as
                 one line and a hairline bar, not a titled block: it is the
                 reason to log, not the thing you came to do. */}
-            {feedsRange && <FeedProgress count={feed.todayFeeds.length} range={feedsRange} tf={tf} />}
+            {feedsRange && <FeedProgress count={feed.todayFeeds.length} range={feedsRange} />}
             <AddFeedForm last={feed.lastFeed} onAdd={feed.add} />
             {/* The card's single footnote — the age guide and its disclaimer,
                 which used to be two competing hint lines. */}
@@ -203,12 +204,18 @@ function FeedRow({
     return (
       <li className="flex items-center justify-between gap-3 py-2.5 text-sm">
         <span className="flex items-center gap-3">
-          <span className="font-heading font-bold tabular-nums text-foreground">
+          {/* The entry-time treatment: heading face, semibold, tabular, sized by
+              its row. Shared verbatim with the "last feed" line in
+              `AddFeedForm` — the same fact was `font-bold` here and plain muted
+              text there. `font-semibold` because that is the weight every other
+              clock time in the app uses. */}
+          <span className="font-heading font-semibold tabular-nums text-foreground">
             {fmtTime(entry.fed_at, locale)}
           </span>
-          <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-            {tf[entry.method]}
-          </span>
+          {/* The shared pill, not a hand-rolled one: `Badge` is `rounded-full`
+              and carries the app's 26px `soft` tint, which re-tints with the
+              palette. */}
+          <Badge variant="soft">{tf[entry.method]}</Badge>
         </span>
         <span className="flex items-center gap-1.5">
           <span className="mr-1.5 font-semibold text-foreground">
@@ -296,59 +303,5 @@ function FeedRow({
         </div>
       </div>
     </li>
-  )
-}
-
-function FeedProgress({
-  count,
-  range,
-  tf,
-}: {
-  count: number
-  range: [number, number]
-  tf: ReturnType<typeof useT>['feed']
-}) {
-  const [min, max] = range
-  const state = count < min ? 'below' : count > max ? 'above' : 'on'
-  const status = state === 'below' ? tf.progressBelow : state === 'above' ? tf.progressAbove : tf.progressOnTrack
-  // Scale so the typical zone and current count always fit with headroom.
-  const scaleMax = Math.max(max + 2, count + 1, 1)
-  const p = (v: number) => Math.min(100, (v / scaleMax) * 100)
-
-  return (
-    /* One line + a hairline bar. Flat — it sits inside the input card, and
-       glass/cards never stack. The count and the range say what the old title
-       said, so the title is gone; the bar is decorative for AT because the
-       line above it already reads "3 / ~5–7 feeds". */
-    <div>
-      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
-        <p className="font-heading text-sm text-muted-foreground">
-          <span className="text-lg font-semibold tabular-nums text-foreground">{count}</span>
-          {' / ~'}
-          {min}–{max} {tf.progressFeeds}
-        </p>
-        <p
-          className={cn(
-            'text-xs',
-            state === 'on' ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground',
-          )}
-        >
-          {status}
-        </p>
-      </div>
-      <div aria-hidden className="relative mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-        <div
-          className="absolute inset-y-0 bg-primary/20"
-          style={{ left: `${p(min)}%`, width: `${p(max) - p(min)}%` }}
-        />
-        <div
-          className={cn(
-            'absolute inset-y-0 left-0 rounded-full',
-            state === 'on' ? 'bg-emerald-500' : state === 'above' ? 'bg-amber-500' : 'bg-primary',
-          )}
-          style={{ width: `${p(count)}%` }}
-        />
-      </div>
-    </div>
   )
 }

@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Baby as BabyIcon, Trash2, Ruler, Weight, Pencil } from 'lucide-react'
 import { AgeBadge } from '../components/AgeBadge'
 import { ChoiceGroup } from '../components/ChoiceGroup'
+import { EmptyState } from '../components/EmptyState'
 import { StatTile } from '../components/StatTile'
 import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
 import { GlassScrollArea } from '@/design-system/components'
@@ -74,11 +75,7 @@ export default function Baby() {
   if (!ready) {
     return (
       <WidgetPage {...page}>
-        <Card>
-          <CardContent className="py-10 text-center text-muted-foreground">
-            {t.baby.signInPrompt}
-          </CardContent>
-        </Card>
+        <EmptyState icon={<BabyIcon />}>{t.baby.signInPrompt}</EmptyState>
       </WidgetPage>
     )
   }
@@ -90,7 +87,7 @@ export default function Baby() {
           {/* The real stat row's grid, so the skeleton can never drift from it. */}
           <WidgetStatGrid>
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-20" />
+              <StatTileSkeleton key={i} />
             ))}
           </WidgetStatGrid>
           <Skeleton className="h-40" />
@@ -121,10 +118,46 @@ export default function Baby() {
   )
 }
 
+/**
+ * The loading stand-in for one `StatTile`.
+ *
+ * It **mirrors the tile's box model instead of naming a height**, because a
+ * height here is a copy of a number that lives in `StatTile`: it was
+ * `<Skeleton className="h-20" />`, and when the audit dropped the tile's doubled
+ * `CardContent` padding the tile went 136px → 104px while the 80px placeholder
+ * stood still. Every version of that number is wrong the moment the tile is
+ * touched, so this one derives it — same `Card` (16px of block padding), same
+ * 32px `IconChip size="sm"` square beside its label, same 8px gap above the
+ * value — and lands on the tile's height on its own.
+ *
+ * `h-[1lh]` is the whole trick for the two text rows: one line box of whatever
+ * type the placeholder is set in, so `text-xs` measures 16px and `text-2xl`
+ * measures 32px without either being written down.
+ */
+function StatTileSkeleton() {
+  return (
+    <Card>
+      <CardContent>
+        <div className="flex items-center gap-2">
+          {/* `IconChip size="sm"`: `rounded-lg`, `p-2` around a 16px icon. */}
+          <Skeleton className="size-8 shrink-0 rounded-lg" />
+          <Skeleton className="h-[1lh] w-2/3 text-xs" />
+        </div>
+        <Skeleton className="mt-2 h-[1lh] w-1/2 text-2xl" />
+      </CardContent>
+    </Card>
+  )
+}
+
 function CreateBabyForm({
   onCreate,
+  bare,
 }: {
   onCreate: (i: { name: string; birth_date: string; palette: Palette }) => Promise<unknown>
+  /** Set when this form is already inside a `Card` (the "add another baby"
+   *  disclosure): keeps the header and the fields, drops the second edge and the
+   *  second layer of padding. */
+  bare?: boolean
 }) {
   const t = useT()
   const fields = useFieldLabels()
@@ -149,53 +182,60 @@ function CreateBabyForm({
     }
   }
 
+  // The form itself, so `bare` can skip the card and its title entirely: inside
+  // the "add another baby" disclosure the `<summary>` already carries that exact
+  // title, and with the inner surface gone the two sat 16px apart saying the same
+  // thing. One title per block.
+  const form = (
+    <form onSubmit={submit} className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label htmlFor="baby-name">{t.baby.nameLabel}</Label>
+          <Input
+            id="baby-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t.baby.namePlaceholder}
+            required
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="baby-birth">{t.baby.birthDateLabel}</Label>
+          <DatePicker
+            id="baby-birth"
+            value={birthDate}
+            onValueChange={setBirthDate}
+            max={todayKey()}
+            {...fields.datePicker}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label>{t.baby.paletteLabel}</Label>
+          <ChoiceGroup
+            value={palette}
+            onChange={setPalette}
+            options={[
+              { value: 'blue', label: t.nav.boy },
+              { value: 'red', label: t.nav.girl },
+            ]}
+          />
+        </div>
+        <div className="flex items-end">
+          <Button type="submit" disabled={busy}>
+            {busy ? t.baby.creating : t.baby.create}
+          </Button>
+        </div>
+        {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
+      </form>
+  )
+
+  if (bare) return form
+
+  // `WidgetCard`, not a hand-rolled copy of its header: the icon + 15px semibold
+  // title + `mb-4` here was the same block, spelled out a second time.
   return (
-    <Card>
-      <CardContent>
-        <p className="mb-4 flex items-center gap-2 text-[15px] font-semibold text-foreground">
-          <BabyIcon className="size-4 text-primary" /> {t.baby.addTitle}
-        </p>
-        <form onSubmit={submit} className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label htmlFor="baby-name">{t.baby.nameLabel}</Label>
-            <Input
-              id="baby-name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t.baby.namePlaceholder}
-              required
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="baby-birth">{t.baby.birthDateLabel}</Label>
-            <DatePicker
-              id="baby-birth"
-              value={birthDate}
-              onValueChange={setBirthDate}
-              max={todayKey()}
-              {...fields.datePicker}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label>{t.baby.paletteLabel}</Label>
-            <ChoiceGroup
-              value={palette}
-              onChange={setPalette}
-              options={[
-                { value: 'blue', label: t.nav.boy },
-                { value: 'red', label: t.nav.girl },
-              ]}
-            />
-          </div>
-          <div className="flex items-end">
-            <Button type="submit" disabled={busy}>
-              {busy ? t.baby.creating : t.baby.create}
-            </Button>
-          </div>
-          {error && <p className="text-sm text-destructive sm:col-span-2">{error}</p>}
-        </form>
-      </CardContent>
-    </Card>
+    <WidgetCard icon={<BabyIcon />} title={t.baby.addTitle}>
+      {form}
+    </WidgetCard>
   )
 }
 
@@ -360,14 +400,31 @@ function BabyDetail({
             )}
           </WidgetCard>
 
-          <details className="rounded-xl border border-border bg-card p-4 text-card-foreground">
-            <summary className="cursor-pointer text-sm font-medium text-muted-foreground">
-              {t.baby.addTitle}
-            </summary>
-            <div className="mt-4">
-              <CreateBabyForm onCreate={onCreate} />
-            </div>
-          </details>
+          {/* A real `Card`, not `rounded-xl border border-border bg-card p-4`: the
+              same fix as the Wiki topic pager. That spelling matched the Card's
+              radius and padding but drew a 1px `border-border` where every other
+              surface on this page draws a `ring-1 ring-foreground/10`, so the one
+              card at the bottom of the page read as a different kind of surface
+              from the four above it. (Restating it as `border-*` on the `Card`
+              would render nothing at all — Tailwind v4 zeroes border-width, and
+              the Card's edge is the ring.)
+
+              The form inside is `bare`: the disclosure's card is the only surface
+              and its `<summary>` is the only title. It used to nest a full titled
+              `Card` — two edges 16px apart, 32px of padding down the sides of the
+              fields, and "Add a baby" printed twice. */}
+          <Card>
+            <CardContent>
+              <details>
+                <summary className="cursor-pointer text-sm font-medium text-muted-foreground">
+                  {t.baby.addTitle}
+                </summary>
+                <div className="mt-4">
+                  <CreateBabyForm onCreate={onCreate} bare />
+                </div>
+              </details>
+            </CardContent>
+          </Card>
         </>
       }
     />

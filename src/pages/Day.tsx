@@ -18,6 +18,7 @@ import { Eyebrow } from '../components/Eyebrow'
 import { ProgressRing } from '../components/ProgressRing'
 import { dayActivityMeta } from '../components/dayActivity'
 import { AddFeedForm } from '../components/AddFeedForm'
+import { FeedProgress } from '../components/FeedProgress'
 import { Card, CardContent } from '@/components/ui/card'
 import { WidgetCard } from '../components/WidgetPage'
 import { Button } from '@/components/ui/button'
@@ -567,22 +568,19 @@ function TummyWidget() {
     : null
   return (
     <div className="relative flex flex-col items-center gap-4 py-1">
-      {/* Soft emerald wash so the ring reads as "tummy" even at 0% — never a
-          dead grey donut. */}
+      {/* Soft success-hued wash so the ring reads as "tummy" even at 0% — never a
+          dead grey donut. The hue is `--success`, the same semantic token the
+          completed ring uses, rather than a literal emerald. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-1 mx-auto size-36 rounded-full bg-emerald-500/10 blur-2xl"
+        className="pointer-events-none absolute inset-x-0 top-1 mx-auto size-36 rounded-full bg-success/10 blur-2xl"
       />
-      <ProgressRing progress={total / target} size={140} stroke={11} accent="#10b981" complete={done}>
+      <ProgressRing progress={total / target} size={140} stroke={11} accent="var(--success)" complete={done}>
         <div className="flex flex-col items-center leading-none">
           {clock ? (
             <>
               <span className="font-heading text-3xl font-semibold tabular-nums text-foreground">{clock}</span>
-              <Eyebrow
-                as="span"
-                tone="inherit"
-                className="mt-2 text-emerald-600 dark:text-emerald-400"
-              >
+              <Eyebrow as="span" tone="inherit" className="mt-2 text-success">
                 {t.tracker.running}
               </Eyebrow>
             </>
@@ -602,7 +600,7 @@ function TummyWidget() {
 
       <p className="-mt-0.5 text-xs font-medium">
         {done ? (
-          <span className="text-emerald-600 dark:text-emerald-400">{t.daily.tummyDone}</span>
+          <span className="text-success">{t.daily.tummyDone}</span>
         ) : (
           <span className="text-muted-foreground">
             <span className="tabular-nums text-foreground">{pct}%</span> {t.daily.ofTarget}
@@ -645,15 +643,6 @@ function FeedWidget() {
         ? `${Math.floor(mins / 60)}${t.feed.hourShort} ${mins % 60}${t.feed.minShort}`
         : `${mins} ${t.feed.minShort}`
 
-  let state: 'below' | 'on' | 'above' = 'on'
-  let scaleMax = Math.max(count + 1, 1)
-  if (range) {
-    const [min, max] = range
-    state = count < min ? 'below' : count > max ? 'above' : 'on'
-    scaleMax = Math.max(max + 2, count + 1, 1)
-  }
-  const p = (v: number) => Math.min(100, (v / scaleMax) * 100)
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-baseline justify-between gap-3">
@@ -665,33 +654,10 @@ function FeedWidget() {
         </p>
       </div>
 
-      <div>
-        <p className="font-heading text-sm text-muted-foreground">
-          <span className="text-2xl font-semibold tabular-nums text-foreground">{count}</span>
-          {range && (
-            <>
-              {' / ~'}
-              {range[0]}–{range[1]}
-            </>
-          )}{' '}
-          {t.feed.progressFeeds}
-        </p>
-        {range && (
-          <div className="relative mt-2 h-2.5 w-full overflow-hidden rounded-full bg-muted">
-            <div
-              className="absolute inset-y-0 bg-primary/20"
-              style={{ left: `${p(range[0])}%`, width: `${p(range[1]) - p(range[0])}%` }}
-            />
-            <div
-              className={cn(
-                'absolute inset-y-0 left-0 rounded-full',
-                state === 'on' ? 'bg-emerald-500' : state === 'above' ? 'bg-amber-500' : 'bg-primary',
-              )}
-              style={{ width: `${p(count)}%` }}
-            />
-          </div>
-        )}
-      </div>
+      {/* The shared readout — this used to be a second, drifted copy of the one
+          on `/feed` (bigger count, thicker bar, and it silently dropped the
+          on-track / above-range status line). */}
+      <FeedProgress count={count} range={range} />
 
       <AddFeedForm compact last={feed.lastFeed} onAdd={feed.add} />
 

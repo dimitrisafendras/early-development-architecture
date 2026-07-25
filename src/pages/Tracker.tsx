@@ -185,10 +185,13 @@ export default function Tracker() {
            a footer strip so the full width has something to do. No title here:
            the tier eyebrow already names the action.
 
-           The tinted edge is a `ring`, not a `border`: Card draws its edge as a
-           ring and has no border width, so the `border-primary/20` that used to be
-           here rendered nothing at all. */
-        <Card className="ring-primary/20 bg-gradient-to-br from-card via-card to-primary/5">
+           A plain `Card`, like the input tier on `/feed` and `/baby`. It used to
+           carry a tinted gradient and a `border-primary/20` — the border rendered
+           nothing (Card draws its edge as a ring) and the gradient made this one
+           tier a different surface from the same tier on the other two widget
+           pages. The ring, the recording pill and the primary button carry the
+           "instrument" reading on their own. */
+        <Card>
           <CardContent>
             <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:justify-center sm:gap-12 sm:text-left lg:gap-16">
               <ProgressRing
@@ -212,10 +215,7 @@ export default function Tracker() {
                       to thicken from 400 to 600 the moment the target was met, so
                       the label's stroke changed as the number ticked over. */}
                   <Eyebrow
-                    className={cn(
-                      'mt-1',
-                      metTarget && 'text-emerald-600 dark:text-emerald-400',
-                    )}
+                    className={cn('mt-1', metTarget && 'text-success')}
                     tone={metTarget ? 'inherit' : 'muted'}
                   >
                     {/* Always the distance to target: while running, "Recording…"

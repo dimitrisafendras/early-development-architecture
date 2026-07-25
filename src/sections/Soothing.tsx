@@ -12,7 +12,6 @@ import {
 import { Card, CardContent } from '@/components/ui/card'
 import { Eyebrow } from '@/components/Eyebrow'
 import { IconChip } from '@/components/IconChip'
-import { statusTone } from '../lib/tone'
 import { useT } from '../i18n'
 
 const sIcons = [Baby, MoveHorizontal, Volume2, Activity, CircleDot]
@@ -80,10 +79,20 @@ export function Soothing() {
         })}
       </div>
 
-      {/* Coping / safety callout */}
-      <Card className="mt-6 bg-amber-500/5 ring-1 ring-amber-500/40">
+      {/* Coping / safety callout — a warning state, so surface, edge and chip all
+          come from `--warning`. The chip used to take `statusTone.warning`
+          (Tailwind amber) while the card was `amber-500/5`, which put two
+          different ambers on one surface; both are the token now.
+
+          Card body text on `bg-warning/5` is 4.94:1 light / 6.35:1 dark, and the
+          chip glyph on the stacked tint is 4.58:1 / 7.10:1 — both AA even though
+          the glyph is decorative and only owes 3:1. `ring-warning/20` is passed
+          explicitly: a caller `bg-*` makes `cn` drop IconChip's gradient, but
+          its `ring-primary/20` is a separate key and would otherwise survive,
+          leaving a palette-tinted edge on a warning chip. */}
+      <Card className="mt-6 bg-warning/5 ring-1 ring-warning/40">
         <CardContent className="flex items-start gap-4 py-5">
-          <IconChip className={statusTone.warning.chip}>
+          <IconChip className="bg-warning/10 text-warning ring-warning/20">
             <LifeBuoy />
           </IconChip>
           <div className="min-w-0">

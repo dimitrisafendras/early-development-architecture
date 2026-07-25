@@ -61,11 +61,20 @@ export function TummyTime() {
 
           {/* The Alert primitive ships a tighter `rounded-lg` / `px-2.5 py-2`; it
               sits in a column of Cards, so it takes the card geometry (14px
-              radius, 16px padding) to stop the column's edges from stepping. */}
-          <Alert className="rounded-xl border-amber-500/25 bg-amber-500/10 p-4 text-amber-800 dark:text-amber-200 [&>svg]:text-amber-600 dark:[&>svg]:text-amber-400">
+              radius, 16px padding) to stop the column's edges from stepping.
+
+              A genuine warning state, so it takes `--warning` rather than a
+              literal amber. One `text-warning` on the root replaces the old
+              four-way light/dark pair (`amber-800`/`amber-200` for the text plus
+              `amber-600`/`amber-400` for the icon) because the token already
+              inverts per theme; the icon inherits via the primitive's
+              `*:[svg]:text-current`. `text-warning` on this `bg-warning/10`
+              surface is 4.88:1 light / 7.86:1 dark. */}
+          <Alert className="rounded-xl border-warning/25 bg-warning/10 p-4 text-warning">
             <TriangleAlert />
-            <AlertTitle className="text-amber-800 dark:text-amber-200">{tt.alertTitle}</AlertTitle>
-            <AlertDescription className="text-amber-700 dark:text-amber-300/90">
+            <AlertTitle>{tt.alertTitle}</AlertTitle>
+            {/* Overrides the primitive's baked-in `text-muted-foreground`. */}
+            <AlertDescription className="text-warning">
               {tt.alertBefore}
               <strong>{tt.alertEm}</strong>
               {tt.alertAfter}
