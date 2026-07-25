@@ -193,6 +193,16 @@ function NumberInput({
   )
 
   return (
+    // One element in the caller's flow. `NumberField.Root` emits a 1px hidden
+    // input for form submission *as a sibling* of the group, so a field cell laid
+    // out with `space-y-*` (the app's standard label-over-control cell) saw two
+    // children where it expected one: the hidden input became the last child, the
+    // group stopped being it, and the group therefore picked up the cell's 6px
+    // bottom margin. In an `items-end` row — the log-a-feed compose row, the
+    // measurement row — that put the stepper's bottom edge 6px above every
+    // neighbouring control while the cells themselves aligned perfectly. Wrapping
+    // Root keeps the hidden input inside the component, where it belongs.
+    <div className="w-full">
     <NumberField.Root
       id={id}
       data-slot="number-input"
@@ -286,6 +296,7 @@ function NumberInput({
         )}
       </NumberField.Group>
     </NumberField.Root>
+    </div>
   )
 }
 
