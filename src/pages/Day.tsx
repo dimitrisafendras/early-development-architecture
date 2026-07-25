@@ -12,12 +12,14 @@ import {
   LocateFixed,
   Pencil,
 } from 'lucide-react'
-import { SectionHeader } from '../components/SectionHeader'
+import { PageFrame } from '../components/PageFrame'
 import { AgeBadge } from '../components/AgeBadge'
+import { Eyebrow } from '../components/Eyebrow'
 import { ProgressRing } from '../components/ProgressRing'
 import { dayActivityMeta } from '../components/dayActivity'
 import { AddFeedForm } from '../components/AddFeedForm'
 import { Card, CardContent } from '@/components/ui/card'
+import { WidgetCard } from '../components/WidgetPage'
 import { Button } from '@/components/ui/button'
 import { GlassButton, GlassScrollArea, type GlassScrollAreaHandle } from '@/design-system/components'
 import { cn } from '@/lib/utils'
@@ -69,12 +71,13 @@ export default function Day() {
   const selectSlot = (i: number) => setSelected(i === currentSlot ? null : i)
 
   return (
-    <main className="mx-auto flex min-h-0 w-full max-w-6xl flex-1 flex-col page-px py-5 sm:py-10">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <SectionHeader compact className="mb-0" title={t.day.title} description={t.day.subtitle} />
-        <AgeBadge />
-      </div>
-
+    // `fill` is the only thing this dashboard needs beyond the shared frame: the
+    // frame takes the scroll column's height so the grid below can shrink inside
+    // it and the cards scroll internally. Everything else — width, gutter,
+    // padding, the header row, the gap — is the frame's, so this page's title now
+    // sits at the same X *and* Y as every other route's (it used to sit 20px
+    // higher on a phone, from a hand-rolled `py-5 sm:py-10`).
+    <PageFrame fill title={t.day.title} description={t.day.subtitle} aside={<AgeBadge />}>
       {/* Two cards, no more: the day's schedule as the left rail, and the moment
           (what's now + the tool for it, the thing you actually act on) beside it.
           Fixed height at lg so switching activities never makes the page jump —
@@ -83,7 +86,7 @@ export default function Day() {
       {/* `grid-rows-[minmax(0,1fr)]` lets the single row shrink below its content
           so the cards take the row's height and scroll inside; an `auto` row would
           grow to the full schedule list and push the page past the viewport. */}
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:mt-8 sm:gap-6 lg:min-h-[24rem] lg:flex-1 lg:grid-cols-[minmax(0,23rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] xl:min-h-0">
+      <div className="grid grid-cols-1 gap-6 lg:min-h-[24rem] lg:flex-1 lg:grid-cols-[minmax(0,23rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] xl:min-h-0">
         <div className="min-h-0 lg:order-2">
           <MomentCard
             schedule={schedule}
@@ -103,7 +106,7 @@ export default function Day() {
           />
         </div>
       </div>
-    </main>
+    </PageFrame>
   )
 }
 
@@ -197,11 +200,11 @@ function MomentCard({
         </div>
       )}
 
-      <CardContent className="relative flex min-h-0 flex-1 flex-col gap-5 py-6">
+      <CardContent className="relative flex min-h-0 flex-1 flex-col gap-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5">
             {isNow ? (
-              <p className={cn('flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]', meta.text)}>
+              <Eyebrow tone="inherit" className={cn('flex items-center gap-2', meta.text)}>
                 <span className="relative flex size-2">
                   <span
                     className="absolute inline-flex size-full animate-ping rounded-full opacity-60 motion-reduce:hidden"
@@ -210,19 +213,22 @@ function MomentCard({
                   <span className="relative inline-flex size-2 rounded-full" style={{ backgroundColor: a }} />
                 </span>
                 {t.daily.nowTitle}
-              </p>
+              </Eyebrow>
             ) : (
               <>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  <Clock className="size-3.5" /> {t.day.panelSelectedTag}
-                </span>
-                <button
-                  type="button"
-                  onClick={onJumpToNow}
-                  className="text-xs font-medium text-primary transition-colors hover:text-primary/80"
+                {/* Same eyebrow size/tracking as the live branch above, so the
+                    label doesn't change weight or letterspacing as you select a
+                    different slot. */}
+                <Eyebrow
+                  as="span"
+                  tone="muted"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1"
                 >
+                  <Clock className="size-3.5" /> {t.day.panelSelectedTag}
+                </Eyebrow>
+                <Button variant="link" size="sm" onClick={onJumpToNow} className="h-auto p-0">
                   {t.day.jumpToNow}
-                </button>
+                </Button>
               </>
             )}
           </div>
@@ -255,9 +261,9 @@ function MomentCard({
                 lives in the schedule beside this card — no need to repeat it. */}
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
-                <span className={cn('text-[11px] font-semibold uppercase tracking-[0.16em]', meta.text)}>
+                <Eyebrow as="span" tone="inherit" className={meta.text}>
                   {t.fullDay.types[type]}
-                </span>
+                </Eyebrow>
                 {isNow ? (
                   <span
                     className={cn(
@@ -316,34 +322,39 @@ function MomentTool({ type, isNow, accent }: { type: DayActivity; isNow: boolean
     // `lg:flex-1` fills the card's remaining height once the card is
     // height-capped; on mobile the card grows with the tool instead of
     // scrolling it.
-    <div className="flex min-h-0 flex-col rounded-2xl bg-card p-4 ring-1 ring-foreground/10 shadow-[0_14px_36px_-22px_rgb(0_0_0/0.5)] lg:flex-1">
-      {isNow && (
-        <p className="mb-3 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-          <span className="size-1.5 rounded-full" style={{ backgroundColor: accent }} aria-hidden />
-          {t.day.panelToolHint}
-        </p>
-      )}
-      {/* Capped measure — the tool zone is now full card width, and a stretched
-          form/paragraph reads worse than one that keeps a comfortable column. */}
-      <GlassScrollArea className="-mx-1 max-w-2xl px-1" fade={20}>
-        {type === 'feed' ? (
-          <FeedWidget />
-        ) : type === 'tummy' ? (
-          <TummyWidget />
-        ) : type === 'sleep' ? (
-          <SafeSleepInfo />
-        ) : (
-          <TopicInfo type={type} />
+    // A real `Card`, not a look-alike: this used to hand-roll `rounded-2xl … p-4
+    // ring-1 ring-foreground/10`, i.e. a Card at 18px radius nested inside a real
+    // Card at 14px — two different corner radii 16px apart in one composition.
+    <Card className="flex min-h-0 flex-col shadow-[0_14px_36px_-22px_rgb(0_0_0/0.5)] lg:flex-1">
+      <CardContent className="flex min-h-0 flex-1 flex-col">
+        {isNow && (
+          <Eyebrow tone="muted" className="mb-3 flex items-center gap-2">
+            <span className="size-1.5 rounded-full" style={{ backgroundColor: accent }} aria-hidden />
+            {t.day.panelToolHint}
+          </Eyebrow>
         )}
-      </GlassScrollArea>
-      <Link
-        to={wikiPath(typeWiki[type])}
-        className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-      >
-        <BookOpen className="size-4" /> {t.day.learnFull}
-        <ArrowRight className="size-3.5" />
-      </Link>
-    </div>
+        {/* Capped measure — the tool zone is now full card width, and a stretched
+            form/paragraph reads worse than one that keeps a comfortable column. */}
+        <GlassScrollArea className="-mx-1 max-w-2xl px-1">
+          {type === 'feed' ? (
+            <FeedWidget />
+          ) : type === 'tummy' ? (
+            <TummyWidget />
+          ) : type === 'sleep' ? (
+            <SafeSleepInfo />
+          ) : (
+            <TopicInfo type={type} />
+          )}
+        </GlassScrollArea>
+        <Link
+          to={wikiPath(typeWiki[type])}
+          className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+        >
+          <BookOpen className="size-4" /> {t.day.learnFull}
+          <ArrowRight className="size-3.5" />
+        </Link>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -394,19 +405,23 @@ function Timeline({
   }
 
   return (
-    <Card className="flex h-full min-h-0 flex-col">
-      <CardContent className="flex min-h-0 flex-1 flex-col">
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-            {t.day.scheduleTitle}
-          </p>
-          <Link
-            to="/schedule"
-            className="inline-flex items-center gap-1 text-xs font-medium text-primary transition-colors hover:text-primary/80"
-          >
-            <Pencil className="size-3.5" /> {t.day.editSchedule}
-          </Link>
-        </div>
+    // `WidgetCard` rather than a hand-rolled Card + title: this card's title used
+    // to be an *eyebrow* (12px, 0.16em tracking) while the MomentCard beside it
+    // carried a 15px semibold title — two different kinds of type doing the same
+    // job, side by side on the app's landing screen.
+    <WidgetCard
+      className="flex h-full min-h-0 flex-col"
+      contentClassName="flex min-h-0 flex-1 flex-col"
+      title={t.day.scheduleTitle}
+      meta={
+        <Link
+          to="/schedule"
+          className="inline-flex items-center gap-1 font-medium text-primary transition-colors hover:text-primary/80"
+        >
+          <Pencil className="size-3.5" /> {t.day.editSchedule}
+        </Link>
+      }
+    >
         <GlassScrollArea
           ref={areaRef}
           className="max-h-[21rem] lg:max-h-none"
@@ -439,8 +454,14 @@ function Timeline({
                   }}
                   className="relative flex gap-4 pb-5 last:pb-0"
                 >
+                  {/* Centred on the `w-12` dot column rather than the hand-derived
+                      `left-[1.4375rem]` it used to use — that constant silently
+                      de-centred the rail the moment the dot changed size. */}
                   {!last && (
-                    <span className="absolute left-[1.4375rem] top-11 bottom-0 w-px bg-border" aria-hidden />
+                    <span
+                      className="absolute left-6 top-11 bottom-0 w-px -translate-x-1/2 bg-border"
+                      aria-hidden
+                    />
                   )}
                   <button
                     type="button"
@@ -465,14 +486,16 @@ function Timeline({
                         isSelected ? 'bg-primary/5 ring-1 ring-primary/30' : 'group-hover:bg-muted',
                       )}
                     >
-                      <div className="flex flex-wrap items-baseline gap-x-3">
-                        <span className="font-heading text-sm font-bold tabular-nums text-foreground">
+                      {/* `gap-y-1` matters in Greek: these four items wrap, and
+                          without it the wrapped lines collapse to a 0px gutter. */}
+                      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                        <span className="font-heading text-sm font-semibold tabular-nums text-foreground">
                           {slot.time}
                         </span>
                         <span className="font-semibold text-foreground">{slot.title}</span>
-                        <span className={cn('text-[11px] font-semibold uppercase tracking-wider', a.text)}>
+                        <Eyebrow as="span" tone="inherit" className={a.text}>
                           {t.fullDay.types[slot.type]}
-                        </span>
+                        </Eyebrow>
                       </div>
                       <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
                         {slot.detail}
@@ -484,8 +507,7 @@ function Timeline({
             })}
           </ol>
         </GlassScrollArea>
-      </CardContent>
-    </Card>
+    </WidgetCard>
   )
 }
 
@@ -555,20 +577,24 @@ function TummyWidget() {
         <div className="flex flex-col items-center leading-none">
           {clock ? (
             <>
-              <span className="font-heading text-[1.7rem] font-semibold tabular-nums text-foreground">{clock}</span>
-              <span className="mt-2 text-[10px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+              <span className="font-heading text-3xl font-semibold tabular-nums text-foreground">{clock}</span>
+              <Eyebrow
+                as="span"
+                tone="inherit"
+                className="mt-2 text-emerald-600 dark:text-emerald-400"
+              >
                 {t.tracker.running}
-              </span>
+              </Eyebrow>
             </>
           ) : (
             <>
-              <span className="font-heading text-[2rem] font-semibold tabular-nums text-foreground">
+              <span className="font-heading text-3xl font-semibold tabular-nums text-foreground">
                 {Math.round(total)}
-                <span className="text-lg font-normal text-muted-foreground">/{target}</span>
+                <span className="text-sm font-medium text-muted-foreground">/{target}</span>
               </span>
-              <span className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              <Eyebrow as="span" tone="muted" className="mt-1">
                 {t.daily.tummyMinutes}
-              </span>
+              </Eyebrow>
             </>
           )}
         </div>

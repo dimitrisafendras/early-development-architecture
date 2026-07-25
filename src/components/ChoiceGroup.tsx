@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import type { ControlSizeProp } from '@/components/ui/control-size'
 
 /**
  * A required single choice — feed method, accent palette, which baby.
@@ -26,28 +27,24 @@ export interface ChoiceGroupProps<T extends string> {
   options: ChoiceOption<T>[]
   /** Names the group for assistive tech; omit when a visible <Label> does it. */
   ariaLabel?: string
-  size?: 'sm' | 'default' | 'lg'
+  /** One of the shared control sizes — see `ui/control-size.ts`. */
+  size?: ControlSizeProp
   className?: string
 }
 
 /**
- * Mobile-first heights, matching `Input` and the pickers: a real touch target
- * on phones, the tighter desktop height from `sm` up. These override the fixed
- * heights in `toggleVariants`' size scale, which the rest of the app's toggles
- * still use.
+ * A choice group almost always sits beside a `Button`, an `Input` or a stepper,
+ * so its pills must be exactly as tall as they are. There is no height map
+ * here any more: `toggleVariants` takes its heights straight from the one
+ * control scale, so passing the same `size` as the rest of the row is all it
+ * takes. `md` (h-11 on a phone, h-8 from `sm`) is the default.
  */
-const heights = {
-  sm: 'h-9 sm:h-7',
-  default: 'h-11 sm:h-8',
-  lg: 'h-11 sm:h-9',
-} as const
-
 export function ChoiceGroup<T extends string>({
   value,
   onChange,
   options,
   ariaLabel,
-  size = 'lg',
+  size = 'md',
   className,
 }: ChoiceGroupProps<T>) {
   return (
@@ -68,7 +65,6 @@ export function ChoiceGroup<T extends string>({
           value={o.value}
           aria-label={o.ariaLabel}
           disabled={o.disabled}
-          className={heights[size]}
         >
           {o.label}
         </ToggleGroupItem>

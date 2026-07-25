@@ -12,6 +12,7 @@ import {
 import { Calendar, type CalendarLabels } from '@/components/ui/calendar'
 import { TimeColumns, type TimeLabels } from '@/components/ui/time-picker'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { controlSize, type ControlSizeProp } from '@/components/ui/control-size'
 
 /**
  * One field for a moment in time, replacing `<input type="datetime-local">`.
@@ -38,15 +39,6 @@ const defaultLabels: Pick<DateTimeLabels, 'minutesAgo' | 'hourAgo' | 'pickDateTi
   pickDateTime: 'Pick a date and time',
 }
 
-/**  Matches `Input`'s mobile-first sizing: a real touch target on phones,
-   the compact desktop height from `sm` up.
- */
-const sizes = {
-  sm: 'h-9 text-sm sm:h-7',
-  default: 'h-11 text-base sm:h-8 md:text-sm',
-  lg: 'h-12 text-base sm:h-10',
-} as const
-
 export interface DateTimePickerProps {
   /** Selected moment as `YYYY-MM-DDTHH:MM`. */
   value?: string | null
@@ -58,7 +50,8 @@ export interface DateTimePickerProps {
   locale?: string
   labels?: Partial<DateTimeLabels>
   placeholder?: string
-  size?: keyof typeof sizes
+  /** One of the shared control sizes — see `control-size.ts`. */
+  size?: ControlSizeProp
   id?: string
   name?: string
   disabled?: boolean
@@ -75,7 +68,7 @@ function DateTimePicker({
   locale,
   labels: labelOverrides,
   placeholder,
-  size = 'default',
+  size = 'md',
   id,
   name,
   disabled,
@@ -83,6 +76,7 @@ function DateTimePicker({
   className,
 }: DateTimePickerProps) {
   const [open, setOpen] = React.useState(false)
+  const s = controlSize(size)
   const labels = { ...defaultLabels, ...labelOverrides }
   const parts = splitDateTimeKey(value)
 
@@ -108,12 +102,14 @@ function DateTimePicker({
         aria-invalid={invalid || undefined}
         data-slot="date-time-picker-trigger"
         className={cn(
-          'flex w-full items-center justify-between gap-2 rounded-lg border border-input bg-transparent px-2.5 text-left transition-colors',
+          'flex w-full items-center justify-between gap-2 border border-input bg-transparent px-2.5 text-left transition-colors',
           'hover:border-ring/60 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
           'disabled:pointer-events-none disabled:bg-input/50 disabled:opacity-50',
           'aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20',
           'dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40',
-          sizes[size],
+          s.height,
+          s.radius,
+          s.text,
           className,
         )}
       >

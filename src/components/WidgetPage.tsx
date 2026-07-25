@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import { Eyebrow } from './Eyebrow'
 import { PageFrame } from './PageFrame'
 import { useT } from '../i18n'
 
@@ -33,7 +34,6 @@ export function WidgetPage({
   description,
   aside,
   toolbar,
-  compact,
   className,
   glance,
   input,
@@ -48,8 +48,6 @@ export function WidgetPage({
   aside?: ReactNode
   /** Full-width context switcher under the header (e.g. which baby). */
   toolbar?: ReactNode
-  /** Forwarded to `PageFrame`/`SectionHeader` — a tighter header on a phone. */
-  compact?: boolean
   /** Forwarded to `PageFrame`. Reserved for the frame's sanctioned width
    *  exception; widget pages should not normally need it. */
   className?: string
@@ -74,34 +72,30 @@ export function WidgetPage({
       description={description}
       aside={aside}
       toolbar={toolbar}
-      compact={compact}
       className={className}
     >
       {children}
 
+      {/* All three tiers use the same `gap-4`. They used to be 4 / 3 / 4, so the
+          input tier's eyebrow sat 12px above its card while the detail tier's sat
+          16px above its first card — a 4px inconsistency between two adjacent,
+          identically-structured tiers. */}
       {glance && <div className="flex flex-col gap-4">{glance}</div>}
 
       {input && (
-        <section className="flex flex-col gap-3">
-          <TierLabel>{inputLabel ?? t.widget.input}</TierLabel>
+        <section className="flex flex-col gap-4">
+          <Eyebrow className="text-primary/80">{inputLabel ?? t.widget.input}</Eyebrow>
           {input}
         </section>
       )}
 
       {detail && (
         <section className="flex flex-col gap-4 border-t border-border/70 pt-8">
-          <TierLabel>{detailLabel ?? t.widget.detail}</TierLabel>
+          <Eyebrow className="text-primary/80">{detailLabel ?? t.widget.detail}</Eyebrow>
           {detail}
         </section>
       )}
     </PageFrame>
-  )
-}
-
-/** The eyebrow that opens a tier. */
-function TierLabel({ children }: { children: ReactNode }) {
-  return (
-    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary/80">{children}</p>
   )
 }
 

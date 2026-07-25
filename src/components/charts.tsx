@@ -44,8 +44,11 @@ const paletteHex = {
     soft: { light: '#97c6f9', dark: '#3a89da' }, //     300 / 500
   },
   red: {
-    primary: { light: '#cc3744', dark: '#f48289' }, // 600 / 400
-    soft: { light: '#fcb0b3', dark: '#e25a63' }, //     300 / 500
+    // Orchid (violet-pink), hue band 338–342 — matches the retuned `red`
+    // palette in index.css. Charts were the last surface still drawing the old
+    // crimson, so a doughnut sat beside a pink "Active" badge in two families.
+    primary: { light: '#b24393', dark: '#de89c1' }, // 600 / 400
+    soft: { light: '#edb2da', dark: '#c963ab' }, //     300 / 500
   },
 } as const
 

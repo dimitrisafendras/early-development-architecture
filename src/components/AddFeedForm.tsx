@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NumberInput, type NumberInputProps } from '@/components/ui/number-input'
 import { DateTimePicker } from '@/components/ui/date-time-picker'
+import { cn } from '@/lib/utils'
 import { ChoiceGroup } from './ChoiceGroup'
 import { nowDateTimeKey, useDateLocale } from '../lib/dates'
 import { useFieldLabels } from '../lib/useFieldLabels'
@@ -27,10 +28,26 @@ export interface AddFeedInput {
 
 /**
  * Log-a-feed form, shared by the /feed page (full) and the /daily widget
- * (`compact`). Compact drops the time + note fields, stamps the feed at "now",
- * and lays out as one column of full-width, equal-height controls — method
- * pills, then the amount stepper, then the actions — so it reads top-to-bottom
- * and every target stays thumb-sized inside the day's narrow feed widget.
+ * (`compact`).
+ *
+ * Two blocks, never a pile of controls:
+ *
+ *   1. **the fast path** — a tinted strip naming the previous feed with
+ *      `Repeat last` as the one filled primary in the form. Most feeds are the
+ *      same as the last one, so the cheapest path owns the loudest button, and
+ *      `Copy last` (which only prefills) sits beside it as quiet ghost text.
+ *   2. **compose** — one wrapping row that fills its width: method pills, the
+ *      amount stepper at a fixed comfortable width, the time picker absorbing
+ *      the slack, the optional note collapsed behind a toggle, then `Log feed`
+ *      demoted to `secondary` because the strip above already holds the
+ *      primary. With no previous feed there is no strip, so `Log feed` becomes
+ *      the primary automatically.
+ *
+ * The note only expands when asked for, and it takes over the slack the time
+ * field was absorbing, so opening it never leaves a half-empty row and the
+ * default card stays short. Compact drops the time + note fields, stamps the
+ * feed at "now", and stacks full-width controls for the day widget's ~270px
+ * zone.
  */
 export function AddFeedForm({
   last,
@@ -57,6 +74,7 @@ export function AddFeedForm({
   const [minutes, setMinutes] = useState<number | null>(null)
   const [when, setWhen] = useState(nowDateTimeKey())
   const [note, setNote] = useState('')
+  const [noteOpen, setNoteOpen] = useState(false)
   const [busy, setBusy] = useState(false)
 
   // Prefill from the previous feed but stamp the time to now.
@@ -99,16 +117,20 @@ export function AddFeedForm({
       setAmount(null)
       setMinutes(null)
       setNote('')
+      setNoteOpen(false)
       setWhen(nowDateTimeKey())
     } finally {
       setBusy(false)
     }
   }
 
+  // Every control in the compose row — pills, stepper, picker, note, submit —
+  // is `md`, the one size at which the whole control set is the same height.
+  // See `ui/control-size.ts`: a row is only ever one size.
   const methodTabs = (
     <ChoiceGroup
       ariaLabel={tf.method}
-      size={compact ? 'default' : 'lg'}
+      size="md"
       value={method}
       onChange={setMethod}
       options={(['bottle', 'breast', 'solid'] as const).map((m) => ({ value: m, label: tf[m] }))}
@@ -123,8 +145,11 @@ export function AddFeedForm({
    * minutes, everything else millilitres — so the two layouts below can differ
    * in presentation without the step scales drifting apart.
    */
-  // `unit` + a placeholder drawn from the last feed keep the capsule from ever
+  // `unit` + a placeholder drawn from the last feed keep the field from ever
   // reading as an empty box, and hint the amount you probably want.
+  // `indicatorMax` is the plausible top of each scale, not a limit — it only
+  // drives the value bar on the field's bottom edge, so repeated presses read as
+  // accumulating progress. Both scales start naturally at 0, so no `indicatorMin`.
   const amountProps: NumberInputProps = isBreast
     ? {
         id: 'f-min',
@@ -135,6 +160,7 @@ export function AddFeedForm({
         smallStep: 1,
         largeStep: 15,
         unit: tf.minShort,
+        indicatorMax: 45,
         placeholder: last?.minutes != null ? String(last.minutes) : '15',
       }
     : {
@@ -146,28 +172,44 @@ export function AddFeedForm({
         smallStep: 5,
         largeStep: 50,
         unit: tf.mlShort,
+        indicatorMax: 250,
         placeholder: last?.amount_ml != null ? String(last.amount_ml) : '120',
       }
-  const amountControl = <NumberInput {...amountProps} {...fields.stepper} />
-  const amountField = (
-    <div className="space-y-1.5">
-      <Label htmlFor={amountId}>{amountLabelText}</Label>
-      {amountControl}
-    </div>
+
+  /** What `Repeat last` will log, so the shortcut is never a blind tap. */
+  const lastSummary = last && (
+    <>
+      {tf.lastFeed}: <span className="font-medium text-foreground">{tf[last.method]}</span>
+      {lastDetail && (
+        <>
+          {' · '}
+          <span className="font-medium text-foreground">{lastDetail}</span>
+        </>
+      )}
+      {lastTime && <> · {lastTime}</>}
+    </>
   )
 
   if (compact) {
     return (
       <form onSubmit={submit} className="flex flex-col gap-3">
+        {/* The fast path first: read the last feed, tap once, done. */}
         {last && (
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
-            <span>
-              {tf.lastFeed}: <span className="font-medium text-foreground">{tf[last.method]}</span>
-              {lastDetail && <> · {lastDetail}</>}
-              {lastTime && <> · {lastTime}</>}
-            </span>
-            <Button type="button" variant="secondary" size="sm" onClick={copyLast}>
-              <Copy className="mr-1.5 size-3.5" /> {tf.copyLast}
+          <div className="flex flex-col gap-2 rounded-lg bg-muted/60 px-3 py-2.5">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-xs text-muted-foreground">
+              <span className="min-w-0">{lastSummary}</span>
+              <Button
+                type="button"
+                variant="ghost"
+                size="md"
+                onClick={copyLast}
+                className="-mr-1.5 px-2 text-xs text-muted-foreground"
+              >
+                <Copy className="mr-1.5 size-3.5" /> {tf.copyLast}
+              </Button>
+            </div>
+            <Button type="button" onClick={submitLast} disabled={busy} className="w-full">
+              <Repeat className="mr-2 size-4" /> {tf.repeatLast}
             </Button>
           </div>
         )}
@@ -181,61 +223,103 @@ export function AddFeedForm({
             label. Value is bumped a step: it is this form's whole payload. */}
         <div className="space-y-1.5">
           <Label htmlFor={amountId}>{amountLabelText}</Label>
-          <NumberInput
-            {...amountProps}
-            {...fields.stepper}
-            className="max-w-[16rem]"
-          />
+          <NumberInput {...amountProps} {...fields.stepper} className="max-w-[16rem]" />
         </div>
-        {/* Primary, then the one-tap shortcut: one column of equal-height,
-            full-width controls, each its own unambiguous target. */}
-        <Button type="submit" disabled={busy} className="w-full">
+        {/* Demoted to `secondary` while a one-tap repeat exists above; the only
+            filled button here when it doesn't. */}
+        <Button
+          type="submit"
+          variant={last ? 'secondary' : 'default'}
+          disabled={busy}
+          className="w-full"
+        >
           <Milk className="mr-2 size-4" /> {tf.save}
         </Button>
-        {last && (
-          <Button type="button" variant="secondary" onClick={submitLast} disabled={busy} className="w-full">
-            <Repeat className="mr-2 size-4" /> {tf.repeatLast}
-          </Button>
-        )}
       </form>
     )
   }
 
   return (
-    <form onSubmit={submit} className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-      <div className="col-span-2 space-y-1.5 sm:col-span-4">
-        <Label>{tf.method}</Label>
-        {methodTabs}
-      </div>
-      {amountField}
-      {/* Full width on a phone — "Today, 23:43" does not fit half a row. */}
-      <div className="col-span-2 space-y-1.5 sm:col-span-1">
-        <Label htmlFor="f-when">{tf.timeLabel}</Label>
-        <DateTimePicker
-          id="f-when"
-          value={when}
-          onValueChange={setWhen}
-          maxDate={todayKey()}
-          {...fields.dateTimePicker}
-        />
-      </div>
-      <div className="col-span-2 space-y-1.5">
-        <Label htmlFor="f-note">{tf.noteLabel}</Label>
-        <Input id="f-note" value={note} onChange={(e) => setNote(e.target.value)} />
-      </div>
-      <div className="col-span-2 flex flex-wrap items-end gap-3 sm:col-span-4">
-        {last && (
-          <Button type="button" variant="secondary" size="lg" onClick={copyLast}>
-            <Copy className="mr-2 size-5" /> {tf.copyLast}
+    <form onSubmit={submit} className="flex flex-col gap-4">
+      {last && (
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg bg-muted/50 p-2 sm:p-2.5">
+          <p className="min-w-0 flex-1 px-1 text-xs text-muted-foreground sm:text-[13px]">{lastSummary}</p>
+          {/* Reversed on a phone so the primary sits above the quiet prefill;
+              side by side (quiet first) once there is room for a row. */}
+          <div className="flex w-full flex-col-reverse gap-2 sm:w-auto sm:flex-row sm:items-center">
+            {/* Same size as everything else in the card; the hierarchy is
+                carried by the fill, never by being taller. */}
+            <Button type="button" variant="ghost" size="md" onClick={copyLast} className="text-muted-foreground">
+              <Copy className="mr-2 size-4" /> {tf.copyLast}
+            </Button>
+            <Button type="button" size="md" onClick={submitLast} disabled={busy}>
+              <Repeat className="mr-2 size-4" /> {tf.repeatLast}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* One wrapping row, widths by importance rather than a 4-up grid: the
+          pills take a row of their own until `xl`, the stepper a fixed
+          comfortable field, and whichever of time/note is expanded absorbs the
+          slack — so no row is ever left half-empty. */}
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="w-full xl:w-auto">{methodTabs}</div>
+
+        <div className="w-full space-y-1.5 sm:w-[10rem]">
+          <Label htmlFor={amountId}>{amountLabelText}</Label>
+          <NumberInput {...amountProps} {...fields.stepper} />
+        </div>
+
+        <div
+          className={cn(
+            'w-full space-y-1.5',
+            noteOpen ? 'sm:w-[12rem]' : 'sm:min-w-[12rem] sm:flex-1 lg:max-w-[17rem]',
+          )}
+        >
+          <Label htmlFor="f-when">{tf.timeLabel}</Label>
+          <DateTimePicker
+            id="f-when"
+            size="md"
+            value={when}
+            onValueChange={setWhen}
+            maxDate={todayKey()}
+            {...fields.dateTimePicker}
+          />
+        </div>
+
+        {noteOpen ? (
+          <div className="w-full space-y-1.5 sm:min-w-[10rem] sm:flex-1 lg:max-w-[14rem]">
+            <Label htmlFor="f-note">{tf.noteLabel}</Label>
+            <Input
+              id="f-note"
+              autoFocus
+              size="md"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+          </div>
+        ) : (
+          /* Optional, so it costs a tap instead of a permanent row. */
+          <Button
+            type="button"
+            variant="ghost"
+            aria-expanded={false}
+            onClick={() => setNoteOpen(true)}
+            className="w-full justify-start px-2 text-muted-foreground sm:w-auto"
+          >
+            <Plus className="mr-2 size-4" /> {tf.noteLabel}
           </Button>
         )}
-        {last && (
-          <Button type="button" variant="secondary" size="lg" onClick={submitLast} disabled={busy}>
-            <Repeat className="mr-2 size-5" /> {tf.repeatLast}
-          </Button>
-        )}
-        <Button type="submit" size="lg" disabled={busy}>
-          <Plus className="mr-2 size-5" /> {tf.save}
+
+        <Button
+          type="submit"
+          size="md"
+          variant={last ? 'secondary' : 'default'}
+          disabled={busy}
+          className="w-full sm:ml-auto sm:w-auto"
+        >
+          <Milk className="mr-2 size-4" /> {tf.save}
         </Button>
       </div>
     </form>

@@ -48,7 +48,7 @@ export function SpacingRadiusSection() {
         title="Concentric radii"
         description="Nested radius = outer radius − inset. This keeps curves parallel and is core to the Liquid Glass look."
       >
-        <Panel className="flex flex-wrap items-center gap-8">
+        <Panel contentClassName="flex flex-wrap items-center gap-8">
           <div
             className="flex items-center justify-center bg-primary/10 p-4"
             style={{ borderRadius: 28 }}

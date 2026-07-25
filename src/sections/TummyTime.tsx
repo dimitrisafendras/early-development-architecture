@@ -2,6 +2,8 @@ import { TriangleAlert } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
+import { cn } from '@/lib/utils'
+import { statusTone } from '../lib/tone'
 import { TummyTimeChart } from '../components/charts'
 import { useBabyAge } from '../components/AgeBadge'
 import { tummyTargetForAgeMonths } from '../lib/schedule'
@@ -14,22 +16,30 @@ export function TummyTime() {
   return (
     <section id="tummy-time">
       {baby && (
-        <div className="mb-6 rounded-xl border border-primary/30 bg-primary/5 p-4 text-sm font-medium text-foreground">
-          {tt.ageTarget
-            .replace('{name}', baby.name)
-            .replace('{age}', String(baby.months))
-            .replace('{mins}', String(tummyTargetForAgeMonths(baby.months)))}
-        </div>
+        <Card className="mb-6 bg-primary/5 ring-1 ring-primary/30">
+          <CardContent className="text-sm font-medium text-foreground">
+            {tt.ageTarget
+              .replace('{name}', baby.name)
+              .replace('{age}', String(baby.months))
+              .replace('{mins}', String(tummyTargetForAgeMonths(baby.months)))}
+          </CardContent>
+        </Card>
       )}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
         <Card className="lg:col-span-7">
           <CardContent>
             <div className="mb-4 flex items-start justify-between gap-4">
-              <div>
+              <div className="min-w-0">
                 <p className="text-[15px] font-semibold text-foreground">{tt.chartTitle}</p>
                 <div className="text-xs text-muted-foreground">{tt.chartSub}</div>
               </div>
-              <Badge className="shrink-0 border-transparent bg-emerald-500/10 text-emerald-700 dark:text-emerald-300">
+              <Badge
+                className={cn(
+                  'shrink-0 border-transparent',
+                  statusTone.success.soft,
+                  statusTone.success.text,
+                )}
+              >
                 {tt.badge}
               </Badge>
             </div>
@@ -40,8 +50,8 @@ export function TummyTime() {
         <div className="flex flex-col gap-4 lg:col-span-5">
           <Card>
             <CardContent>
-              <p className="m-0 font-semibold text-foreground">{tt.benefitsTitle}</p>
-              <ul className="mt-2 list-disc pl-[18px] text-[13px] text-muted-foreground">
+              <p className="m-0 text-[15px] font-semibold text-foreground">{tt.benefitsTitle}</p>
+              <ul className="mt-2 list-disc pl-[18px] text-[13px] leading-relaxed text-muted-foreground">
                 {tt.benefits.map((b) => (
                   <li key={b}>{b}</li>
                 ))}
@@ -49,7 +59,10 @@ export function TummyTime() {
             </CardContent>
           </Card>
 
-          <Alert className="border-amber-500/25 bg-amber-500/10 text-amber-800 dark:text-amber-200 [&>svg]:text-amber-600 dark:[&>svg]:text-amber-400">
+          {/* The Alert primitive ships a tighter `rounded-lg` / `px-2.5 py-2`; it
+              sits in a column of Cards, so it takes the card geometry (14px
+              radius, 16px padding) to stop the column's edges from stepping. */}
+          <Alert className="rounded-xl border-amber-500/25 bg-amber-500/10 p-4 text-amber-800 dark:text-amber-200 [&>svg]:text-amber-600 dark:[&>svg]:text-amber-400">
             <TriangleAlert />
             <AlertTitle className="text-amber-800 dark:text-amber-200">{tt.alertTitle}</AlertTitle>
             <AlertDescription className="text-amber-700 dark:text-amber-300/90">
@@ -61,10 +74,13 @@ export function TummyTime() {
 
           <Card>
             <CardContent>
-              <p className="m-0 font-semibold text-foreground">{tt.tipsTitle}</p>
-              <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <p className="m-0 text-[15px] font-semibold text-foreground">{tt.tipsTitle}</p>
+              <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {tt.tips.map((tip) => (
-                  <div key={tip.strong} className="rounded-lg bg-muted p-2.5 text-xs text-muted-foreground">
+                  <div
+                    key={tip.strong}
+                    className="rounded-xl bg-muted p-4 text-[13px] leading-relaxed text-muted-foreground"
+                  >
                     <strong className="text-foreground">{tip.strong}</strong> {tip.text}
                   </div>
                 ))}

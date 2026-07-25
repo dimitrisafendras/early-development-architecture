@@ -11,6 +11,8 @@ import { ColorSection } from '@/design-system/docs/ColorSection'
 import { TypographySection } from '@/design-system/docs/TypographySection'
 import { SpacingRadiusSection } from '@/design-system/docs/SpacingRadiusSection'
 import { ComponentsSection } from '@/design-system/docs/ComponentsSection'
+import { ShellSection } from '@/design-system/docs/ShellSection'
+import { ConventionsSection } from '@/design-system/docs/ConventionsSection'
 import { PatternsSection } from '@/design-system/docs/PatternsSection'
 import { AccessibilitySection } from '@/design-system/docs/AccessibilitySection'
 
@@ -21,6 +23,8 @@ const SECTIONS: { href: string; label: string }[] = [
   { href: '#typography', label: 'Type' },
   { href: '#spacing', label: 'Spacing' },
   { href: '#components', label: 'Components' },
+  { href: '#shell', label: 'Shell' },
+  { href: '#conventions', label: 'Conventions' },
   { href: '#patterns', label: 'Patterns' },
   { href: '#accessibility', label: 'A11y' },
 ]
@@ -144,6 +148,11 @@ export default function DesignSystem() {
         <TypographySection />
         <SpacingRadiusSection />
         <ComponentsSection />
+        {/* Shell → Conventions → Patterns reads outside-in: the frame every route
+            sits in, then the numbers that fill it, then the one page archetype
+            built from both. */}
+        <ShellSection />
+        <ConventionsSection />
         <PatternsSection />
         <AccessibilitySection />
       </main>

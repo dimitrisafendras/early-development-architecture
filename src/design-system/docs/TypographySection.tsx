@@ -12,8 +12,8 @@ export function TypographySection() {
       <DocBlock title="Families">
         <div className="grid gap-3 sm:grid-cols-2">
           {fontFamilies.map((f) => (
-            <Panel key={f.role} className="p-5">
-              <p className="text-xs font-semibold tracking-[0.14em] text-primary uppercase">{f.role}</p>
+            <Panel key={f.role}>
+              <p className="text-xs font-semibold tracking-[0.16em] text-primary uppercase">{f.role}</p>
               <p className="mt-2 font-heading text-2xl font-semibold tracking-tight">Aa Bb Cc 0123</p>
               <code className="mt-3 block text-xs text-muted-foreground">{f.stack}</code>
               <p className="mt-1 text-sm text-muted-foreground">{f.note}</p>
@@ -23,7 +23,7 @@ export function TypographySection() {
       </DocBlock>
 
       <DocBlock title="Type scale" description="Display through caption. px shown for reference only — author in rem.">
-        <Panel className="divide-y divide-border p-0">
+        <Panel flush contentClassName="divide-y divide-border">
           {typeScale.map((t) => (
             <div key={t.name} className="flex flex-col gap-2 px-5 py-5 sm:flex-row sm:items-baseline sm:gap-6">
               <div className="w-28 shrink-0 text-xs text-muted-foreground">

@@ -95,7 +95,7 @@ export function MaterialsSection() {
       </DocBlock>
 
       <DocBlock title="Material tokens" description="The recipe behind each variant, exported from tokens.ts.">
-        <Panel className="p-0">
+        <Panel flush>
           <Table>
             <TableHeader>
               <TableRow>
@@ -126,7 +126,7 @@ export function MaterialsSection() {
       </DocBlock>
 
       <DocBlock title="Reduced-transparency fallback">
-        <Panel className="flex items-start gap-3">
+        <Panel contentClassName="flex items-start gap-3">
           <Eye className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
           <div className="text-sm leading-relaxed text-muted-foreground">
             When the viewer requests reduced transparency, every <code className="rounded bg-muted px-1 py-0.5 text-xs">.ds-glass</code>{' '}

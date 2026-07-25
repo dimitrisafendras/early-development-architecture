@@ -494,10 +494,22 @@ function AddMeasurementForm({
     <Card>
       <CardContent>
         {/* No card title — the input tier's eyebrow already names the action. */}
-        {/* `items-end`: labels wrap to two lines at some widths (notably in
-            Greek), so every cell bottom-aligns to keep the controls and the
-            submit button on one baseline whatever the label height. */}
-        <form onSubmit={submit} className="grid grid-cols-2 items-end gap-4 sm:grid-cols-5">
+        {/*  Four field columns, then the submit button.
+            The button only joins the fields' row from `lg`, and takes an `auto`
+            track when it does. Five equal columns put it in a ~99px cell at
+            640px and ~125px at 768px — narrower than its own `whitespace-nowrap`
+            label ("Save measurement", 19 characters in Greek: ~153px), so it
+            overflowed its track and dragged the row out of line, and the date
+            trigger truncated to "25/07/20…" at the same widths. Four columns
+            give every field 128px at 640px and 160px at 768px: one-line labels
+            in both languages, and a date that fits.
+            `items-end`: a label that does wrap (a longer translation, a 320px
+            phone) makes its own cell taller, so bottom-aligning keeps every
+            control — and the button — on one baseline. */}
+        <form
+          onSubmit={submit}
+          className="grid grid-cols-2 items-end gap-4 sm:grid-cols-4 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]"
+        >
           <div className="space-y-1.5">
             <Label htmlFor="m-date">{t.baby.dateLabel}</Label>
             <DatePicker
@@ -508,6 +520,13 @@ function AddMeasurementForm({
               {...fields.datePicker}
             />
           </div>
+          {/*  The three `indicator*` scales are read-outs, not limits: they span the
+              plausible range of the first two years (WHO 0–24 months, boys and
+              girls, roughly 3rd–97th centile, rounded outward), so the bar under
+              the value says "about here in the range" while you step. Weight
+              starts at 0 because a newborn's 3kg genuinely belongs near the
+              bottom of 0–15; height and head start at their floors (40cm, 30cm),
+              or every real reading would sit two-thirds along and barely move. */}
           <div className="space-y-1.5">
             <Label htmlFor="m-weight">{t.baby.weightLabel}</Label>
             <NumberInput
@@ -517,6 +536,7 @@ function AddMeasurementForm({
               floor={0}
               step={0.1}
               smallStep={0.01}
+              indicatorMax={15}
               {...fields.stepper}
             />
           </div>
@@ -529,6 +549,8 @@ function AddMeasurementForm({
               floor={0}
               step={0.5}
               smallStep={0.1}
+              indicatorMin={40}
+              indicatorMax={110}
               {...fields.stepper}
             />
           </div>
@@ -541,18 +563,29 @@ function AddMeasurementForm({
               floor={0}
               step={0.5}
               smallStep={0.1}
+              indicatorMin={30}
+              indicatorMax={55}
               {...fields.stepper}
             />
           </div>
-          {/* Full width on a phone, one column from `sm` — never a lonely half cell. */}
-          <Button type="submit" disabled={busy} className="col-span-2 w-full sm:col-span-1">
+          {/* Full width on a phone (never a lonely half cell), its own natural
+              width on the row under the fields, then the last cell of the
+              fields' row from `lg`. `h-11 sm:h-8` is the shared control height,
+              so at `lg` it bottom-aligns with the four fields exactly. */}
+          <Button
+            type="submit"
+            disabled={busy}
+            className="col-span-2 w-full sm:col-span-4 sm:w-auto sm:justify-self-start lg:col-span-1"
+          >
             {busy ? t.baby.saving : t.baby.save}
           </Button>
-          <div className="col-span-2 space-y-1.5 sm:col-span-5">
+          <div className="col-span-2 space-y-1.5 sm:col-span-4 lg:col-span-5">
             <Label htmlFor="m-note">{t.baby.noteLabel}</Label>
             <Input id="m-note" value={note} onChange={(e) => setNote(e.target.value)} />
           </div>
-          {error && <p className="col-span-2 text-sm text-destructive sm:col-span-5">{error}</p>}
+          {error && (
+            <p className="col-span-2 text-sm text-destructive sm:col-span-4 lg:col-span-5">{error}</p>
+          )}
         </form>
       </CardContent>
     </Card>

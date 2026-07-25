@@ -4,6 +4,7 @@ import { Clock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatTimeKey, parseTimeKey, toTimeKey, usesTwelveHourClock } from '@/lib/dates'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { controlSize, type ControlSizeProp } from '@/components/ui/control-size'
 
 /**
  * Two scroll columns — hours, then minutes — instead of the browser's own
@@ -195,18 +196,10 @@ function nowTime(): string {
   return toTimeKey(now.getHours(), now.getMinutes())
 }
 
-/**  Matches `Input`'s mobile-first sizing: a real touch target on phones,
-   the compact desktop height from `sm` up.
- */
-const sizes = {
-  sm: 'h-9 text-sm sm:h-7',
-  default: 'h-11 text-base sm:h-8 md:text-sm',
-  lg: 'h-12 text-base sm:h-10',
-} as const
-
 export interface TimePickerProps extends Omit<TimeColumnsProps, 'className'> {
   placeholder?: string
-  size?: keyof typeof sizes
+  /** One of the shared control sizes — see `control-size.ts`. */
+  size?: ControlSizeProp
   id?: string
   name?: string
   disabled?: boolean
@@ -222,7 +215,7 @@ function TimePicker({
   labels: labelOverrides,
   hideQuickPick,
   placeholder,
-  size = 'default',
+  size = 'md',
   id,
   name,
   disabled,
@@ -231,6 +224,7 @@ function TimePicker({
 }: TimePickerProps) {
   const [open, setOpen] = React.useState(false)
   const labels = { ...defaultLabels, ...labelOverrides }
+  const s = controlSize(size)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -240,12 +234,14 @@ function TimePicker({
         aria-invalid={invalid || undefined}
         data-slot="time-picker-trigger"
         className={cn(
-          'flex w-full items-center justify-between gap-2 rounded-lg border border-input bg-transparent px-2.5 text-left transition-colors',
+          'flex w-full items-center justify-between gap-2 border border-input bg-transparent px-2.5 text-left transition-colors',
           'hover:border-ring/60 focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none',
           'disabled:pointer-events-none disabled:bg-input/50 disabled:opacity-50',
           'aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20',
           'dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40',
-          sizes[size],
+          s.height,
+          s.radius,
+          s.text,
           className,
         )}
       >

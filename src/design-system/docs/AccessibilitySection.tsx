@@ -38,7 +38,7 @@ export function AccessibilitySection() {
           {rules.map((r) => {
             const Icon = r.icon
             return (
-              <Panel key={r.title} className="p-5">
+              <Panel key={r.title}>
                 <Icon className="size-5 text-primary" aria-hidden />
                 <h4 className="mt-3 font-heading text-base font-semibold">{r.title}</h4>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{r.body}</p>

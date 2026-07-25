@@ -65,17 +65,27 @@ const blueRamp: ColorStep[] = [
   { name: '900', oklch: 'oklch(0.318 0.078 259)', hex: '#183259' },
 ]
 
+/**
+ * The "Girl" ramp is an **orchid** (violet-pink), hue band 338–342 — not the
+ * crimson it started as. It was retuned so the two palettes read as siblings
+ * rather than as "the safe one and the alarming one": crimson at 600 sat only
+ * ~20° from `--destructive`, so a primary button and a delete button were the
+ * same colour family. Hexes below are the rasterized sRGB of the oklch beside
+ * them (verified in-browser, not hand-converted); 100 / 600 / 700 are exactly
+ * the `--accent` / `--primary` / `--accent-foreground` values in
+ * `src/index.css`, which is what keeps this table honest.
+ */
 const redRamp: ColorStep[] = [
-  { name: '50', oklch: 'oklch(0.974 0.012 18)', hex: '#fff3f3' },
-  { name: '100', oklch: 'oklch(0.944 0.028 16)', hex: '#ffe5e6' },
-  { name: '200', oklch: 'oklch(0.900 0.055 15)', hex: '#ffd0d2' },
-  { name: '300', oklch: 'oklch(0.830 0.090 16)', hex: '#fcb0b3' },
-  { name: '400', oklch: 'oklch(0.735 0.140 17)', hex: '#f48289' },
-  { name: '500', oklch: 'oklch(0.645 0.170 19)', hex: '#e25a63' },
-  { name: '600', oklch: 'oklch(0.565 0.185 21)', hex: '#cc3744' },
-  { name: '700', oklch: 'oklch(0.490 0.170 22)', hex: '#ac2531' },
-  { name: '800', oklch: 'oklch(0.410 0.140 22)', hex: '#861d25' },
-  { name: '900', oklch: 'oklch(0.340 0.100 20)', hex: '#621c21' },
+  { name: '50', oklch: 'oklch(0.974 0.012 338)', hex: '#fcf3f9' },
+  { name: '100', oklch: 'oklch(0.95 0.03 338)', hex: '#fde7f6' },
+  { name: '200', oklch: 'oklch(0.9 0.055 338)', hex: '#f7d1eb' },
+  { name: '300', oklch: 'oklch(0.83 0.085 339)', hex: '#edb2da' },
+  { name: '400', oklch: 'oklch(0.735 0.125 341)', hex: '#de89c1' },
+  { name: '500', oklch: 'oklch(0.645 0.155 340)', hex: '#c963ab' },
+  { name: '600', oklch: 'oklch(0.56 0.17 340)', hex: '#b24393' },
+  { name: '700', oklch: 'oklch(0.49 0.165 342)', hex: '#9a2e7a' },
+  { name: '800', oklch: 'oklch(0.41 0.14 342)', hex: '#79215f' },
+  { name: '900', oklch: 'oklch(0.34 0.1 340)', hex: '#581f48' },
 ]
 
 export const palettes: Record<PaletteId, Palette> = {
@@ -104,38 +114,47 @@ export const palettes: Record<PaletteId, Palette> = {
   red: {
     id: 'red',
     label: 'Girl',
-    audience: 'soft rose',
+    audience: 'soft orchid',
     ramp: redRamp,
     semantic: {
       light: {
-        primary: 'oklch(0.565 0.185 21)',
-        primaryForeground: 'oklch(0.990 0.008 18)',
-        ring: 'oklch(0.565 0.185 21)',
-        accent: 'oklch(0.944 0.028 16)',
-        accentForeground: 'oklch(0.490 0.170 22)',
+        primary: 'oklch(0.56 0.17 340)',
+        primaryForeground: 'oklch(0.985 0.008 340)',
+        ring: 'oklch(0.56 0.17 340)',
+        accent: 'oklch(0.95 0.03 338)',
+        accentForeground: 'oklch(0.49 0.165 342)',
       },
       dark: {
-        primary: 'oklch(0.720 0.140 16)',
-        primaryForeground: 'oklch(0.220 0.060 18)',
-        ring: 'oklch(0.720 0.140 16)',
-        accent: 'oklch(0.320 0.060 18)',
-        accentForeground: 'oklch(0.880 0.050 15)',
+        primary: 'oklch(0.72 0.13 342)',
+        primaryForeground: 'oklch(0.22 0.058 342)',
+        ring: 'oklch(0.72 0.13 342)',
+        accent: 'oklch(0.32 0.058 340)',
+        accentForeground: 'oklch(0.88 0.05 340)',
       },
     },
   },
 }
 
-/** WCAG AA (4.5:1) verified pairs for `primary-foreground` on `primary`. */
+/**
+ * WCAG AA (4.5:1) verified pairs for `primary-foreground` on `primary`.
+ *
+ * Measured, not estimated: each ratio is the WCAG 2.x relative-luminance
+ * computation over the *rasterized sRGB* of the two oklch values above. The
+ * previous table was optimistic on both palettes (it claimed 5.89 for blue
+ * light and 5.66 for red light, against real figures of 4.70 and 4.88) — a
+ * contrast table that flatters itself is worse than no table, because it stops
+ * anyone re-checking. Re-measure whenever a palette moves.
+ */
 export const contrastReport: Array<{
   palette: PaletteId
   theme: ThemeMode
   ratio: number
   level: 'AA' | 'AAA'
 }> = [
-  { palette: 'blue', theme: 'light', ratio: 5.89, level: 'AA' },
-  { palette: 'blue', theme: 'dark', ratio: 7.04, level: 'AAA' },
-  { palette: 'red', theme: 'light', ratio: 5.66, level: 'AA' },
-  { palette: 'red', theme: 'dark', ratio: 6.66, level: 'AAA' },
+  { palette: 'blue', theme: 'light', ratio: 4.7, level: 'AA' },
+  { palette: 'blue', theme: 'dark', ratio: 7.01, level: 'AAA' },
+  { palette: 'red', theme: 'light', ratio: 4.88, level: 'AA' },
+  { palette: 'red', theme: 'dark', ratio: 6.67, level: 'AAA' },
 ]
 
 /**

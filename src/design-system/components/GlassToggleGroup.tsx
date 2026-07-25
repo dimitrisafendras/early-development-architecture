@@ -54,9 +54,15 @@ export function GlassToggleGroup<T extends string>({
 
   const pad = size === 'sm' ? 3 : 4
   // Segments are full-height grid children, so the track height *is* the touch
-  // target. Both sizes clear ~44px on phones and collapse to the compact
-  // desktop scale from `sm` up.
-  const height = size === 'sm' ? 'h-10 sm:h-8' : 'h-11 sm:h-10'
+  // target. Both sizes clear 44px on phones and collapse to the compact desktop
+  // scale from `sm` up.
+  //
+  // These are `GlassButton`'s heights, not the form scale in
+  // `ui/control-size.ts`: the floating nav layer is deliberately chunkier, and
+  // it never shares a row with a field. It does share one with a `GlassButton`,
+  // though — which is why `sm` is `h-11 sm:h-8` and not `h-10 sm:h-8`. Same
+  // rule as the form controls: side by side means same height.
+  const height = size === 'sm' ? 'h-11 sm:h-8' : 'h-11 sm:h-10'
   const textSize = size === 'sm' ? 'text-xs' : 'text-sm'
   // Tighter horizontal padding on the small (nav) size so the segmented
   // controls fit alongside the brand + menu on the narrowest phones.

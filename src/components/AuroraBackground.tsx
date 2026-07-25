@@ -30,8 +30,10 @@ import { useEffect, useRef, type CSSProperties } from 'react'
  * same colour as `--primary` and `--accent` is a very low-chroma tint, hue
  * variety comes from a small per-field `hue-rotate()` nudge (±50°) applied to
  * the token colour rather than from extra hard-coded colours — the fields stay
- * analogous (blue → cyan/violet, red → coral/magenta) and still follow the
- * palette.
+ * analogous and still follow the palette: blue fans to cyan/violet, and the
+ * orchid palette fans violet → orchid → pink → warm rose (-30° #8d4ab5, 0°
+ * #b24393, +26° #c0436a, +48° #bd4846) — a wider, better-tempered spread than
+ * the crimson it replaced, which fanned into coral and read as a warning.
  *
  * Contrast: the whole layer is dimmed to `opacity-40` in light mode and
  * `opacity-90` in dark. Light mode needs the heavier reduction because the light

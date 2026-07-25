@@ -60,7 +60,7 @@ export function PatternsSection() {
           {tiers.map((tier) => {
             const Icon = tier.icon
             return (
-              <Panel key={tier.slot} className="p-5">
+              <Panel key={tier.slot}>
                 <div className="flex items-center gap-3">
                   <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/25 to-primary/5 font-heading text-sm font-semibold text-primary ring-1 ring-inset ring-primary/20">
                     {tier.n}
@@ -86,10 +86,17 @@ export function PatternsSection() {
             slot props — <code className="rounded bg-muted px-1.5 py-0.5 text-xs">glance</code>,{' '}
             <code className="rounded bg-muted px-1.5 py-0.5 text-xs">input</code>,{' '}
             <code className="rounded bg-muted px-1.5 py-0.5 text-xs">detail</code> — rather than as children,
-            so a page physically cannot render its form above its summary. It also owns the page frame every
-            tool page shares: the max-width, the aura glow, the{' '}
-            <code className="rounded bg-muted px-1.5 py-0.5 text-xs">SectionHeader</code>, the tier eyebrows
-            and the divider.
+            so a page physically cannot render its form above its summary. Its own contribution is just the
+            tiers: the eyebrow over each one, the{' '}
+            <code className="rounded bg-muted px-1.5 py-0.5 text-xs">gap-4</code> inside them, and the hairline
+            rule opening the detail tier. The frame itself — width, gutter, padding, block gap, header — is
+            delegated to <code className="rounded bg-muted px-1.5 py-0.5 text-xs">PageFrame</code> (see{' '}
+            <a href="#shell" className="font-medium text-primary hover:underline">
+              Shell
+            </a>
+            ), and the background belongs to the shell's single{' '}
+            <code className="rounded bg-muted px-1.5 py-0.5 text-xs">AuroraBackground</code> — a widget page
+            adds no glow of its own.
           </p>
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
             Loading skeletons, sign-in gating and first-run forms precede the rhythm rather than sitting inside
@@ -120,16 +127,16 @@ export function PatternsSection() {
 
       <DocBlock
         title="How the app applies it"
-        description="The three widget pages, tier by tier. /daily and /routine are dashboards, not widget pages."
+        description="The three widget pages, tier by tier. / (the Day dashboard) and /schedule are not widget pages — they are a dashboard and an editor, and they use PageFrame directly."
       >
-        <Panel className="overflow-x-auto p-0">
+        <Panel flush className="overflow-x-auto">
           <table className="w-full min-w-[36rem] text-left text-sm">
             <thead>
               <tr className="border-b border-border">
                 {['Page', '1 · Glance', '2 · Input', '3 · Detail'].map((h) => (
                   <th
                     key={h}
-                    className="px-5 py-3 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase"
+                    className="px-5 py-3 text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase"
                   >
                     {h}
                   </th>
@@ -162,7 +169,7 @@ export function PatternsSection() {
             'Use children only for loading, gated and first-run states.',
           ]}
           donts={[
-            'Hand-roll the page frame (max-width, aura glow, header) per page.',
+            'Hand-roll the page frame (max-width, padding, header) per page.',
             'Put a chart, hero visual or history list above the input.',
             'Bury the primary action below reference material.',
             'Title the input card and its tier eyebrow with the same words.',

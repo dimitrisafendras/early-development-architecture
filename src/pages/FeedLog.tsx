@@ -123,17 +123,19 @@ export default function FeedLog() {
       }
       input={
         <Card>
-          <CardContent>
+          <CardContent className="flex flex-col gap-4">
             {/* Progress against the day's expected range sits with the form it
-                frames, so only the quick tiles stand above the input. */}
-            {feedsRange && (
-              <div className="mb-5">
-                <FeedProgress count={feed.todayFeeds.length} range={feedsRange} tf={tf} />
-              </div>
-            )}
+                frames, so only the quick tiles stand above the input — but as
+                one line and a hairline bar, not a titled block: it is the
+                reason to log, not the thing you came to do. */}
+            {feedsRange && <FeedProgress count={feed.todayFeeds.length} range={feedsRange} tf={tf} />}
             <AddFeedForm last={feed.lastFeed} onAdd={feed.add} />
+            {/* The card's single footnote — the age guide and its disclaimer,
+                which used to be two competing hint lines. */}
             {guideAmount && (
-              <p className="mt-3 text-xs text-muted-foreground">{tf.guide.replace('{amount}', guideAmount)}</p>
+              <p className="text-xs text-muted-foreground">
+                {tf.guide.replace('{amount}', guideAmount)} {tf.progressNote}
+              </p>
             )}
           </CardContent>
         </Card>
@@ -258,10 +260,30 @@ function FeedRow({
         </div>
         <div className="min-w-[8rem] flex-1 space-y-1.5">
           <Label>{method === 'breast' ? tf.minutesLabel : tf.amountLabel}</Label>
+          {/* Same plausible scales as the log form, so the value bar means the
+              same thing whether you are logging a feed or editing one. */}
           {method === 'breast' ? (
-            <NumberInput value={minutes} onValueChange={setMinutes} floor={0} step={5} smallStep={1} {...fields.stepper} />
+            <NumberInput
+              value={minutes}
+              onValueChange={setMinutes}
+              floor={0}
+              step={5}
+              smallStep={1}
+              unit={tf.minShort}
+              indicatorMax={45}
+              {...fields.stepper}
+            />
           ) : (
-            <NumberInput value={amount} onValueChange={setAmount} floor={0} step={10} smallStep={5} {...fields.stepper} />
+            <NumberInput
+              value={amount}
+              onValueChange={setAmount}
+              floor={0}
+              step={10}
+              smallStep={5}
+              unit={tf.mlShort}
+              indicatorMax={250}
+              {...fields.stepper}
+            />
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -294,41 +316,38 @@ function FeedProgress({
   const p = (v: number) => Math.min(100, (v / scaleMax) * 100)
 
   return (
-    /* Flat — it sits inside the input card, and glass/cards never stack. */
+    /* One line + a hairline bar. Flat — it sits inside the input card, and
+       glass/cards never stack. The count and the range say what the old title
+       said, so the title is gone; the bar is decorative for AT because the
+       line above it already reads "3 / ~5–7 feeds". */
     <div>
-      <div>
-        <div className="flex items-baseline justify-between gap-3">
-          <p className="flex items-center gap-2 text-[15px] font-semibold text-foreground">
-            <Utensils className="size-4 text-primary" /> {tf.progressTitle}
-          </p>
-          <p className="font-heading text-sm text-muted-foreground">
-            <span className="text-lg font-semibold tabular-nums text-foreground">{count}</span>
-            {' / ~'}
-            {min}–{max} {tf.progressFeeds}
-          </p>
-        </div>
-        <div className="relative mt-3 h-2.5 w-full overflow-hidden rounded-full bg-muted">
-          <div
-            className="absolute inset-y-0 bg-primary/20"
-            style={{ left: `${p(min)}%`, width: `${p(max) - p(min)}%` }}
-          />
-          <div
-            className={cn(
-              'absolute inset-y-0 left-0 rounded-full',
-              state === 'on' ? 'bg-emerald-500' : state === 'above' ? 'bg-amber-500' : 'bg-primary',
-            )}
-            style={{ width: `${p(count)}%` }}
-          />
-        </div>
+      <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
+        <p className="font-heading text-sm text-muted-foreground">
+          <span className="text-lg font-semibold tabular-nums text-foreground">{count}</span>
+          {' / ~'}
+          {min}–{max} {tf.progressFeeds}
+        </p>
         <p
           className={cn(
-            'mt-2 text-sm',
+            'text-xs',
             state === 'on' ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground',
           )}
         >
           {status}
         </p>
-        <p className="mt-1 text-xs text-muted-foreground">{tf.progressNote}</p>
+      </div>
+      <div aria-hidden className="relative mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+        <div
+          className="absolute inset-y-0 bg-primary/20"
+          style={{ left: `${p(min)}%`, width: `${p(max) - p(min)}%` }}
+        />
+        <div
+          className={cn(
+            'absolute inset-y-0 left-0 rounded-full',
+            state === 'on' ? 'bg-emerald-500' : state === 'above' ? 'bg-amber-500' : 'bg-primary',
+          )}
+          style={{ width: `${p(count)}%` }}
+        />
       </div>
     </div>
   )

@@ -1,6 +1,9 @@
 import { useState, type FormEvent } from 'react'
 import { Users, UserPlus, Home as HomeIcon, Mail, Check, X, Share2, LogOut, Pencil, Trash2, Baby as BabyIcon } from 'lucide-react'
 import { PageFrame } from '../components/PageFrame'
+import { WidgetCard } from '../components/WidgetPage'
+import { Eyebrow } from '../components/Eyebrow'
+import { EmptyState } from '../components/EmptyState'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -57,18 +60,15 @@ export default function Family() {
   return (
     <PageFrame title={tf.title} description={tf.subtitle}>
       {!ready ? (
-        <Card>
-          <CardContent className="py-10 text-center text-muted-foreground">{tf.signInPrompt}</CardContent>
-        </Card>
+        <EmptyState icon={<Users />}>{tf.signInPrompt}</EmptyState>
       ) : (
-        <>
+        // `gap-4` between sibling cards. As direct children of the frame these
+        // four cards were spaced by the frame's `gap-8`, i.e. twice as far apart
+        // as the card stacks on /baby and /tracker.
+        <div className="flex flex-col gap-4">
           {/* Invitations addressed to me (any household) */}
           {pending.length > 0 && (
-            <Card>
-              <CardContent>
-                <p className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-foreground">
-                  <Mail className="size-4 text-primary" /> {tf.yourInvitesTitle}
-                </p>
+            <WidgetCard icon={<Mail />} title={tf.yourInvitesTitle}>
                 <ul className="space-y-2">
                   {pending.map((inv) => (
                     <li key={inv.id} className="flex items-center justify-between gap-3 rounded-lg bg-muted p-3">
@@ -91,8 +91,7 @@ export default function Family() {
                     </li>
                   ))}
                 </ul>
-              </CardContent>
-            </Card>
+            </WidgetCard>
           )}
 
           {loading && !household ? (
@@ -132,14 +131,17 @@ export default function Family() {
                       </div>
                     </form>
                   ) : (
-                    <div className="mb-1 flex items-center gap-2">
-                      <p className="flex items-center gap-2 text-lg font-semibold text-foreground">
-                        <HomeIcon className="size-5 text-primary" /> {household.name}
+                    <div className="mb-4 flex items-center gap-2">
+                      {/* 15px + a 16px icon — the one card-title size. This was the
+                          only card header in the app at `text-lg` with a 20px
+                          icon, so it visibly outweighed every other card. */}
+                      <p className="flex items-center gap-2 text-[15px] font-semibold text-foreground">
+                        <HomeIcon className="size-4 text-primary" /> {household.name}
                       </p>
                       <Button
                         type="button"
                         variant="ghost"
-                        size="icon-sm"
+                        size="icon"
                         aria-label={tf.rename}
                         onClick={() => {
                           setNameDraft(household.name)
@@ -151,9 +153,9 @@ export default function Family() {
                       </Button>
                     </div>
                   )}
-                  <p className="mb-4 flex items-center gap-2 text-xs uppercase tracking-wider text-muted-foreground">
+                  <Eyebrow tone="muted" className="mb-4 flex items-center gap-2">
                     <Users className="size-3.5" /> {tf.membersTitle}
-                  </p>
+                  </Eyebrow>
                   <ul className="divide-y divide-border">
                     {members.map((m) => (
                       <li key={m.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
@@ -162,9 +164,9 @@ export default function Family() {
                           {m.user_id === myId && <span className="text-muted-foreground"> ({tf.you})</span>}
                         </span>
                         <span className="flex shrink-0 items-center gap-2">
-                          <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                          <Eyebrow as="span" tone="muted">
                             {m.role === 'owner' ? tf.roleOwner : tf.roleParent}
-                          </span>
+                          </Eyebrow>
                           {isOwner && m.user_id !== myId && (
                             <Button
                               type="button"
@@ -185,19 +187,15 @@ export default function Family() {
               </Card>
 
               {/* Invite + pending */}
-              <Card>
-                <CardContent>
-                  <p className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-foreground">
-                    <UserPlus className="size-4 text-primary" /> {tf.inviteTitle}
-                  </p>
+              <WidgetCard icon={<UserPlus />} title={tf.inviteTitle}>
                   <InviteForm
                     busy={busy === 'invite'}
                     onInvite={(email) => run('invite', () => inviteByEmail(household.id, email))}
                   />
                   <p className="mt-2 text-xs text-muted-foreground">{tf.invitedNote}</p>
                   {invites.length > 0 && (
-                    <div className="mt-4 border-t border-border pt-3">
-                      <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">{tf.pendingTitle}</p>
+                    <div className="mt-4 border-t border-border/70 pt-4">
+                      <Eyebrow tone="muted" className="mb-2">{tf.pendingTitle}</Eyebrow>
                       <ul className="space-y-1.5">
                         {invites.map((inv) => (
                           <li key={inv.id} className="flex items-center justify-between text-sm">
@@ -216,16 +214,15 @@ export default function Family() {
                       </ul>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+              </WidgetCard>
 
               {/* Shared babies + share + leave */}
-              <Card>
-                <CardContent className="flex flex-col gap-4">
+              <WidgetCard
+                icon={<BabyIcon />}
+                title={tf.sharedBabiesTitle}
+                contentClassName="flex flex-col gap-4"
+              >
                   <div>
-                    <p className="mb-3 flex items-center gap-2 text-[15px] font-semibold text-foreground">
-                      <BabyIcon className="size-4 text-primary" /> {tf.sharedBabiesTitle}
-                    </p>
                     {familyBabies.length === 0 ? (
                       <p className="text-sm text-muted-foreground">{tf.sharedBabiesEmpty}</p>
                     ) : (
@@ -243,16 +240,16 @@ export default function Family() {
                               </span>
                             </span>
                             {b.owner === myId && (
-                              <span className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                              <Eyebrow as="span" tone="muted" className="shrink-0">
                                 {tf.sharedByYou}
-                              </span>
+                              </Eyebrow>
                             )}
                           </li>
                         ))}
                       </ul>
                     )}
                   </div>
-                  <div className="border-t border-border pt-4">
+                  <div className="border-t border-border/70 pt-4">
                     <Button
                       variant="secondary"
                       disabled={busy === 'share' || shareableCount === 0}
@@ -269,7 +266,7 @@ export default function Family() {
                       {shareableCount > 0 ? tf.shareBabiesNote : tf.shareBabiesAllShared}
                     </p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
+                  <div className="flex flex-wrap items-center gap-3 border-t border-border/70 pt-4">
                     <Button
                       variant="ghost"
                       className="text-muted-foreground hover:text-destructive"
@@ -308,13 +305,12 @@ export default function Family() {
                         </Button>
                       ))}
                   </div>
-                </CardContent>
-              </Card>
+              </WidgetCard>
             </>
           )}
 
           {error && <p className="text-sm text-destructive">{error}</p>}
-        </>
+        </div>
       )}
     </PageFrame>
   )
@@ -329,12 +325,8 @@ function CreateFamilyForm({ busy, onCreate }: { busy: boolean; onCreate: (name: 
     if (name.trim()) onCreate(name.trim())
   }
   return (
-    <Card>
-      <CardContent>
-        <p className="mb-4 flex items-center gap-2 text-[15px] font-semibold text-foreground">
-          <HomeIcon className="size-4 text-primary" /> {tf.createTitle}
-        </p>
-        <form onSubmit={submit} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+    <WidgetCard icon={<HomeIcon />} title={tf.createTitle}>
+        <form onSubmit={submit} className="flex flex-col gap-4 sm:flex-row sm:items-end">
           <div className="flex-1 space-y-1.5">
             <Label htmlFor="family-name">{tf.nameLabel}</Label>
             <Input
@@ -349,8 +341,7 @@ function CreateFamilyForm({ busy, onCreate }: { busy: boolean; onCreate: (name: 
             {busy ? tf.creating : tf.create}
           </Button>
         </form>
-      </CardContent>
-    </Card>
+    </WidgetCard>
   )
 }
 
@@ -366,7 +357,7 @@ function InviteForm({ busy, onInvite }: { busy: boolean; onInvite: (email: strin
     }
   }
   return (
-    <form onSubmit={submit} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+    <form onSubmit={submit} className="flex flex-col gap-4 sm:flex-row sm:items-end">
       <div className="flex-1 space-y-1.5">
         <Label htmlFor="invite-email">{tf.inviteEmailLabel}</Label>
         <Input

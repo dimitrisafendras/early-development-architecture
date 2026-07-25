@@ -41,14 +41,77 @@ import { ChoiceGroup } from '@/components/ChoiceGroup'
 import { todayKey } from '@/lib/schedule'
 import { nowDateTimeKey } from '@/lib/dates'
 
+import { controlSizes, type ControlSize } from '@/components/ui/control-size'
+
 import { GlassSurface, GlassButton, GlassToggleGroup } from '../components'
-import { DocSection, DocBlock, Panel } from './primitives'
+import { DocSection, DocBlock, Panel, DoDont } from './primitives'
+
+/**
+ * One row of every control at a single size, so the shared scale is provable by
+ * eye: if any control in a row is a different height, the scale is broken.
+ */
+function ControlSizeRow({
+  size,
+  note,
+  method,
+  onMethod,
+  value,
+  onValue,
+  date,
+  onDate,
+}: {
+  size: ControlSize
+  note: string
+  method: 'bottle' | 'breast' | 'solid'
+  onMethod: (v: 'bottle' | 'breast' | 'solid') => void
+  value: number | null
+  onValue: (v: number | null) => void
+  date: string
+  onDate: (v: string) => void
+}) {
+  return (
+    <div className="border-t border-border pt-4 first:border-t-0 first:pt-0">
+      <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <code className="text-sm font-semibold text-foreground">{size}</code>
+        <span className="font-mono text-xs text-muted-foreground">{controlSizes[size].height}</span>
+        <span className="text-xs text-muted-foreground">{note}</span>
+      </div>
+      {/* `items-center`, not `items-end`: any height mismatch shows up as a
+          control floating off the row's centre line. */}
+      <div className="flex flex-wrap items-center gap-3">
+        <Button size={size}>Save</Button>
+        <Button size={size} variant="outline">
+          Cancel
+        </Button>
+        <Input size={size} className="w-28" defaultValue="Ada" aria-label={`Text field, ${size}`} />
+        <NumberInput
+          size={size}
+          value={value}
+          onValueChange={onValue}
+          unit="ml"
+          className="w-32 flex-none"
+        />
+        <DatePicker size={size} value={date} onValueChange={onDate} className="w-36" />
+        <ChoiceGroup
+          size={size}
+          ariaLabel={`Method, ${size}`}
+          value={method}
+          onChange={onMethod}
+          options={[
+            { value: 'bottle', label: 'Bottle' },
+            { value: 'breast', label: 'Breast' },
+          ]}
+        />
+      </div>
+    </div>
+  )
+}
 
 /** Labelled specimen tile. */
 function Specimen({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <Panel className="p-5">
-      <p className="mb-4 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">{label}</p>
+    <Panel>
+      <p className="mb-4 text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">{label}</p>
       <div className="flex flex-wrap items-center gap-3">{children}</div>
     </Panel>
   )
@@ -74,6 +137,81 @@ export function ComponentsSection() {
       title="The gallery, live"
       intro="Every primitive re-tints with the active palette and adapts to light or dark. Content components stay opaque; only the glass family uses the material."
     >
+      <DocBlock
+        title="Control sizes - sm / md / lg"
+        description={
+          <>
+            Every control takes the same three sizes, and at a given size they are exactly the same
+            height: <code className="text-foreground">Button</code>,{' '}
+            <code className="text-foreground">Input</code>,{' '}
+            <code className="text-foreground">NumberInput</code>, the three pickers and{' '}
+            <code className="text-foreground">ChoiceGroup</code>. One table drives all of them:{' '}
+            <code className="text-foreground">ui/control-size.ts</code>. Phones get a real touch
+            target; from <code className="text-foreground">sm</code> up everything collapses to the
+            compact desktop scale. <code className="text-foreground">default</code> is the legacy
+            alias of <code className="text-foreground">md</code>.
+            <br />
+            <strong className="font-semibold text-foreground">The invariant, stated once:</strong> at{' '}
+            <code className="text-foreground">md</code> every one of them is{' '}
+            <code className="text-foreground">h-11</code> on a phone and{' '}
+            <code className="text-foreground">h-8</code> from <code className="text-foreground">sm</code>, on a
+            10px radius. If one control in a row does not match that pair, it is the control that is wrong, not
+            the row. Two things broke it and were fixed:{' '}
+            <code className="text-foreground">ChoiceGroup</code> defaulted to{' '}
+            <code className="text-foreground">lg</code>, and the number stepper built its own field chrome.
+          </>
+        }
+      >
+        <div className="grid gap-4">
+          <Panel>
+            <div className="flex flex-col gap-4">
+              <ControlSizeRow
+                size="sm"
+                note="Dense rows: table cells, inline edit."
+                method={method}
+                onMethod={setMethod}
+                value={naps}
+                onValue={setNaps}
+                date={measuredOn}
+                onDate={setMeasuredOn}
+              />
+              <ControlSizeRow
+                size="md"
+                note="The default. 44px on a phone, the touch minimum."
+                method={method}
+                onMethod={setMethod}
+                value={feed}
+                onValue={setFeed}
+                date={measuredOn}
+                onDate={setMeasuredOn}
+              />
+              <ControlSizeRow
+                size="lg"
+                note="A page's primary action, hero forms."
+                method={method}
+                onMethod={setMethod}
+                value={feed}
+                onValue={setFeed}
+                date={measuredOn}
+                onDate={setMeasuredOn}
+              />
+            </div>
+          </Panel>
+          <DoDont
+            dos={[
+              'Give every control in a row the same size - one size per row, chosen for the row.',
+              'Make a control stand out with its variant: fill, weight, colour.',
+              'Use md unless the row is deliberately dense (sm) or is the page primary action (lg).',
+            ]}
+            donts={[
+              'Mix sizes in one row - a lg button beside md fields is what makes a form look ragged.',
+              'Reach for a taller size to signal importance. That is what variant is for.',
+              'Patch a height with a className (h-10, sm:h-9). If a size is wrong, fix the scale.',
+            ]}
+          />
+        </div>
+      </DocBlock>
+
       <DocBlock title="shadcn/ui primitives">
         <div className="grid gap-4 lg:grid-cols-2">
           <Specimen label="Button — variants">
@@ -107,8 +245,8 @@ export function ComponentsSection() {
             </Badge>
           </Specimen>
 
-          <Panel className="p-5">
-            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+          <Panel>
+            <p className="mb-1 text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
               ChoiceGroup — required single choice
             </p>
             <p className="mb-4 text-sm text-muted-foreground">
@@ -152,8 +290,8 @@ export function ComponentsSection() {
             </label>
           </Specimen>
 
-          <Panel className="p-5 lg:col-span-2">
-            <p className="mb-4 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">Card</p>
+          <Panel className="lg:col-span-2">
+            <p className="mb-4 text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Card</p>
             <div className="grid gap-4 sm:grid-cols-2">
               <Card>
                 <CardHeader>
@@ -183,8 +321,8 @@ export function ComponentsSection() {
             </div>
           </Panel>
 
-          <Panel className="p-5">
-            <p className="mb-4 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">Tabs</p>
+          <Panel>
+            <p className="mb-4 text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Tabs</p>
             <Tabs defaultValue="overview">
               <TabsList>
                 <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -203,8 +341,8 @@ export function ComponentsSection() {
             </Tabs>
           </Panel>
 
-          <Panel className="p-5">
-            <p className="mb-4 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">Accordion</p>
+          <Panel>
+            <p className="mb-4 text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">Accordion</p>
             <Accordion>
               <AccordionItem value="a">
                 <AccordionTrigger>What is the control layer?</AccordionTrigger>
@@ -263,18 +401,48 @@ export function ComponentsSection() {
         description="Two controls the browser normally owns and refuses to theme — the number spinner and the date picker — rebuilt on our own tokens."
       >
         <div className="grid gap-4 lg:grid-cols-2">
-          <Panel className="p-5">
-            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+          <Panel>
+            <p className="mb-1 text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
               Number stepper
             </p>
             <p className="mb-4 text-sm text-muted-foreground">
-              Decrement and increment caps flank the value, divided by hairlines so the control reads as one
-              segmented piece. Digits are tabular, so nothing shifts while stepping. Hold a cap to repeat;
-              arrow keys step, with alt for the small step and shift for the large one.
+              An <code className="text-foreground">Input</code> first: the same height, the same 10px radius,
+              the same border and fill, and the value at Input's own type scale, set{' '}
+              <code className="text-foreground">font-semibold tabular-nums</code> so nothing shifts while
+              stepping. The optional <code className="text-foreground">unit</code> trails it as a{' '}
+              <code className="text-foreground">0.78em</code> muted suffix.
+            </p>
+            <p className="mb-4 text-sm text-muted-foreground">
+              There are <strong className="font-semibold text-foreground">no bordered elements inside the
+              field</strong>. Each cap is a full-height hit area whose only visible chrome is an inset key: a{' '}
+              <code className="text-foreground">p-1</code> inner span at{' '}
+              <code className="text-foreground">rounded-sm</code> (6px, which is the field's 10px minus the 4px
+              inset, so the two radii are concentric), carrying the same{' '}
+              <code className="text-foreground">from-primary/20 to-primary/5</code> gradient and{' '}
+              <code className="text-foreground">ring-1 ring-inset ring-primary/20</code> as{' '}
+              <code className="text-foreground">StatTile</code>'s icon chip — so it re-tints with the palette
+              for free. Hover deepens the gradient; press sinks the key (
+              <code className="text-foreground">scale-[0.94]</code>, shadow removed), and that is disabled under{' '}
+              <code className="text-foreground">motion-reduce</code>. The earlier version divided the caps from
+              the value with hairlines, which read as leaking lines rather than as one control.
+            </p>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Hold a cap to repeat; arrow keys step, with alt for the small step and shift for the large one. An
+              optional <strong className="font-semibold text-foreground">value bar</strong> — a 2px track on the
+              field's bottom inside edge, inset by one cap width per side so it spans only the value cell — turns
+              the number into a readout at a glance. It renders only when a scale is given:{' '}
+              <code className="text-foreground">indicatorMax</code> switches it on (falling back to{' '}
+              <code className="text-foreground">max</code> when that is set), with an optional{' '}
+              <code className="text-foreground">indicatorMin</code> that defaults to 0. It is a readout and never
+              a clamp. In the app: weight <code className="text-foreground">indicatorMax=15</code>, height{' '}
+              <code className="text-foreground">40–110</code>, head{' '}
+              <code className="text-foreground">30–55</code>, feed amount{' '}
+              <code className="text-foreground">indicatorMax=250</code>, breast minutes{' '}
+              <code className="text-foreground">indicatorMax=45</code>.
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="ds-weight">Weight</Label>
+                <Label htmlFor="ds-weight">Weight — with value bar</Label>
                 <NumberInput
                   id="ds-weight"
                   value={weight}
@@ -283,10 +451,11 @@ export function ComponentsSection() {
                   step={0.1}
                   smallStep={0.01}
                   unit="kg"
+                  indicatorMax={15}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="ds-feed">Bottle</Label>
+                <Label htmlFor="ds-feed">Bottle — with value bar</Label>
                 <NumberInput
                   id="ds-feed"
                   value={feed}
@@ -295,6 +464,7 @@ export function ComponentsSection() {
                   step={10}
                   largeStep={50}
                   unit="ml"
+                  indicatorMax={250}
                 />
               </div>
               <div className="space-y-1.5">
@@ -316,8 +486,8 @@ export function ComponentsSection() {
             </div>
           </Panel>
 
-          <Panel className="p-5">
-            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+          <Panel>
+            <p className="mb-1 text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
               Date picker
             </p>
             <p className="mb-4 text-sm text-muted-foreground">
@@ -346,8 +516,8 @@ export function ComponentsSection() {
             </div>
           </Panel>
 
-          <Panel className="p-5 lg:col-span-2">
-            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+          <Panel className="lg:col-span-2">
+            <p className="mb-1 text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
               Time picker
             </p>
             <p className="mb-4 max-w-2xl text-sm text-muted-foreground">
@@ -380,8 +550,8 @@ export function ComponentsSection() {
             </div>
           </Panel>
 
-          <Panel className="p-5 lg:col-span-2">
-            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+          <Panel className="lg:col-span-2">
+            <p className="mb-1 text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
               Calendar
             </p>
             <p className="mb-4 max-w-2xl text-sm text-muted-foreground">
@@ -406,8 +576,8 @@ export function ComponentsSection() {
             </div>
           </Panel>
 
-          <Panel className="p-5 lg:col-span-2">
-            <p className="mb-1 text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+          <Panel className="lg:col-span-2">
+            <p className="mb-1 text-xs font-semibold tracking-[0.16em] text-muted-foreground uppercase">
               Date and time
             </p>
             <p className="mb-4 max-w-2xl text-sm text-muted-foreground">

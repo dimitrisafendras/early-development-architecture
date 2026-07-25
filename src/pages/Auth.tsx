@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { PageFrame } from '../components/PageFrame'
+import { IconChip } from '../components/IconChip'
 import { supabase, isSupabaseEnabled, setRememberMe, getRememberMe } from '@/lib/supabase'
 import { useSession, authRedirectUrl } from '@/lib/use-session'
 import { useT } from '../i18n'
@@ -91,39 +92,44 @@ export default function Auth({ mode }: { mode: AuthMode }) {
       className="max-w-md"
       title={isSignUp ? t.auth.titleSignUp : t.auth.title}
       description={isSignUp ? t.auth.subtitleSignUp : t.auth.subtitleSignIn}
+      // `IconChip size="md"` — the one chip geometry. This was the only
+      // `rounded-2xl p-3` chip with a 24px icon in the app, so the header's
+      // trailing slot carried a 48px block here against a 26px pill on every
+      // other route.
       aside={
-        <span className="inline-flex shrink-0 rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 p-3 text-primary ring-1 ring-inset ring-primary/20">
-          {isSignUp ? <UserPlus className="size-6" /> : <LogIn className="size-6" />}
-        </span>
+        <IconChip>{isSignUp ? <UserPlus /> : <LogIn />}</IconChip>
       }
       toolbar={
-        <Link
-          to="/"
-          className="inline-flex min-h-11 w-fit items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70"
+        <Button
+          variant="ghost"
+          size="sm"
+          render={<Link to="/" />}
+          className="w-fit text-muted-foreground"
         >
-          <ArrowLeft className="size-4" aria-hidden />
+          <ArrowLeft aria-hidden />
           {t.auth.back}
-        </Link>
+        </Button>
       }
     >
       {confirmSent ? (
         <Card>
-          <CardContent className="flex items-start gap-3 py-6">
-            <MailCheck className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />
+          <CardContent className="flex items-start gap-3">
+            <MailCheck className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
             <div className="min-w-0">
               <p className="text-sm text-foreground">{t.auth.confirmSent}</p>
-              <Link
-                to={`/signin?next=${encodeURIComponent(next)}`}
-                className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-primary hover:underline"
+              <Button
+                variant="link"
+                render={<Link to={`/signin?next=${encodeURIComponent(next)}`} />}
+                className="mt-2 h-auto p-0 font-semibold"
               >
                 {t.auth.submitSignIn}
-              </Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
       ) : (
         <Card>
-          <CardContent className="py-6">
+          <CardContent>
             <form onSubmit={submit} className="flex flex-col gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="auth-email">{t.auth.emailLabel}</Label>
@@ -159,7 +165,7 @@ export default function Auth({ mode }: { mode: AuthMode }) {
               </div>
               <Label
                 htmlFor="auth-remember"
-                className="group/field flex w-fit cursor-pointer items-center gap-2.5 text-sm font-normal text-muted-foreground"
+                className="flex w-fit cursor-pointer items-center gap-2.5 text-sm font-normal text-muted-foreground"
               >
                 <Checkbox
                   id="auth-remember"
@@ -171,7 +177,10 @@ export default function Auth({ mode }: { mode: AuthMode }) {
               {/* Deliberately not gated on the session probe: signing in does not
                   depend on knowing the current session, and gating here would
                   leave a dead button if that request were slow. */}
-              <Button type="submit" size="lg" disabled={busy} className="w-full">
+              {/* Default size, like every other in-card form submit in the app
+                  (`h-11` phone / `h-8` from `sm`); `size="lg"` made this the one
+                  48px submit. */}
+              <Button type="submit" disabled={busy} className="w-full">
                 {busy ? t.auth.working : isSignUp ? t.auth.submitSignUp : t.auth.submitSignIn}
               </Button>
               {errorText && (
@@ -184,12 +193,13 @@ export default function Auth({ mode }: { mode: AuthMode }) {
         </Card>
       )}
 
-      <Link
-        to={`${isSignUp ? '/signin' : '/signup'}?next=${encodeURIComponent(next)}`}
-        className="inline-flex min-h-11 items-center justify-center rounded-xl text-sm font-medium text-primary underline-offset-2 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring/70"
+      <Button
+        variant="link"
+        render={<Link to={`${isSignUp ? '/signin' : '/signup'}?next=${encodeURIComponent(next)}`} />}
+        className="w-full"
       >
         {isSignUp ? t.auth.toggleToSignIn : t.auth.toggleToSignUp}
-      </Link>
+      </Button>
     </PageFrame>
   )
 }

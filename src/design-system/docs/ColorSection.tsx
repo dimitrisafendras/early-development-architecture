@@ -5,7 +5,7 @@ import { DocSection, DocBlock, Panel, useCssVar } from './primitives'
 
 function Ramp({ palette, active }: { palette: Palette; active: boolean }) {
   return (
-    <Panel className="p-5">
+    <Panel>
       <div className="mb-4 flex items-center gap-2">
         <h4 className="font-heading text-base font-semibold">
           {palette.label} <span className="text-muted-foreground">· {palette.audience}</span>
@@ -61,7 +61,7 @@ export function ColorSection() {
       id="color"
       eyebrow="Color"
       title="Two palettes, one accent at a time"
-      intro="Every surface is neutral; a single accent palette tints the primary, accent and ring roles. Soft blue for boys, soft rose for girls. Both ramps are documented; only the active one drives the running UI."
+      intro="Every surface is neutral; a single accent palette tints the primary, accent and ring roles. Soft blue for boys, soft orchid for girls — a violet-pink rather than a rose, so the accent never reads as the destructive red. Both ramps are documented; only the active one drives the running UI."
     >
       <DocBlock title="Palette ramps" description="Perceptual oklch ramps, 50 → 900. Values are theme-independent.">
         <div className="space-y-4">

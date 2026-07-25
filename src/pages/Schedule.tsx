@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ChevronUp, ChevronDown, Trash2, Plus, RotateCcw, Check } from 'lucide-react'
 import { PageFrame } from '../components/PageFrame'
+import { EmptyState } from '../components/EmptyState'
+import { ChoiceGroup } from '../components/ChoiceGroup'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { cn } from '@/lib/utils'
 import { dayActivityMeta, dayActivityOrder } from '../components/dayActivity'
 import type { ScheduleSlot } from '../data'
 import { useSchedule, buildDefaultSchedule } from '../lib/useSchedule'
@@ -63,24 +64,27 @@ export default function Schedule() {
       // ~44px lower than every other route's. Hidden from `xl`, where the SideNav
       // rail is always on screen and already offers the way back.
       toolbar={
-        <Link
-          to="/"
-          className="inline-flex min-h-11 w-fit items-center gap-1.5 rounded-full px-3 text-sm font-medium text-muted-foreground transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70 xl:hidden"
+        <Button
+          variant="ghost"
+          size="sm"
+          render={<Link to="/" />}
+          className="w-fit text-muted-foreground xl:hidden"
         >
-          <ArrowLeft className="size-4" /> {ts.done}
-        </Link>
+          <ArrowLeft /> {ts.done}
+        </Button>
       }
     >
       {rows.length === 0 ? (
-        <Card>
-          <CardContent className="py-10 text-center text-muted-foreground">{ts.empty}</CardContent>
-        </Card>
+        <EmptyState>{ts.empty}</EmptyState>
       ) : (
-        <ol className="flex flex-col gap-3">
+        // `gap-4`: the one card-stack gap. This was the tightest stack in the app
+        // at `gap-3`, against `gap-8` for the same stack on /family.
+        <ol className="flex flex-col gap-4">
           {rows.map((row, i) => (
             <li key={i}>
               <SlotRow
                 row={row}
+                index={i}
                 first={i === 0}
                 last={i === rows.length - 1}
                 onPatch={(p) => patch(i, p)}
@@ -92,9 +96,11 @@ export default function Schedule() {
         </ol>
       )}
 
-      <p className="text-xs text-muted-foreground">{ts.orderNote}</p>
+      {/* Pulled up against the list it annotates — as a plain frame child it got
+          the full block gap above *and* below and read as orphaned. */}
+      <p className="-mt-3 text-xs text-muted-foreground sm:-mt-5">{ts.orderNote}</p>
 
-      <div className="flex flex-wrap items-center gap-3 border-t border-border pt-5">
+      <div className="flex flex-wrap items-center gap-3 border-t border-border/70 pt-4">
         <Button variant="secondary" onClick={add}>
           <Plus className="mr-2 size-4" /> {ts.addSlot}
         </Button>
@@ -116,6 +122,7 @@ export default function Schedule() {
 
 function SlotRow({
   row,
+  index,
   first,
   last,
   onPatch,
@@ -123,6 +130,9 @@ function SlotRow({
   onRemove,
 }: {
   row: ScheduleSlot
+  /** Stable id source for the row's labels — the time value is not one: it
+   *  changes on every keystroke, so `htmlFor` pointed at a moving target. */
+  index: number
   first: boolean
   last: boolean
   onPatch: (p: Partial<ScheduleSlot>) => void
@@ -133,11 +143,12 @@ function SlotRow({
   const ts = t.schedule
   return (
     <Card>
-      <CardContent className="flex flex-col gap-3 py-4">
+      <CardContent className="flex flex-col gap-4">
         <div className="flex flex-wrap items-end gap-3">
           <div className="space-y-1.5">
-            <Label htmlFor={`time-${row.time}`}>{ts.timeLabel}</Label>
+            <Label htmlFor={`slot-time-${index}`}>{ts.timeLabel}</Label>
             <Input
+              id={`slot-time-${index}`}
               type="time"
               value={row.time}
               onChange={(e) => onPatch({ time: e.target.value })}
@@ -145,31 +156,32 @@ function SlotRow({
             />
           </div>
 
-          <div className="min-w-0 flex-1 space-y-1.5">
-            <Label>{ts.typeLabel}</Label>
-            <div className="flex flex-wrap gap-1.5">
-              {dayActivityOrder.map((type) => {
-                const meta = dayActivityMeta[type]
-                const Icon = meta.icon
-                const active = row.type === type
-                return (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => onPatch({ type })}
-                    aria-pressed={active}
-                    title={t.fullDay.types[type]}
-                    className={cn(
-                      'inline-flex size-9 items-center justify-center rounded-lg transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/70',
-                      active ? meta.dot : 'bg-muted text-muted-foreground hover:bg-accent',
-                      active && 'ring-2 ring-primary ring-offset-1 ring-offset-card',
-                    )}
-                  >
-                    <Icon className="size-4" />
-                  </button>
-                )
+          {/* `ChoiceGroup`, not eight hand-rolled buttons. Those were a
+              non-responsive `size-9` (36px) sitting in an `items-end` row beside
+              an `Input` at `h-11 sm:h-8` and three icon `Button`s at
+              `size-11 sm:size-8` — so the row was 36/44/44 on a phone and
+              36/32/32 from `sm`, misaligned at *both* breakpoints. It also
+              re-implemented pressed state by hand instead of using the toggle
+              group's own. */}
+          {/* Full width on its own row below `sm`. Six 44px pills cannot share a
+              390px row with a 128px time field and three icon buttons: they
+              wrapped to two ragged rows and `items-end` then bottom-aligned the
+              time field against the *second* row, so "Type" read above "Time". */}
+          <div className="order-last w-full space-y-1.5 sm:order-none sm:w-auto sm:min-w-0 sm:flex-1">
+            <Label id={`slot-type-${index}`}>{ts.typeLabel}</Label>
+            <ChoiceGroup
+              ariaLabel={ts.typeLabel}
+              value={row.type}
+              onChange={(type) => onPatch({ type })}
+              options={dayActivityOrder.map((type) => {
+                const Icon = dayActivityMeta[type].icon
+                return {
+                  value: type,
+                  ariaLabel: t.fullDay.types[type],
+                  label: <Icon className="size-4" />,
+                }
               })}
-            </div>
+            />
           </div>
 
           <div className="ml-auto flex items-center gap-1">
@@ -209,9 +221,9 @@ function SlotRow({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor={`title-${row.time}`}>{ts.titleLabel}</Label>
+          <Label htmlFor={`slot-title-${index}`}>{ts.titleLabel}</Label>
           <Input
-            id={`title-${row.time}`}
+            id={`slot-title-${index}`}
             value={row.title}
             placeholder={ts.titlePlaceholder}
             onChange={(e) => onPatch({ title: e.target.value })}
@@ -219,9 +231,9 @@ function SlotRow({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor={`detail-${row.time}`}>{ts.detailLabel}</Label>
+          <Label htmlFor={`slot-detail-${index}`}>{ts.detailLabel}</Label>
           <Input
-            id={`detail-${row.time}`}
+            id={`slot-detail-${index}`}
             value={row.detail}
             placeholder={ts.detailPlaceholder}
             onChange={(e) => onPatch({ detail: e.target.value })}

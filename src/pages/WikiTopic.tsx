@@ -1,6 +1,9 @@
 import { useEffect } from 'react'
 import { Link, Navigate, useParams, useLocation } from 'react-router-dom'
 import { ArrowLeft, ArrowRight, ChevronRight, BookOpen } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
+import { Eyebrow } from '../components/Eyebrow'
 import { PageFrame } from '../components/PageFrame'
 import { wikiTopics, wikiPath, findTopic, groupOfTopic } from '../sections/registry'
 import { useT } from '../i18n'
@@ -55,7 +58,7 @@ export default function WikiTopic() {
             to="/wiki"
             className="inline-flex items-center gap-1.5 rounded-full px-2 py-1 font-medium transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70"
           >
-            <BookOpen className="size-4" />
+            <BookOpen className="size-3.5" />
             {t.wiki.index}
           </Link>
           {group && (
@@ -74,7 +77,7 @@ export default function WikiTopic() {
       {/* Pager */}
       <nav
         aria-label={t.nav.sections}
-        className="grid grid-cols-1 gap-4 border-t border-border pt-8 sm:grid-cols-2"
+        className="grid grid-cols-1 gap-4 border-t border-border/70 pt-8 sm:grid-cols-2"
       >
         {prev ? (
           <PagerLink slug={prev.slug} title={prev.label(t)} label={t.hub.prev} direction="prev" />
@@ -110,24 +113,38 @@ function PagerLink({
 }) {
   const isPrev = direction === 'prev'
   return (
+    // A real `Card`, not `rounded-xl border border-border bg-card p-4`: that
+    // spelling matched the Card's radius but drew a *border* where every Card
+    // draws a `ring`, so the pager read as a different kind of surface from the
+    // cards directly above it — and its hover-border affordance was the only one
+    // in the app that worked, which made the others look broken.
     <Link
       to={wikiPath(slug)}
-      className={`group flex items-center gap-3 rounded-xl border border-border bg-card p-4 text-card-foreground transition-[border-color,box-shadow] outline-none hover:border-primary/40 hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring/70 ${
-        alignEnd ? 'sm:text-right' : ''
-      } ${isPrev ? '' : 'sm:col-start-2'}`}
+      className={cn(
+        'group block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring/70',
+        !isPrev && 'sm:col-start-2',
+      )}
     >
-      {isPrev && (
-        <ArrowLeft className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:-translate-x-0.5" />
-      )}
-      <span className={`min-w-0 flex-1 ${alignEnd ? 'sm:order-1' : ''}`}>
-        <span className="block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-          {label}
-        </span>
-        <span className="mt-0.5 block truncate font-semibold text-foreground">{title}</span>
-      </span>
-      {!isPrev && (
-        <ArrowRight className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 sm:order-2" />
-      )}
+      <Card className="h-full transition-[box-shadow] group-hover:ring-primary/40 group-hover:shadow-md">
+        <CardContent
+          className={cn('flex items-center gap-3', alignEnd && 'sm:text-right')}
+        >
+          {isPrev && (
+            <ArrowLeft className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:-translate-x-0.5" />
+          )}
+          <span className={cn('min-w-0 flex-1', alignEnd && 'sm:order-1')}>
+            <Eyebrow as="span" tone="muted" className="block">
+              {label}
+            </Eyebrow>
+            <span className="mt-0.5 block truncate text-[15px] font-semibold text-foreground">
+              {title}
+            </span>
+          </span>
+          {!isPrev && (
+            <ArrowRight className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 sm:order-2" />
+          )}
+        </CardContent>
+      </Card>
     </Link>
   )
 }

@@ -33,7 +33,7 @@ export function PrinciplesSection() {
           {layers.map((l) => {
             const Icon = l.icon
             return (
-              <Panel key={l.name} className="p-5">
+              <Panel key={l.name}>
                 <Icon className="size-5 text-primary" aria-hidden />
                 <h4 className="mt-3 font-heading text-base font-semibold">{l.name}</h4>
                 <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{l.body}</p>
@@ -70,14 +70,14 @@ export function PrinciplesSection() {
         description="Glass is for the navigation / control layer — not for content."
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <Panel className="p-5">
+          <Panel>
             <PanelTop className="size-5 text-primary" aria-hidden />
             <h4 className="mt-3 font-heading text-base font-semibold">Control layer → glass</h4>
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
               Bars, toolbars, floating buttons and capsule controls that hover above the content plane.
             </p>
           </Panel>
-          <Panel className="p-5">
+          <Panel>
             <Layers className="size-5 text-muted-foreground" aria-hidden />
             <h4 className="mt-3 font-heading text-base font-semibold">Content layer → opaque</h4>
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
@@ -89,13 +89,13 @@ export function PrinciplesSection() {
 
       <DocBlock title="Regular vs Clear" description="Two variants. Never mix them within one cluster.">
         <div className="grid gap-4 sm:grid-cols-2">
-          <Panel className="p-5">
+          <Panel>
             <h4 className="font-heading text-base font-semibold">Regular</h4>
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
               The default. Adaptive and legible over anything — text, photos, gradients. Use it almost everywhere.
             </p>
           </Panel>
-          <Panel className="p-5">
+          <Panel>
             <h4 className="font-heading text-base font-semibold">Clear</h4>
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
               More transparent, for bright media-rich backdrops only. Add a dimming scrim if legibility drops.
