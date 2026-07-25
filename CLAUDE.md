@@ -38,7 +38,7 @@ Shared daily logic is hook-first: `useDailyChecklist` (checklist + streak + sync
 | Path | Purpose |
 |---|---|
 | `src/pages/` | Route components (`Day.tsx` = home split view, `Wiki.tsx` / `WikiTopic.tsx`, `Tracker.tsx`, `FeedLog.tsx`, `Baby.tsx`, `Family.tsx`, `Auth.tsx`, `DesignSystem.tsx`) |
-| `src/components/` | Shared app components — `NavBar`, `Footer`, `SectionHeader`, `StatTile`, `AgeBadge`, `ProgressRing`, `dayActivity`, `charts.tsx` |
+| `src/components/` | Shared app components — `NavBar`, `Footer`, `SectionHeader`, `StatTile`, `AgeBadge`, `ProgressRing`, `WidgetPage`, `dayActivity`, `charts.tsx` |
 | `src/components/ui/` | Vendored shadcn primitives. These are **owned source, not a dependency** — edit them directly to extend variants/behavior |
 | `src/sections/` | The infographic topic sections (registry-driven, rendered on the Wiki topic pages) |
 | `src/design-system/` | Design system: `tokens.ts` (typed design tokens), `ds.css` (glass material + `.ds-scroll-glass`), `components/` — `GlassSurface`, `GlassNav`, `GlassButton`, `GlassToggleGroup` (Liquid Glass material) and `GlassScrollArea` (content scroll utility) |
@@ -56,9 +56,27 @@ Theming is a **dual axis**: theme (light/dark) × palette (soft blue "boy" / sof
 
 When adding UI, always test both palettes × both themes (4 combinations).
 
+## Widget page pattern (glance → input → detail)
+
+**Every logging page is a widget page** — any page whose job is "check one thing, then record one thing": `/tracker`, `/feed`, `/baby`, and any new one. (`/daily` and `/routine` are dashboards, not widget pages.) A widget page always reads top-to-bottom in three tiers:
+
+1. **glance — short info.** Where am I right now, in one screenful: a hero metric and/or a `WidgetStatGrid` of `StatTile`s. Read-only; no forms, history or charts.
+2. **input — the one thing you came to do.** Start the timer, log the feed, add the measurement. Reachable without scrolling past reference material. The tier's eyebrow names the action, so the card inside carries **no title of its own**.
+3. **detail — extensive info.** History lists, charts, guidance, profile editing and destructive actions. Everything you read rather than answer.
+
+Build it with `WidgetPage` (`src/components/WidgetPage.tsx`), which takes the tiers as **slot props** (`glance` / `input` / `detail`) so the order can't be got wrong, and owns the shared page frame: max-width, aura glow, `SectionHeader`, tier eyebrows and divider. Never hand-roll that frame in a page.
+
+- `toolbar` — full-width context switcher under the header (e.g. which baby).
+- `aside` — small trailing header content (e.g. `AgeBadge`).
+- `children` — **only** for states that precede the rhythm: loading skeletons, sign-in gating, first-run forms.
+- Inside a tier: `WidgetStatGrid` (stat row), `WidgetCard` (titled block, optional `icon` / `meta` / `footer`), `WidgetSplit` (a list beside its chart).
+- Tiers are opaque content surfaces (shadcn `Card`) — never the glass material.
+
+Documented on `/design-system` under **Patterns** (`src/design-system/docs/PatternsSection.tsx`) — update that section when the pattern changes.
+
 ## When to use which technology
 
-- **Design system first (respect the DS)** — always reach for an existing shared component before writing markup: shadcn primitives in `src/components/ui/*`, the Liquid Glass components in `src/design-system/components/*`, and the shared app components in `src/components/*` (`SectionHeader`, `StatTile`, `AgeBadge`, `ProgressRing`, `GlassScrollArea`, charts, …). If a component almost fits but lacks a variant or behavior, **extend that component** (it's owned source) rather than hand-rolling a one-off. If a pattern is used on more than one screen (stat tiles, scroll regions, page headers, empty states), **extract it into a shared component** instead of duplicating it per page. Never reintroduce a bespoke version of something the DS already provides.
+- **Design system first (respect the DS)** — always reach for an existing shared component before writing markup: shadcn primitives in `src/components/ui/*`, the Liquid Glass components in `src/design-system/components/*`, and the shared app components in `src/components/*` (`WidgetPage`, `SectionHeader`, `StatTile`, `AgeBadge`, `ProgressRing`, `GlassScrollArea`, charts, …). If a component almost fits but lacks a variant or behavior, **extend that component** (it's owned source) rather than hand-rolling a one-off. If a pattern is used on more than one screen (stat tiles, scroll regions, page headers, empty states), **extract it into a shared component** instead of duplicating it per page. Never reintroduce a bespoke version of something the DS already provides.
 - **shadcn primitives (`src/components/ui/*`)** — default for all standard UI: buttons, cards, form controls, overlays, etc. Never hand-roll a raw `<button>` or `<input>` when a primitive already exists.
 - **Liquid Glass material (`GlassSurface` / `GlassNav` / `GlassButton` / `GlassToggleGroup`)** — only for the floating navigation/control layer (nav bars, floating toolbars, capsule controls), per Liquid Glass guidance. Never use the glass *material* for content surfaces, and never stack glass on glass. (`GlassScrollArea` is a content utility — a scroll viewport with edge fades + a frosted self-hiding scrollbar — not a glass material surface; use it for any in-card scroll region.)
 - **Plain Tailwind + semantic HTML** — layout, typography, one-off decorative elements only. If it's reusable, promote it to a shared component (see "Design system first").

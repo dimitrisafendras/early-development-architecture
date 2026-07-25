@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Milk, Trash2, Baby as BabyIcon, Utensils, Clock, Hash, Pencil, Check } from 'lucide-react'
-import { SectionHeader } from '../components/SectionHeader'
 import { AgeBadge, useBabyAge } from '../components/AgeBadge'
 import { AddFeedForm } from '../components/AddFeedForm'
 import { ChoiceGroup } from '../components/ChoiceGroup'
 import { StatTile } from '../components/StatTile'
+import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
 import { FeedWeekChart } from '../components/charts'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -76,86 +76,82 @@ export default function FeedLog() {
     return days
   })()
 
+  const todayCard = (
+    <WidgetCard
+      icon={<Utensils />}
+      title={tf.todayTitle}
+      footer={
+        <span className="text-xs text-muted-foreground">{feed.signedIn ? tf.synced : tf.localOnly}</span>
+      }
+    >
+      {feed.todayFeeds.length === 0 ? (
+        <p className="text-sm text-muted-foreground">{tf.none}</p>
+      ) : (
+        <ul className="divide-y divide-border">
+          {feed.todayFeeds.map((f) => (
+            <FeedRow
+              key={f.id}
+              entry={f}
+              onSave={(patch) => feed.update(f.id, patch)}
+              onRemove={() => feed.remove(f.id)}
+            />
+          ))}
+        </ul>
+      )}
+    </WidgetCard>
+  )
+
   return (
-    <main className="relative mx-auto flex w-full max-w-5xl flex-col gap-6 page-px py-10">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-8 -z-10 mx-auto h-56 max-w-2xl rounded-full bg-primary/15 opacity-60 blur-3xl"
-      />
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <SectionHeader title={tf.title} description={tf.subtitle} />
-        <AgeBadge />
-      </div>
+    <WidgetPage
+      title={tf.title}
+      description={tf.subtitle}
+      aside={<AgeBadge />}
+      inputLabel={tf.add}
+      glance={
+        <>
+          <WidgetStatGrid>
+            <StatTile icon={<Milk className="size-4" />} label={tf.totalToday} value={`${Math.round(feed.todayMl)}`} unit={tf.mlShort} />
+            <StatTile icon={<Hash className="size-4" />} label={tf.countToday} value={`${feed.todayFeeds.length}`} />
+            <StatTile icon={<Clock className="size-4" />} label={tf.sinceLast} value={sinceText} />
+            <StatTile
+              icon={<BabyIcon className="size-4" />}
+              label={tf.lastFeed}
+              value={feed.lastFeed ? fmtTime(feed.lastFeed.fed_at, locale) : tf.never}
+            />
+          </WidgetStatGrid>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <StatTile icon={<Milk className="size-4" />} label={tf.totalToday} value={`${Math.round(feed.todayMl)}`} unit={tf.mlShort} />
-        <StatTile icon={<Hash className="size-4" />} label={tf.countToday} value={`${feed.todayFeeds.length}`} />
-        <StatTile icon={<Clock className="size-4" />} label={tf.sinceLast} value={sinceText} />
-        <StatTile
-          icon={<BabyIcon className="size-4" />}
-          label={tf.lastFeed}
-          value={feed.lastFeed ? fmtTime(feed.lastFeed.fed_at, locale) : tf.never}
-        />
-      </div>
-
-      {feedsRange && <FeedProgress count={feed.todayFeeds.length} range={feedsRange} tf={tf} />}
-
-      {feed.feeds.length > 0 && (
+          {feedsRange && <FeedProgress count={feed.todayFeeds.length} range={feedsRange} tf={tf} />}
+        </>
+      }
+      input={
         <Card>
           <CardContent>
-            <p className="mb-4 flex items-center gap-2 text-[15px] font-semibold text-foreground">
-              <Milk className="size-4 text-primary" /> {t.tracker.weekTitle}
-            </p>
-            <FeedWeekChart
-              labels={week.map((d) => formatDateKey(d.key, locale, { weekday: 'short' }))}
-              ml={week.map((d) => Math.round(d.ml))}
-              counts={week.map((d) => d.count)}
-              mlLabel={tf.mlShort}
-              feedsLabel={tf.progressFeeds}
-            />
+            <AddFeedForm last={feed.lastFeed} onAdd={feed.add} />
+            {guideAmount && (
+              <p className="mt-3 text-xs text-muted-foreground">{tf.guide.replace('{amount}', guideAmount)}</p>
+            )}
           </CardContent>
         </Card>
-      )}
-
-      <Card>
-        <CardContent>
-          <p className="mb-4 flex items-center gap-2 text-[15px] font-semibold text-foreground">
-            <Milk className="size-4 text-primary" /> {tf.add}
-          </p>
-          <AddFeedForm last={feed.lastFeed} onAdd={feed.add} />
-          {guideAmount && (
-            <p className="mt-3 text-xs text-muted-foreground">{tf.guide.replace('{amount}', guideAmount)}</p>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Today list */}
-      <Card>
-        <CardContent>
-          <p className="mb-4 flex items-center gap-2 text-[15px] font-semibold text-foreground">
-            <Utensils className="size-4 text-primary" /> {tf.todayTitle}
-          </p>
-          {feed.todayFeeds.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{tf.none}</p>
-          ) : (
-            <ul className="divide-y divide-border">
-              {feed.todayFeeds.map((f) => (
-                <FeedRow
-                  key={f.id}
-                  entry={f}
-                  onSave={(patch) => feed.update(f.id, patch)}
-                  onRemove={() => feed.remove(f.id)}
-                />
-              ))}
-            </ul>
-          )}
-          <p className="mt-4 border-t border-border pt-3 text-xs text-muted-foreground">
-            {feed.signedIn ? tf.synced : tf.localOnly}
-          </p>
-        </CardContent>
-      </Card>
-    </main>
+      }
+      detail={
+        feed.feeds.length > 0 ? (
+          <WidgetSplit>
+            {todayCard}
+            <WidgetCard icon={<Milk />} title={t.tracker.weekTitle}>
+              <FeedWeekChart
+                labels={week.map((d) => formatDateKey(d.key, locale, { weekday: 'short' }))}
+                ml={week.map((d) => Math.round(d.ml))}
+                counts={week.map((d) => d.count)}
+                mlLabel={tf.mlShort}
+                feedsLabel={tf.progressFeeds}
+              />
+            </WidgetCard>
+          </WidgetSplit>
+        ) : (
+          todayCard
+        )
+      }
+    />
   )
 }
 

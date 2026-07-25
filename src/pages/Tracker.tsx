@@ -8,7 +8,7 @@ import { GlassScrollArea } from '@/design-system/components'
 import { ProgressRing } from '../components/ProgressRing'
 import { StatTile } from '../components/StatTile'
 import { TummyWeekChart } from '../components/charts'
-import { SectionHeader } from '../components/SectionHeader'
+import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
 import { useBabies } from '../lib/useBabies'
 import { useTummyTracker, useWeeklyMinutes, type TrackerSession } from '../lib/useTummyTracker'
 import { tummyTargetForAgeMonths, ageInMonths, todayKey } from '../lib/schedule'
@@ -95,46 +95,76 @@ export default function Tracker() {
     : t.tracker.targetForNoBaby
 
   return (
-    <>
-      <main className="relative mx-auto flex w-full max-w-5xl flex-col gap-10 page-px py-10">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 -top-8 -z-10 mx-auto h-56 max-w-2xl rounded-full bg-primary/15 opacity-60 blur-3xl"
-        />
-        <SectionHeader title={t.tracker.title} description={t.tracker.subtitle} />
-
-        <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-card via-card to-primary/5">
-          <span
-            aria-hidden
-            className="pointer-events-none absolute left-1/2 top-1/2 size-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl"
-          />
-          <CardContent className="relative flex flex-col items-center gap-6 py-8">
-            <ProgressRing progress={totalWithRunning / target} complete={metTarget}>
-              <div>
-                {tracker.isRunning ? (
-                  <div className="font-heading text-4xl font-semibold tabular-nums text-foreground">
-                    {fmtClock(tracker.elapsedSeconds)}
+    <WidgetPage
+      title={t.tracker.title}
+      description={t.tracker.subtitle}
+      inputLabel={t.tracker.sessionLabel}
+      glance={
+        <>
+          <Card className="relative overflow-hidden border-primary/20 bg-gradient-to-br from-card via-card to-primary/5">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-1/2 size-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/10 blur-3xl"
+            />
+            <CardContent className="relative flex flex-col items-center py-8">
+              <ProgressRing progress={totalWithRunning / target} complete={metTarget}>
+                <div>
+                  {tracker.isRunning ? (
+                    <div className="font-heading text-4xl font-semibold tabular-nums text-foreground">
+                      {fmtClock(tracker.elapsedSeconds)}
+                    </div>
+                  ) : (
+                    <div className="font-heading text-4xl font-semibold text-foreground">
+                      {Math.round(totalWithRunning)}
+                      <span className="text-lg text-muted-foreground"> / {target}</span>
+                    </div>
+                  )}
+                  <div
+                    className={`mt-1 text-xs uppercase tracking-wider ${
+                      metTarget ? 'font-semibold text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {tracker.isRunning && !metTarget
+                      ? t.tracker.running
+                      : metTarget
+                        ? t.tracker.targetMet
+                        : `${remaining} ${t.tracker.toGo}`}
                   </div>
-                ) : (
-                  <div className="font-heading text-4xl font-semibold text-foreground">
-                    {Math.round(totalWithRunning)}
-                    <span className="text-lg text-muted-foreground"> / {target}</span>
-                  </div>
-                )}
-                <div
-                  className={`mt-1 text-xs uppercase tracking-wider ${
-                    metTarget ? 'font-semibold text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
-                  }`}
-                >
-                  {tracker.isRunning && !metTarget
-                    ? t.tracker.running
-                    : metTarget
-                      ? t.tracker.targetMet
-                      : `${remaining} ${t.tracker.toGo}`}
                 </div>
-              </div>
-            </ProgressRing>
+              </ProgressRing>
+            </CardContent>
+          </Card>
 
+          <WidgetStatGrid>
+            <StatTile
+              icon={<Target className="size-4" />}
+              label={t.tracker.statToday}
+              value={`${Math.round(totalWithRunning)}`}
+              unit={`/ ${target} ${t.tracker.minutesShort}`}
+            />
+            <StatTile
+              icon={<CalendarDays className="size-4" />}
+              label={t.tracker.statWeek}
+              value={`${weekTotal}`}
+              unit={t.tracker.minutesShort}
+            />
+            <StatTile
+              icon={<Flame className="size-4" />}
+              label={t.tracker.statStreak}
+              value={`${streak}`}
+            />
+            <StatTile
+              icon={<Hourglass className="size-4" />}
+              label={t.tracker.statAvg}
+              value={`${avgSession}`}
+              unit={t.tracker.minutesShort}
+            />
+          </WidgetStatGrid>
+        </>
+      }
+      input={
+        <Card>
+          <CardContent className="flex flex-col items-center gap-4 py-6">
             {tracker.isRunning ? (
               <Button size="lg" variant="destructive" onClick={() => void tracker.stop()}>
                 <Square className="mr-2 size-4" /> {t.tracker.stop}
@@ -144,7 +174,6 @@ export default function Tracker() {
                 <Play className="mr-2 size-4" /> {t.tracker.start}
               </Button>
             )}
-
             <p className="text-center text-xs text-muted-foreground">
               {targetContext}
               <br />
@@ -152,45 +181,25 @@ export default function Tracker() {
             </p>
           </CardContent>
         </Card>
-
-        {/* Stats at a glance */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatTile
-            icon={<Target className="size-4" />}
-            label={t.tracker.statToday}
-            value={`${Math.round(totalWithRunning)}`}
-            unit={`/ ${target} ${t.tracker.minutesShort}`}
-          />
-          <StatTile
-            icon={<CalendarDays className="size-4" />}
-            label={t.tracker.statWeek}
-            value={`${weekTotal}`}
-            unit={t.tracker.minutesShort}
-          />
-          <StatTile
-            icon={<Flame className="size-4" />}
-            label={t.tracker.statStreak}
-            value={`${streak}`}
-          />
-          <StatTile
-            icon={<Hourglass className="size-4" />}
-            label={t.tracker.statAvg}
-            value={`${avgSession}`}
-            unit={t.tracker.minutesShort}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <Card>
-            <CardContent>
-              <p className="mb-4 flex items-center gap-2 text-[15px] font-semibold text-foreground">
-                <Timer className="size-4 text-primary" /> {t.tracker.historyTitle}
-              </p>
-              {tracker.sessions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">{t.tracker.noHistory}</p>
-              ) : (
-                <GlassScrollArea className="max-h-[10.5rem]">
-                  <div className="space-y-4 pr-1">
+      }
+      detail={
+        <WidgetSplit>
+          <WidgetCard
+            icon={<Timer />}
+            title={t.tracker.historyTitle}
+            footer={
+              <>
+                <span className="text-muted-foreground">{t.tracker.cumulativeToday}: </span>
+                <span className="font-bold text-primary">{tracker.completedMinutes}</span>
+                <span className="text-muted-foreground"> / {target} {t.tracker.minutesShort}</span>
+              </>
+            }
+          >
+            {tracker.sessions.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t.tracker.noHistory}</p>
+            ) : (
+              <GlassScrollArea className="max-h-[10.5rem]">
+                <div className="space-y-4 pr-1">
                   {historyDays.map(([key, list]) => (
                     <div key={key}>
                       <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -209,31 +218,20 @@ export default function Tracker() {
                       </ul>
                     </div>
                   ))}
-                  </div>
-                </GlassScrollArea>
-              )}
-              <div className="mt-4 border-t border-border pt-3 text-sm">
-                <span className="text-muted-foreground">{t.tracker.cumulativeToday}: </span>
-                <span className="font-bold text-primary">{tracker.completedMinutes}</span>
-                <span className="text-muted-foreground"> / {target} {t.tracker.minutesShort}</span>
-              </div>
-            </CardContent>
-          </Card>
+                </div>
+              </GlassScrollArea>
+            )}
+          </WidgetCard>
 
-          <Card>
-            <CardContent>
-              <div className="mb-4 flex items-center justify-between">
-                <p className="text-[15px] font-semibold text-foreground">{t.tracker.weekTitle}</p>
-                <span className="text-xs text-muted-foreground">
-                  {daysOnTarget}/7 · {t.tracker.statDaysOnTarget}
-                </span>
-              </div>
-              <TummyWeekChart labels={weekLabels} minutes={weekMinutes} target={target} />
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-    </>
+          <WidgetCard
+            title={t.tracker.weekTitle}
+            meta={`${daysOnTarget}/7 · ${t.tracker.statDaysOnTarget}`}
+          >
+            <TummyWeekChart labels={weekLabels} minutes={weekMinutes} target={target} />
+          </WidgetCard>
+        </WidgetSplit>
+      }
+    />
   )
 }
 

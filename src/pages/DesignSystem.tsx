@@ -11,6 +11,7 @@ import { ColorSection } from '@/design-system/docs/ColorSection'
 import { TypographySection } from '@/design-system/docs/TypographySection'
 import { SpacingRadiusSection } from '@/design-system/docs/SpacingRadiusSection'
 import { ComponentsSection } from '@/design-system/docs/ComponentsSection'
+import { PatternsSection } from '@/design-system/docs/PatternsSection'
 import { AccessibilitySection } from '@/design-system/docs/AccessibilitySection'
 
 const SECTIONS: { href: string; label: string }[] = [
@@ -20,6 +21,7 @@ const SECTIONS: { href: string; label: string }[] = [
   { href: '#typography', label: 'Type' },
   { href: '#spacing', label: 'Spacing' },
   { href: '#components', label: 'Components' },
+  { href: '#patterns', label: 'Patterns' },
   { href: '#accessibility', label: 'A11y' },
 ]
 
@@ -142,6 +144,7 @@ export default function DesignSystem() {
         <TypographySection />
         <SpacingRadiusSection />
         <ComponentsSection />
+        <PatternsSection />
         <AccessibilitySection />
       </main>
 

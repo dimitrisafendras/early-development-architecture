@@ -1,8 +1,8 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import { Baby as BabyIcon, Plus, Trash2, Ruler, Weight, Pencil } from 'lucide-react'
-import { SectionHeader } from '../components/SectionHeader'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { Baby as BabyIcon, Trash2, Ruler, Weight, Pencil } from 'lucide-react'
 import { ChoiceGroup } from '../components/ChoiceGroup'
 import { StatTile } from '../components/StatTile'
+import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
 import { GlassScrollArea } from '@/design-system/components'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -46,71 +46,70 @@ export default function Baby() {
   const onCreate = (input: { name: string; birth_date: string; palette: Palette }) =>
     createBaby({ ...input, household_id: household?.id ?? null })
 
-  return (
-    <>
-      <main className="relative mx-auto flex w-full max-w-5xl flex-col gap-10 page-px py-10">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 -top-8 -z-10 mx-auto h-56 max-w-2xl rounded-full bg-primary/15 opacity-60 blur-3xl"
+  const page = { title: t.baby.title, description: t.baby.subtitle }
+
+  const toolbar =
+    babies.length > 1 ? (
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm text-muted-foreground">{t.baby.selectLabel}:</span>
+        <ChoiceGroup
+          ariaLabel={t.baby.selectLabel}
+          size="default"
+          value={currentBabyId ?? babies[0].id}
+          onChange={setCurrentBabyId}
+          options={babies.map((b) => ({ value: b.id, label: b.name }))}
         />
-        <SectionHeader title={t.baby.title} description={t.baby.subtitle} />
+      </div>
+    ) : null
 
-        {!ready ? (
-          <Card>
-            <CardContent className="py-10 text-center text-muted-foreground">
-              {t.baby.signInPrompt}
-            </CardContent>
-          </Card>
-        ) : loading && babies.length === 0 ? (
-          <div className="flex flex-col gap-6">
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton key={i} className="h-20" />
-              ))}
-            </div>
-            <Skeleton className="h-40" />
-            <Skeleton className="h-56" />
+  // Pre-tier states: gated, loading, and first-run all precede the glance →
+  // input → detail rhythm, so they go in `children` rather than a tier.
+  if (!ready) {
+    return (
+      <WidgetPage {...page}>
+        <Card>
+          <CardContent className="py-10 text-center text-muted-foreground">
+            {t.baby.signInPrompt}
+          </CardContent>
+        </Card>
+      </WidgetPage>
+    )
+  }
+
+  if (loading && babies.length === 0) {
+    return (
+      <WidgetPage {...page}>
+        <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-20" />
+            ))}
           </div>
-        ) : (
-          <>
-            {babies.length > 1 && (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm text-muted-foreground">{t.baby.selectLabel}:</span>
-                <ChoiceGroup
-                  ariaLabel={t.baby.selectLabel}
-                  size="default"
-                  value={currentBabyId ?? babies[0].id}
-                  onChange={setCurrentBabyId}
-                  options={babies.map((b) => ({ value: b.id, label: b.name }))}
-                />
-              </div>
-            )}
+          <Skeleton className="h-40" />
+          <Skeleton className="h-56" />
+        </div>
+      </WidgetPage>
+    )
+  }
 
-            {currentBaby ? (
-              <BabyDetail
-                key={currentBaby.id}
-                baby={currentBaby}
-                updateBaby={updateBaby}
-                deleteBaby={deleteBaby}
-              />
-            ) : (
-              <CreateBabyForm onCreate={onCreate} />
-            )}
+  if (!currentBaby) {
+    return (
+      <WidgetPage {...page} toolbar={toolbar}>
+        <CreateBabyForm onCreate={onCreate} />
+      </WidgetPage>
+    )
+  }
 
-            {currentBaby && (
-              <details className="rounded-xl border border-border bg-card p-4 text-card-foreground">
-                <summary className="cursor-pointer text-sm font-medium text-muted-foreground">
-                  {t.baby.addTitle}
-                </summary>
-                <div className="mt-4">
-                  <CreateBabyForm onCreate={onCreate} />
-                </div>
-              </details>
-            )}
-          </>
-        )}
-      </main>
-    </>
+  return (
+    <BabyDetail
+      key={currentBaby.id}
+      page={page}
+      toolbar={toolbar}
+      baby={currentBaby}
+      updateBaby={updateBaby}
+      deleteBaby={deleteBaby}
+      onCreate={onCreate}
+    />
   )
 }
 
@@ -193,13 +192,19 @@ function CreateBabyForm({
 }
 
 function BabyDetail({
+  page,
+  toolbar,
   baby,
   updateBaby,
   deleteBaby,
+  onCreate,
 }: {
+  page: { title: string; description: string }
+  toolbar: ReactNode
   baby: BabyRecord
   updateBaby: (id: string, patch: { name?: string; birth_date?: string; palette?: Palette }) => Promise<unknown>
   deleteBaby: (id: string) => Promise<unknown>
+  onCreate: (i: { name: string; birth_date: string; palette: Palette }) => Promise<unknown>
 }) {
   const t = useT()
   const locale = useDateLocale()
@@ -232,127 +237,132 @@ function BabyDetail({
   const months = ageInMonths(birthDate)
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatTile label={t.baby.ageLabel} value={`${months} ${t.baby.monthsShort}`} icon={<BabyIcon className="size-4" />} />
-        <StatTile label={t.baby.latestWeight} value={latestWeight != null ? `${latestWeight} kg` : '—'} icon={<Weight className="size-4" />} />
-        <StatTile label={t.baby.latestHeight} value={latestHeight != null ? `${latestHeight} cm` : '—'} icon={<Ruler className="size-4" />} />
-        <StatTile label={t.baby.selectLabel} value={name} icon={<BabyIcon className="size-4" />} />
-      </div>
+    <WidgetPage
+      {...page}
+      toolbar={toolbar}
+      inputLabel={t.baby.addMeasurement}
+      glance={
+        <WidgetStatGrid>
+          <StatTile label={t.baby.ageLabel} value={`${months} ${t.baby.monthsShort}`} icon={<BabyIcon className="size-4" />} />
+          <StatTile label={t.baby.latestWeight} value={latestWeight != null ? `${latestWeight} kg` : '—'} icon={<Weight className="size-4" />} />
+          <StatTile label={t.baby.latestHeight} value={latestHeight != null ? `${latestHeight} cm` : '—'} icon={<Ruler className="size-4" />} />
+          <StatTile label={t.baby.selectLabel} value={name} icon={<BabyIcon className="size-4" />} />
+        </WidgetStatGrid>
+      }
+      input={<AddMeasurementForm babyId={babyId} householdId={householdId} onSaved={refresh} />}
+      detail={
+        <>
+          {rows.length >= 1 && (
+            <WidgetSplit>
+              <WidgetCard title={t.baby.weightChart}>
+                <GrowthChart labels={labels} data={rows.map((r) => r.weight_kg)} label={t.baby.weightChart} yTitle="kg" />
+              </WidgetCard>
+              <WidgetCard title={t.baby.heightChart}>
+                <GrowthChart labels={labels} data={rows.map((r) => r.height_cm)} label={t.baby.heightChart} yTitle="cm" />
+              </WidgetCard>
+            </WidgetSplit>
+          )}
 
-      {/* Edit profile + danger zone */}
-      <Card>
-        <CardContent>
-          {editing ? (
-            <EditBabyForm
-              baby={baby}
-              onSave={async (patch) => {
-                await updateBaby(baby.id, patch)
-                setEditing(false)
-              }}
-              onCancel={() => setEditing(false)}
-            />
-          ) : (
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-[15px] font-semibold text-foreground">{name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatDateKey(birthDate, locale, { day: '2-digit', month: '2-digit', year: 'numeric' })} · {baby.palette === 'blue' ? t.nav.boy : t.nav.girl}
-                </p>
+          <WidgetCard title={t.baby.measurementsTitle}>
+            {loading ? (
+              <div className="space-y-2">
+                <Skeleton className="h-8" />
+                <Skeleton className="h-8" />
+                <Skeleton className="h-8" />
               </div>
-              <div className="flex items-center gap-2">
-                <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
-                  <Pencil className="mr-1.5 size-3.5" /> {t.baby.editProfile}
-                </Button>
-                {confirmDelete ? (
-                  <span className="flex flex-wrap items-center gap-2 text-sm">
-                    <span className="hidden text-muted-foreground sm:inline">{t.baby.deleteBabyConfirm}</span>
-                    <Button size="sm" variant="destructive" onClick={() => void deleteBaby(baby.id)}>
-                      {t.baby.deleteBaby}
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>
-                      {t.baby.cancel}
-                    </Button>
-                  </span>
-                ) : (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-muted-foreground hover:text-destructive"
-                    onClick={() => setConfirmDelete(true)}
-                  >
-                    <Trash2 className="mr-1.5 size-3.5" /> {t.baby.deleteBaby}
+            ) : rows.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t.baby.noMeasurements}</p>
+            ) : (
+              <GlassScrollArea className="max-h-[18rem]">
+                <ul className="divide-y divide-border pr-1">
+                  {[...rows].reverse().map((r) => (
+                    <li key={r.id} className="flex items-center justify-between py-2.5 text-sm">
+                      <span className="text-muted-foreground">
+                        {formatDateKey(r.measured_on, locale, { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                      </span>
+                      <span className="flex items-center gap-4">
+                        <span className="text-foreground">
+                          {r.weight_kg != null && <span className="mr-3">{r.weight_kg} kg</span>}
+                          {r.height_cm != null && <span className="mr-3">{r.height_cm} cm</span>}
+                          {r.head_cm != null && <span>{r.head_cm} cm ⌀</span>}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          aria-label={t.baby.delete}
+                          onClick={() => void deleteMeasurement(r.id).then(refresh)}
+                          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </GlassScrollArea>
+            )}
+          </WidgetCard>
+
+          {/* Profile + danger zone — admin, so it sits below the reference data. */}
+          <WidgetCard icon={<BabyIcon />} title={t.baby.profileTitle}>
+            {editing ? (
+              <EditBabyForm
+                baby={baby}
+                onSave={async (patch) => {
+                  await updateBaby(baby.id, patch)
+                  setEditing(false)
+                }}
+                onCancel={() => setEditing(false)}
+              />
+            ) : (
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p className="text-[15px] font-semibold text-foreground">{name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDateKey(birthDate, locale, { day: '2-digit', month: '2-digit', year: 'numeric' })} · {baby.palette === 'blue' ? t.nav.boy : t.nav.girl}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
+                    <Pencil className="mr-1.5 size-3.5" /> {t.baby.editProfile}
                   </Button>
-                )}
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <AddMeasurementForm babyId={babyId} householdId={householdId} onSaved={refresh} />
-
-      {rows.length >= 1 && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <Card>
-            <CardContent>
-              <p className="mb-4 text-[15px] font-semibold text-foreground">{t.baby.weightChart}</p>
-              <GrowthChart labels={labels} data={rows.map((r) => r.weight_kg)} label={t.baby.weightChart} yTitle="kg" />
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent>
-              <p className="mb-4 text-[15px] font-semibold text-foreground">{t.baby.heightChart}</p>
-              <GrowthChart labels={labels} data={rows.map((r) => r.height_cm)} label={t.baby.heightChart} yTitle="cm" />
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      <Card>
-        <CardContent>
-          <p className="mb-4 text-[15px] font-semibold text-foreground">{t.baby.measurementsTitle}</p>
-          {loading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-8" />
-              <Skeleton className="h-8" />
-              <Skeleton className="h-8" />
-            </div>
-          ) : rows.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t.baby.noMeasurements}</p>
-          ) : (
-            <GlassScrollArea className="max-h-[18rem]">
-            <ul className="divide-y divide-border pr-1">
-              {[...rows].reverse().map((r) => (
-                <li key={r.id} className="flex items-center justify-between py-2.5 text-sm">
-                  <span className="text-muted-foreground">
-                    {formatDateKey(r.measured_on, locale, { day: '2-digit', month: '2-digit', year: 'numeric' })}
-                  </span>
-                  <span className="flex items-center gap-4">
-                    <span className="text-foreground">
-                      {r.weight_kg != null && <span className="mr-3">{r.weight_kg} kg</span>}
-                      {r.height_cm != null && <span className="mr-3">{r.height_cm} cm</span>}
-                      {r.head_cm != null && <span>{r.head_cm} cm ⌀</span>}
+                  {confirmDelete ? (
+                    <span className="flex flex-wrap items-center gap-2 text-sm">
+                      <span className="hidden text-muted-foreground sm:inline">{t.baby.deleteBabyConfirm}</span>
+                      <Button size="sm" variant="destructive" onClick={() => void deleteBaby(baby.id)}>
+                        {t.baby.deleteBaby}
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setConfirmDelete(false)}>
+                        {t.baby.cancel}
+                      </Button>
                     </span>
+                  ) : (
                     <Button
-                      type="button"
                       variant="ghost"
-                      size="icon"
-                      aria-label={t.baby.delete}
-                      onClick={() => void deleteMeasurement(r.id).then(refresh)}
-                      className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                      size="sm"
+                      className="text-muted-foreground hover:text-destructive"
+                      onClick={() => setConfirmDelete(true)}
                     >
-                      <Trash2 className="size-4" />
+                      <Trash2 className="mr-1.5 size-3.5" /> {t.baby.deleteBaby}
                     </Button>
-                  </span>
-                </li>
-              ))}
-            </ul>
-            </GlassScrollArea>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </WidgetCard>
+
+          <details className="rounded-xl border border-border bg-card p-4 text-card-foreground">
+            <summary className="cursor-pointer text-sm font-medium text-muted-foreground">
+              {t.baby.addTitle}
+            </summary>
+            <div className="mt-4">
+              <CreateBabyForm onCreate={onCreate} />
+            </div>
+          </details>
+        </>
+      }
+    />
   )
 }
 
@@ -475,9 +485,7 @@ function AddMeasurementForm({
   return (
     <Card>
       <CardContent>
-        <p className="mb-4 flex items-center gap-2 text-[15px] font-semibold text-foreground">
-          <Plus className="size-4 text-primary" /> {t.baby.addMeasurement}
-        </p>
+        {/* No card title — the input tier's eyebrow already names the action. */}
         <form onSubmit={submit} className="grid grid-cols-2 gap-4 sm:grid-cols-5">
           <div className="space-y-1.5">
             <Label htmlFor="m-date">{t.baby.dateLabel}</Label>

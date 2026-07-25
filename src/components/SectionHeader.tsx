@@ -8,11 +8,14 @@ interface Props {
   /** Give the page's own content the room on a phone: smaller title, tighter
    *  spacing, and the description only from `sm` up. Full size from `sm` on. */
   compact?: boolean
+  /** Escape hatch for the trailing margin — `WidgetPage` drops it (`mb-0`)
+   *  because its own flex gap already spaces the header from the first tier. */
+  className?: string
 }
 
-export function SectionHeader({ title, description, compact = false }: Props) {
+export function SectionHeader({ title, description, compact = false, className }: Props) {
   return (
-    <div className={cn('max-w-3xl', compact ? 'mb-3 sm:mb-8' : 'mb-8')}>
+    <div className={cn('max-w-3xl', compact ? 'mb-3 sm:mb-8' : 'mb-8', className)}>
       <h2
         className={cn(
           'font-heading font-semibold tracking-tight text-foreground sm:text-4xl',

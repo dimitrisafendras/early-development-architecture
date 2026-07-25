@@ -93,6 +93,11 @@ const en = {
     save: 'Save',
     cancel: 'Cancel',
   },
+  // Tier eyebrows for the widget-page pattern (glance → input → detail).
+  widget: {
+    input: 'Log',
+    detail: 'Details',
+  },
   // Shared form-control strings — the pickers and the number stepper.
   fields: {
     pickDate: 'Pick a date',
@@ -278,6 +283,7 @@ const en = {
     subtitle: 'Time each supervised tummy session and build toward the daily target.',
     start: 'Start session',
     stop: 'Stop session',
+    sessionLabel: 'Tummy session',
     running: 'Recording…',
     targetLabel: 'Daily target',
     cumulativeToday: 'Cumulative today',
@@ -317,6 +323,7 @@ const en = {
     create: 'Create profile',
     creating: 'Creating…',
     selectLabel: 'Baby',
+    profileTitle: 'Profile',
     ageLabel: 'Age',
     monthsShort: 'mo',
     measurementsTitle: 'Measurements',
@@ -907,6 +914,10 @@ const el: Messages = {
     save: 'Αποθήκευση',
     cancel: 'Ακύρωση',
   },
+  widget: {
+    input: 'Καταγραφή',
+    detail: 'Λεπτομέρειες',
+  },
   fields: {
     pickDate: 'Επιλέξτε ημερομηνία',
     pickTime: 'Επιλέξτε ώρα',
@@ -1091,6 +1102,7 @@ const el: Messages = {
     subtitle: 'Χρονομετρήστε κάθε εποπτευόμενη συνεδρία μπρούμυτα προς τον ημερήσιο στόχο.',
     start: 'Έναρξη συνεδρίας',
     stop: 'Λήξη συνεδρίας',
+    sessionLabel: 'Χρόνος στην κοιλιά',
     running: 'Καταγραφή…',
     targetLabel: 'Ημερήσιος στόχος',
     cumulativeToday: 'Σύνολο σήμερα',
@@ -1130,6 +1142,7 @@ const el: Messages = {
     create: 'Δημιουργία προφίλ',
     creating: 'Δημιουργία…',
     selectLabel: 'Μωρό',
+    profileTitle: 'Προφίλ',
     ageLabel: 'Ηλικία',
     monthsShort: 'μην.',
     measurementsTitle: 'Μετρήσεις',
