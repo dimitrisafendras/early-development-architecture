@@ -91,7 +91,6 @@ export default function Auth({ mode }: { mode: AuthMode }) {
     <PageFrame
       className="max-w-md"
       title={isSignUp ? t.auth.titleSignUp : t.auth.title}
-      description={isSignUp ? t.auth.subtitleSignUp : t.auth.subtitleSignIn}
       // `IconChip size="md"` — the one chip geometry. This was the only
       // `rounded-2xl p-3` chip with a 24px icon in the app, so the header's
       // trailing slot carried a 48px block here against a 26px pill on every

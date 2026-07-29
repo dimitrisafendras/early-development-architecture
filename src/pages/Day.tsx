@@ -14,7 +14,6 @@ import {
   Check,
 } from 'lucide-react'
 import { PageFrame } from '../components/PageFrame'
-import { AgeBadge } from '../components/AgeBadge'
 import { Eyebrow } from '../components/Eyebrow'
 import { ProgressRing } from '../components/ProgressRing'
 import { dayActivityMeta } from '../components/dayActivity'
@@ -35,22 +34,12 @@ import {
   bandIndex,
 } from '../lib/schedule'
 import { useSchedule } from '../lib/useSchedule'
+import { useNow } from '../lib/useNow'
 import { wikiPath, findTopic } from '../sections/registry'
 import { useBabies } from '../lib/useBabies'
 import { useTummyTracker } from '../lib/useTummyTracker'
 import { useFeedLog } from '../lib/useFeedLog'
 import { useT } from '../i18n'
-
-/** Live clock ticked every 30s — the single source for "what's now" and which
- *  slot the panel defaults to, so the timeline and panel never disagree. */
-function useNow(): Date {
-  const [now, setNow] = useState(() => new Date())
-  useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 30_000)
-    return () => clearInterval(id)
-  }, [])
-  return now
-}
 
 /** Wiki topic each activity maps to, for the panel's "learn more" link + info. */
 const typeWiki: Record<DayActivity, string> = {
@@ -87,7 +76,13 @@ export default function Day() {
     // padding, the header row, the gap — is the frame's, so this page's title now
     // sits at the same X *and* Y as every other route's (it used to sit 20px
     // higher on a phone, from a hand-rolled `py-5 sm:py-10`).
-    <PageFrame fill title={t.day.title} description={t.day.subtitle} aside={<AgeBadge />}>
+    // No `description` here: "the whole day at a glance" restated the page it sat
+    // on and cost a line of the one viewport this dashboard gets. The header band
+    // carries live status instead — see `TodayStrip`.
+    // No `description` and no `aside`: the header band now carries who this is,
+    // how old they are and today's progress (see `HeaderStatus`), which is what
+    // the orientation line and the age badge were each half-doing.
+    <PageFrame fill title={t.day.title}>
       {/* Two cards, no more: the day's schedule as the left rail, and the moment
           (what's now + the tool for it, the thing you actually act on) beside it.
           Fixed height at lg so switching activities never makes the page jump —

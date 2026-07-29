@@ -57,6 +57,7 @@ const en = {
       feeding: 'Feeding',
       bathing: 'Bathing',
       soothing: 'Soothing',
+      milestones: 'Milestones',
     },
   },
   auth: {
@@ -85,6 +86,13 @@ const en = {
     back: 'Back',
     passwordHint: 'At least 6 characters.',
     rememberMe: 'Keep me signed in',
+  },
+  // Labels for the live readings in the page header band (`HeaderStatus`).
+  header: {
+    baby: 'Baby',
+    age: 'Age',
+    today: 'Today',
+    now: 'Now',
   },
   common: {
     module: 'Module',
@@ -365,6 +373,7 @@ const en = {
     profileTitle: 'Profile',
     ageLabel: 'Age',
     monthsShort: 'mo',
+    yearsShort: 'y',
     measurementsTitle: 'Measurements',
     addMeasurement: 'Add measurement',
     dateLabel: 'Date',
@@ -808,6 +817,105 @@ const en = {
     sourcesLabel:
       'Sources: AAP (Power of Play; media guidance), ZERO TO THREE, Harvard Center on the Developing Child.',
   },
+  milestones: {
+    title: 'Developmental Milestones, 0–3 Years',
+    description:
+      'The CDC "Learn the Signs. Act Early." checkpoints, birth to three. Each list is what most children — 75% or more — can do by that age, which makes a missing milestone a good reason to ask your doctor rather than a mark to hit.',
+    bandLabel: 'Which checkpoint',
+    ages: [
+      'By 2 months',
+      'By 4 months',
+      'By 6 months',
+      'By 9 months',
+      'By 12 months',
+      'By 15 months',
+      'By 18 months',
+      'By 2 years',
+      'By 2½ years',
+      'By 3 years',
+    ],
+    domains: {
+      social: 'Social & emotional',
+      language: 'Language & communication',
+      cognitive: 'Thinking & learning',
+      motor: 'Movement & physical',
+    },
+    note:
+      'These checkpoints are the ages of the recommended well-child developmental screenings, which is why they cluster early and then spread out. Children arrive at each one by their own route: skills come in bursts, a premature baby is usually tracked from their due date, and one skill often pauses while another surges. Watch the direction of travel over weeks, not a single list on a single day.',
+    actEarlyTitle: 'If something is missing, act early — do not wait',
+    actEarlyLead:
+      'A missing milestone is not a verdict, and most children who get help early need less of it later. What is never right is waiting quietly to see whether it sorts itself out.',
+    actEarly: [
+      { title: 'Say it out loud at the visit', text: 'Tell your doctor or nurse what you are seeing and ask for a developmental screening. Bring the list; "I noticed she is not…" is exactly the right sentence.' },
+      { title: 'Losing a skill needs a call today', text: 'A skill they had and no longer have — words, babble, eye contact, waving, walking — is different from a skill not yet arrived. Ring the same day rather than waiting for the next visit.' },
+      { title: 'You do not need a diagnosis to get help', text: 'Early-intervention services can be requested by a parent directly, and support started early works better than support started later. Waiting to "see if it passes" costs the thing that helps most: time.' },
+      { title: 'Trust what you notice', text: 'Parents spot the first signs long before a test does. If something feels off and you were told to wait, it is reasonable to ask again or to ask someone else.' },
+    ],
+    bands: [
+      {
+        social: ['Calms when spoken to or picked up', 'Looks at your face', 'Smiles when you talk or smile at them'],
+        language: ['Makes sounds other than crying', 'Reacts to loud sounds'],
+        cognitive: ['Watches you as you move', 'Looks at a toy for several seconds'],
+        motor: ['Holds their head up when on their tummy', 'Moves both arms and both legs', 'Opens their hands briefly'],
+      },
+      {
+        social: ['Smiles on their own to get your attention', 'Chuckles when you try to make them laugh', 'Looks, moves or makes sounds to keep your attention'],
+        language: ['Makes cooing sounds — "oooo", "aahh"', 'Makes sounds back when you talk to them', 'Turns their head towards your voice'],
+        cognitive: ['Opens their mouth when they see the breast or bottle', 'Looks at their own hands with interest'],
+        motor: ['Holds their head steady without support when you hold them', 'Holds a toy when you put it in their hand', 'Brings hands to mouth', 'Pushes up onto elbows when on their tummy'],
+      },
+      {
+        social: ['Knows familiar people', 'Likes to look at themselves in a mirror', 'Laughs'],
+        language: ['Takes turns making sounds with you', 'Blows raspberries', 'Makes squealing noises'],
+        cognitive: ['Puts things in their mouth to explore them', 'Reaches to grab a toy they want', 'Closes their lips to show they do not want more food'],
+        motor: ['Rolls from tummy to back', 'Pushes up with straight arms when on their tummy', 'Leans on their hands for support when sitting'],
+      },
+      {
+        social: ['Is shy, clingy or fearful around strangers', 'Shows several facial expressions', 'Looks when you call their name', 'Smiles and laughs when you play peek-a-boo'],
+        language: ['Makes lots of different sounds like "mamama" and "bababa"', 'Lifts their arms to be picked up'],
+        cognitive: ['Looks for an object when it is dropped out of sight', 'Bangs two things together'],
+        motor: ['Gets to a sitting position on their own', 'Moves things from one hand to the other', 'Rakes food towards themselves', 'Sits without support'],
+      },
+      {
+        social: ['Plays games with you, like pat-a-cake'],
+        language: ['Waves bye-bye', 'Calls a parent mama or dada or another special name', 'Understands "no" — pauses or stops briefly when you say it'],
+        cognitive: ['Puts something in a container, like a block in a cup', 'Looks for things they see you hide'],
+        motor: ['Pulls up to stand', 'Walks holding on to furniture', 'Drinks from a cup without a lid, as you hold it', 'Picks small things up between thumb and forefinger'],
+      },
+      {
+        social: ['Copies other children while playing', 'Shows you an object they like', 'Claps when excited', 'Hugs a stuffed toy or doll', 'Shows affection — hugs, cuddles, kisses'],
+        language: ['Tries to say one or two words besides mama or dada', 'Looks at a familiar object when you name it', 'Follows a direction given with both a gesture and words', 'Points to ask for something or for help'],
+        cognitive: ['Tries to use things the right way — a phone, a cup, a book', 'Stacks at least two small objects'],
+        motor: ['Takes a few steps on their own', 'Uses their fingers to feed themselves some food'],
+      },
+      {
+        social: ['Moves away from you but looks to check you are close by', 'Points to show you something interesting', 'Puts their hands out for you to wash them', 'Looks at a few pages of a book with you', 'Helps you dress them by pushing an arm through a sleeve'],
+        language: ['Tries to say three or more words besides mama or dada', 'Follows one-step directions without a gesture'],
+        cognitive: ['Copies you doing chores, like sweeping', 'Plays with toys in a simple way, like pushing a toy car'],
+        motor: ['Walks without holding on to anyone or anything', 'Scribbles', 'Drinks from an open cup, spilling sometimes', 'Feeds themselves with their fingers', 'Tries to use a spoon', 'Climbs on and off a sofa or chair without help'],
+      },
+      {
+        social: ['Notices when others are hurt or upset', 'Looks at your face to see how to react in a new situation'],
+        language: ['Points to things in a book when you ask', 'Says at least two words together, like "more milk"', 'Points to at least two body parts when asked', 'Uses more gestures than waving and pointing — blowing a kiss, nodding yes'],
+        cognitive: ['Holds something in one hand while using the other', 'Tries switches, knobs and buttons on a toy', 'Plays with more than one toy at a time'],
+        motor: ['Kicks a ball', 'Runs', 'Walks up a few stairs, with or without help', 'Eats with a spoon'],
+      },
+      {
+        social: ['Plays next to other children and sometimes with them', 'Shows you what they can do — "look at me!"', 'Follows simple routines when told, like helping to tidy up'],
+        language: ['Says about 50 words', 'Says two or more words together with an action word, like "doggie run"', 'Names things in a book when you point and ask', 'Uses words like I, me or we'],
+        cognitive: ['Uses things to pretend, like feeding a block to a doll', 'Shows simple problem-solving, like standing on a stool to reach', 'Follows two-step instructions', 'Knows at least one colour'],
+        motor: ['Uses their hands to twist things — door knobs, lids', 'Takes some clothes off by themselves', 'Jumps off the ground with both feet', 'Turns book pages one at a time'],
+      },
+      {
+        social: ['Calms down within 10 minutes after you leave, as at a nursery drop-off', 'Notices other children and joins them to play'],
+        language: ['Talks with you in conversation using at least two back-and-forth exchanges', 'Asks who, what, where or why questions', 'Says what is happening in a picture when asked', 'Says their first name when asked', 'Talks well enough for others to understand most of the time'],
+        cognitive: ['Draws a circle when you show them how', 'Avoids touching hot objects when you warn them'],
+        motor: ['Strings items together, like large beads', 'Puts on some clothes by themselves', 'Uses a fork'],
+      },
+    ],
+    sourcesLabel:
+      'Adapted from CDC "Learn the Signs. Act Early." developmental milestone checklists (2022 revision, milestones 75% of children reach by the age shown) and the AAP developmental-surveillance schedule. Not a diagnostic tool — take any concern to your doctor.',
+  },
   sleep: {
     title: 'Sleep by Age',
     description:
@@ -1132,6 +1240,7 @@ const el: Messages = {
       feeding: 'Τάισμα',
       bathing: 'Μπάνιο',
       soothing: 'Καθησυχασμός',
+      milestones: 'Ορόσημα',
     },
   },
   auth: {
@@ -1160,6 +1269,12 @@ const el: Messages = {
     back: 'Πίσω',
     passwordHint: 'Τουλάχιστον 6 χαρακτήρες.',
     rememberMe: 'Να παραμείνω συνδεδεμένος',
+  },
+  header: {
+    baby: 'Μωρό',
+    age: 'Ηλικία',
+    today: 'Σήμερα',
+    now: 'Τώρα',
   },
   common: {
     module: 'Ενότητα',
@@ -1434,6 +1549,7 @@ const el: Messages = {
     profileTitle: 'Προφίλ',
     ageLabel: 'Ηλικία',
     monthsShort: 'μην.',
+    yearsShort: 'ετ.',
     measurementsTitle: 'Μετρήσεις',
     addMeasurement: 'Προσθήκη μέτρησης',
     dateLabel: 'Ημερομηνία',
@@ -1876,6 +1992,105 @@ const el: Messages = {
     ],
     sourcesLabel:
       'Πηγές: AAP (Power of Play· οδηγίες μέσων), ZERO TO THREE, Harvard Center on the Developing Child.',
+  },
+  milestones: {
+    title: 'Αναπτυξιακά Ορόσημα, 0–3 Ετών',
+    description:
+      'Τα σημεία ελέγχου του CDC «Learn the Signs. Act Early.», από τη γέννηση έως τα τρία. Κάθε λίστα δείχνει τι κάνουν τα περισσότερα παιδιά — 75% ή περισσότερα — μέχρι εκείνη την ηλικία· έτσι ένα ορόσημο που λείπει είναι καλός λόγος να ρωτήσετε τον γιατρό σας, όχι στόχος προς επίτευξη.',
+    bandLabel: 'Ποιο σημείο ελέγχου',
+    ages: [
+      'Έως 2 μηνών',
+      'Έως 4 μηνών',
+      'Έως 6 μηνών',
+      'Έως 9 μηνών',
+      'Έως 12 μηνών',
+      'Έως 15 μηνών',
+      'Έως 18 μηνών',
+      'Έως 2 ετών',
+      'Έως 2½ ετών',
+      'Έως 3 ετών',
+    ],
+    domains: {
+      social: 'Κοινωνικά & συναισθηματικά',
+      language: 'Γλώσσα & επικοινωνία',
+      cognitive: 'Σκέψη & μάθηση',
+      motor: 'Κίνηση & σώμα',
+    },
+    note:
+      'Αυτά τα σημεία ελέγχου είναι οι ηλικίες των προτεινόμενων αναπτυξιακών ελέγχων στα παιδιατρικά ραντεβού — γι’ αυτό είναι πυκνά στην αρχή και αραιώνουν μετά. Κάθε παιδί φτάνει με τον δικό του δρόμο: οι δεξιότητες έρχονται σε ριπές, ένα πρόωρο μωρό συνήθως παρακολουθείται από την αναμενόμενη ημερομηνία γέννησης, και συχνά μια δεξιότητα «παγώνει» όσο μια άλλη εκτοξεύεται. Παρατηρήστε την πορεία σε εβδομάδες, όχι μια λίστα σε μια μέρα.',
+    actEarlyTitle: 'Αν κάτι λείπει, δράστε έγκαιρα — μην περιμένετε',
+    actEarlyLead:
+      'Ένα ορόσημο που λείπει δεν είναι ετυμηγορία, και τα παιδιά που παίρνουν βοήθεια νωρίς συνήθως χρειάζονται λιγότερη αργότερα. Αυτό που δεν είναι ποτέ σωστό είναι να περιμένουμε σιωπηλά μήπως φτιάξει μόνο του.',
+    actEarly: [
+      { title: 'Πείτε το στο ραντεβού', text: 'Πείτε στον γιατρό ή τη νοσηλεύτρια τι παρατηρείτε και ζητήστε αναπτυξιακό έλεγχο. Πάρτε τη λίστα μαζί· το «πρόσεξα ότι δεν…» είναι ακριβώς η σωστή φράση.' },
+      { title: 'Η απώλεια δεξιότητας θέλει τηλέφωνο σήμερα', text: 'Μια δεξιότητα που είχε και δεν έχει πια — λέξεις, ψέλλισμα, βλεμματική επαφή, χαιρετισμός, περπάτημα — είναι διαφορετική από μια δεξιότητα που δεν ήρθε ακόμη. Τηλεφωνήστε την ίδια μέρα, χωρίς να περιμένετε το επόμενο ραντεβού.' },
+      { title: 'Δεν χρειάζεται διάγνωση για βοήθεια', text: 'Οι υπηρεσίες έγκαιρης παρέμβασης μπορούν να ζητηθούν και από τον γονέα απευθείας, και η υποστήριξη που ξεκινά νωρίς δουλεύει καλύτερα. Το «να δούμε αν περάσει» κοστίζει αυτό που βοηθά περισσότερο: χρόνο.' },
+      { title: 'Εμπιστευθείτε ό,τι παρατηρείτε', text: 'Οι γονείς βλέπουν τα πρώτα σημάδια πολύ πριν από κάθε τεστ. Αν κάτι σας ανησυχεί και σας είπαν να περιμένετε, είναι λογικό να ρωτήσετε ξανά ή να ρωτήσετε κάποιον άλλο.' },
+    ],
+    bands: [
+      {
+        social: ['Ηρεμεί όταν του μιλάτε ή το πάρετε αγκαλιά', 'Κοιτάζει το πρόσωπό σας', 'Χαμογελά όταν του μιλάτε ή του χαμογελάτε'],
+        language: ['Βγάζει ήχους πέρα από το κλάμα', 'Αντιδρά σε δυνατούς ήχους'],
+        cognitive: ['Σας παρακολουθεί όταν κινείστε', 'Κοιτάζει ένα παιχνίδι για κάποια δευτερόλεπτα'],
+        motor: ['Κρατά το κεφάλι ψηλά όταν είναι μπρούμυτα', 'Κινεί και τα δύο χέρια και τα δύο πόδια', 'Ανοίγει στιγμιαία τις παλάμες'],
+      },
+      {
+        social: ['Χαμογελά από μόνο του για να τραβήξει την προσοχή σας', 'Γελάει όταν προσπαθείτε να το κάνετε να γελάσει', 'Κοιτάζει, κινείται ή βγάζει ήχους για να κρατήσει την προσοχή σας'],
+        language: ['Βγάζει ήχους γουργουρίσματος — «οοοο», «ααα»', 'Απαντά με ήχους όταν του μιλάτε', 'Στρέφει το κεφάλι προς τη φωνή σας'],
+        cognitive: ['Ανοίγει το στόμα όταν βλέπει το στήθος ή το μπιμπερό', 'Κοιτάζει τα χέρια του με ενδιαφέρον'],
+        motor: ['Κρατά σταθερό το κεφάλι χωρίς στήριξη στην αγκαλιά', 'Κρατά ένα παιχνίδι που του βάζετε στο χέρι', 'Φέρνει τα χέρια στο στόμα', 'Ανασηκώνεται στους αγκώνες όταν είναι μπρούμυτα'],
+      },
+      {
+        social: ['Αναγνωρίζει γνωστά πρόσωπα', 'Του αρέσει να κοιτάζεται στον καθρέφτη', 'Γελάει'],
+        language: ['Εναλλάσσει ήχους μαζί σας', 'Κάνει «φυσαλίδες» με τη γλώσσα', 'Βγάζει τσιρίγματα'],
+        cognitive: ['Βάζει πράγματα στο στόμα για να τα εξερευνήσει', 'Απλώνει για να πιάσει ένα παιχνίδι που θέλει', 'Κλείνει τα χείλη για να δείξει ότι δεν θέλει άλλο φαγητό'],
+        motor: ['Γυρίζει από μπρούμυτα σε ανάσκελα', 'Ανασηκώνεται με τεντωμένα χέρια όταν είναι μπρούμυτα', 'Στηρίζεται στα χέρια όταν κάθεται'],
+      },
+      {
+        social: ['Ντρέπεται, κολλάει ή φοβάται με ξένους', 'Δείχνει πολλές διαφορετικές εκφράσεις προσώπου', 'Κοιτάζει όταν το φωνάζετε με το όνομά του', 'Χαμογελά και γελάει στο κρυφτούλι'],
+        language: ['Βγάζει πολλούς διαφορετικούς ήχους όπως «μαμαμα», «μπαμπαμπα»', 'Σηκώνει τα χέρια για να το πάρετε αγκαλιά'],
+        cognitive: ['Ψάχνει ένα αντικείμενο που έπεσε από το οπτικό του πεδίο', 'Χτυπά δύο πράγματα μεταξύ τους'],
+        motor: ['Έρχεται μόνο του σε καθιστή θέση', 'Περνά πράγματα από το ένα χέρι στο άλλο', 'Σέρνει το φαγητό προς εκείνο', 'Κάθεται χωρίς στήριξη'],
+      },
+      {
+        social: ['Παίζει παιχνίδια μαζί σας, όπως κου-κου τσα'],
+        language: ['Χαιρετά «γεια»', 'Λέει μαμά ή μπαμπά ή άλλο ξεχωριστό όνομα για τον γονέα', 'Καταλαβαίνει το «όχι» — σταματά ή διακόπτει στιγμιαία'],
+        cognitive: ['Βάζει κάτι σε ένα δοχείο, π.χ. τουβλάκι σε κύπελλο', 'Ψάχνει πράγματα που σας βλέπει να κρύβετε'],
+        motor: ['Ανασηκώνεται σε όρθια θέση', 'Περπατά κρατώντας τα έπιπλα', 'Πίνει από ποτήρι χωρίς καπάκι όσο το κρατάτε', 'Πιάνει μικρά πράγματα με δείκτη και αντίχειρα'],
+      },
+      {
+        social: ['Μιμείται άλλα παιδιά στο παιχνίδι', 'Σας δείχνει ένα αντικείμενο που του αρέσει', 'Χτυπά παλαμάκια από ενθουσιασμό', 'Αγκαλιάζει ένα λούτρινο ή μια κούκλα', 'Δείχνει στοργή — αγκαλιές, φιλιά'],
+        language: ['Προσπαθεί να πει μία-δύο λέξεις εκτός από μαμά ή μπαμπά', 'Κοιτάζει ένα γνωστό αντικείμενο όταν το ονομάζετε', 'Ακολουθεί οδηγία που δίνεται με λόγια και χειρονομία μαζί', 'Δείχνει για να ζητήσει κάτι ή βοήθεια'],
+        cognitive: ['Προσπαθεί να χρησιμοποιήσει πράγματα σωστά — τηλέφωνο, κύπελλο, βιβλίο', 'Στοιβάζει τουλάχιστον δύο μικρά αντικείμενα'],
+        motor: ['Κάνει λίγα βήματα μόνο του', 'Ταΐζεται μόνο του με τα δάχτυλα'],
+      },
+      {
+        social: ['Απομακρύνεται από εσάς αλλά κοιτάζει να βεβαιωθεί ότι είστε κοντά', 'Δείχνει για να σας δείξει κάτι ενδιαφέρον', 'Απλώνει τα χέρια για να τα πλύνετε', 'Κοιτάζει λίγες σελίδες βιβλίου μαζί σας', 'Σας βοηθά να το ντύσετε περνώντας το χέρι στο μανίκι'],
+        language: ['Προσπαθεί να πει τρεις ή περισσότερες λέξεις εκτός από μαμά ή μπαμπά', 'Ακολουθεί οδηγία ενός βήματος χωρίς χειρονομία'],
+        cognitive: ['Σας μιμείται στις δουλειές, π.χ. σκουπίζει', 'Παίζει με παιχνίδια με απλό τρόπο, π.χ. σπρώχνει ένα αυτοκινητάκι'],
+        motor: ['Περπατά χωρίς να κρατιέται από κανέναν και τίποτα', 'Κάνει μουτζούρες', 'Πίνει από ανοιχτό ποτήρι, με κάποια χυσίματα', 'Ταΐζεται μόνο του με τα δάχτυλα', 'Προσπαθεί να φάει με κουτάλι', 'Ανεβαίνει και κατεβαίνει από καναπέ ή καρέκλα χωρίς βοήθεια'],
+      },
+      {
+        social: ['Προσέχει όταν άλλοι πονούν ή στενοχωριούνται', 'Κοιτάζει το πρόσωπό σας για να δει πώς να αντιδράσει σε νέα κατάσταση'],
+        language: ['Δείχνει πράγματα σε βιβλίο όταν ρωτάτε', 'Λέει τουλάχιστον δύο λέξεις μαζί, π.χ. «άλλο γάλα»', 'Δείχνει τουλάχιστον δύο μέρη του σώματος όταν ρωτάτε', 'Χρησιμοποιεί περισσότερες χειρονομίες από χαιρετισμό και δείξιμο — φιλί, νεύμα'],
+        cognitive: ['Κρατά κάτι στο ένα χέρι χρησιμοποιώντας το άλλο', 'Δοκιμάζει διακόπτες, κουμπιά και κουρδίσματα σε παιχνίδι', 'Παίζει με περισσότερα από ένα παιχνίδια ταυτόχρονα'],
+        motor: ['Κλωτσά μπάλα', 'Τρέχει', 'Ανεβαίνει λίγα σκαλιά, με ή χωρίς βοήθεια', 'Τρώει με κουτάλι'],
+      },
+      {
+        social: ['Παίζει δίπλα σε άλλα παιδιά και μερικές φορές μαζί τους', 'Σας δείχνει τι μπορεί να κάνει — «κοίτα με!»', 'Ακολουθεί απλές ρουτίνες όταν του ζητηθεί, π.χ. μαζεύει παιχνίδια'],
+        language: ['Λέει περίπου 50 λέξεις', 'Λέει δύο ή περισσότερες λέξεις μαζί με ρήμα, π.χ. «σκυλάκι τρέχει»', 'Ονομάζει πράγματα σε βιβλίο όταν δείχνετε και ρωτάτε', 'Χρησιμοποιεί λέξεις όπως εγώ, εμένα ή εμείς'],
+        cognitive: ['Χρησιμοποιεί πράγματα συμβολικά, π.χ. ταΐζει μια κούκλα με τουβλάκι', 'Δείχνει απλή επίλυση προβλήματος, π.χ. ανεβαίνει σε σκαμνί για να φτάσει', 'Ακολουθεί οδηγίες δύο βημάτων', 'Ξέρει τουλάχιστον ένα χρώμα'],
+        motor: ['Στρίβει πράγματα με τα χέρια — πόμολα, καπάκια', 'Βγάζει μόνο του κάποια ρούχα', 'Πηδά με τα δύο πόδια μαζί', 'Γυρίζει σελίδες μία-μία'],
+      },
+      {
+        social: ['Ηρεμεί μέσα σε 10 λεπτά αφού φύγετε, π.χ. στον παιδικό σταθμό', 'Παρατηρεί άλλα παιδιά και μπαίνει στο παιχνίδι τους'],
+        language: ['Συνομιλεί μαζί σας με τουλάχιστον δύο εναλλαγές', 'Κάνει ερωτήσεις ποιος, τι, πού ή γιατί', 'Λέει τι συμβαίνει σε μια εικόνα όταν ρωτηθεί', 'Λέει το μικρό του όνομα όταν ρωτηθεί', 'Μιλά αρκετά καθαρά για να το καταλαβαίνουν και άλλοι τις περισσότερες φορές'],
+        cognitive: ['Ζωγραφίζει κύκλο όταν του δείξετε πώς', 'Αποφεύγει να αγγίξει καυτά αντικείμενα όταν το προειδοποιείτε'],
+        motor: ['Περνά αντικείμενα σε κορδόνι, π.χ. μεγάλες χάντρες', 'Φοράει μόνο του κάποια ρούχα', 'Χρησιμοποιεί πιρούνι'],
+      },
+    ],
+    sourcesLabel:
+      'Προσαρμογή από τις λίστες αναπτυξιακών οροσήμων του CDC «Learn the Signs. Act Early.» (αναθεώρηση 2022· ορόσημα που φτάνει το 75% των παιδιών έως την ηλικία που αναφέρεται) και το πρόγραμμα αναπτυξιακής παρακολούθησης της AAP. Δεν είναι διαγνωστικό εργαλείο — κάθε ανησυχία στον γιατρό σας.',
   },
   sleep: {
     title: 'Ύπνος ανά Ηλικία',

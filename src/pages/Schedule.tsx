@@ -70,7 +70,6 @@ export default function Schedule() {
   return (
     <PageFrame
       title={ts.title}
-      description={ts.subtitle}
       // Under the header, never above it: as the first child it pushed the title
       // ~44px lower than every other route's. Hidden from `xl`, where the SideNav
       // rail is always on screen and already offers the way back.

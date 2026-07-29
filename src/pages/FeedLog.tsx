@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Milk, Trash2, Baby as BabyIcon, Utensils, Clock, Hash, Pencil, Check } from 'lucide-react'
-import { AgeBadge, useBabyAge } from '../components/AgeBadge'
+import { useBabyAge } from '../components/AgeBadge'
 import { AddFeedForm } from '../components/AddFeedForm'
 import { ChoiceGroup } from '../components/ChoiceGroup'
 import { FeedProgress } from '../components/FeedProgress'
@@ -105,8 +105,6 @@ export default function FeedLog() {
   return (
     <WidgetPage
       title={tf.title}
-      description={tf.subtitle}
-      aside={<AgeBadge />}
       inputLabel={tf.add}
       glance={
         <>

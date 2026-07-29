@@ -1,0 +1,99 @@
+import type { ReactNode } from 'react'
+import { cn } from '@/lib/utils'
+import { Eyebrow } from './Eyebrow'
+import { useBabyAge } from './AgeBadge'
+import { useDateLocale, formatDateKey, formatTimeKey } from '../lib/dates'
+import { todayKey } from '../lib/schedule'
+import { useNow } from '../lib/useNow'
+import { useT } from '../i18n'
+
+/**
+ * One reading in the header bar: a small tracked label, then its value, on a
+ * single line.
+ *
+ * **One line, not two.** The label sat *above* the value at first, which made
+ * each reading a two-line stack that could not share a baseline with the
+ * one-line page title beside it — whichever way the row was aligned
+ * (`items-end`, `items-center`) the title read as sitting too high or too low.
+ * Inline label + value gives every reading the same baseline as the `h1`, so the
+ * whole band sits on one line.
+ */
+function Stat({ label, value, accent }: { label: string; value: ReactNode; accent?: boolean }) {
+  return (
+    <span className="inline-flex items-baseline gap-2">
+      <Eyebrow as="span" size="sm" tone="muted">
+        {label}
+      </Eyebrow>
+      <span
+        className={cn(
+          'font-heading text-sm font-semibold tabular-nums',
+          accent ? 'text-primary' : 'text-foreground',
+        )}
+      >
+        {value}
+      </span>
+    </span>
+  )
+}
+
+/** Age as "0 mo" under a year and "2 y 3 mo" past it — "27 mo" is not how anyone
+ *  says a toddler's age out loud. */
+function formatAge(months: number, monthsShort: string, yearsShort: string): string {
+  if (months < 12) return `${months} ${monthsShort}`
+  const y = Math.floor(months / 12)
+  const m = months % 12
+  return m === 0 ? `${y} ${yearsShort}` : `${y} ${yearsShort} ${m} ${monthsShort}`
+}
+
+/**
+ * The right-hand half of the header band: who this is, how old they are, and the
+ * live date and time — set on the title's own line.
+ *
+ * **Not chips.** The first version drew each reading as a rounded pill, which put
+ * four competing capsules across the top of every page and made the header look
+ * like a filter bar. This is an instrument readout instead: label above value,
+ * hairline rules between columns, no fills at all. Nothing here is pressable, so
+ * nothing should look pressable — the only colour is on the child's name, because
+ * every number in this app is read against their age.
+ *
+ * Rendered by `PageFrame`, so it is identical on every route and no page can
+ * drift its own version.
+ */
+export function HeaderStatus() {
+  const t = useT()
+  const now = useNow(30_000)
+  const locale = useDateLocale()
+  const baby = useBabyAge()
+  const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
+
+  const stats: { label: string; value: ReactNode; accent?: boolean }[] = [
+    ...(baby
+      ? [
+          { label: t.header.baby, value: baby.name, accent: true },
+          {
+            label: t.header.age,
+            value: formatAge(baby.months, t.baby.monthsShort, t.baby.yearsShort),
+          },
+        ]
+      : []),
+    {
+      label: t.header.today,
+      value: formatDateKey(todayKey(now), locale, { weekday: 'short', day: 'numeric', month: 'short' }),
+    },
+    { label: t.header.now, value: formatTimeKey(time, locale) },
+  ]
+
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
+      {stats.map((stat, i) => (
+        <span key={stat.label} className="inline-flex items-baseline gap-x-4">
+          {/* A rule *between* readings, never before the first — drawn on the item
+              rather than with `divide-x` so it survives wrapping. `self-center`
+              keeps it centred on the line while everything else baseline-aligns. */}
+          {i > 0 && <span aria-hidden className="h-3.5 w-px self-center bg-border/70" />}
+          <Stat label={stat.label} value={stat.value} accent={stat.accent} />
+        </span>
+      ))}
+    </div>
+  )
+}

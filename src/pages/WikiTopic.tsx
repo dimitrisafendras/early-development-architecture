@@ -50,7 +50,6 @@ export default function WikiTopic() {
   return (
     <PageFrame
       title={topic.title(t)}
-      description={topic.blurb(t)}
       toolbar={
         <nav
           aria-label="Breadcrumb"

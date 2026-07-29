@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Eyebrow } from '@/components/Eyebrow'
 import { IconChip } from '@/components/IconChip'
 import { sleepStats, safeSleepRules, napBands, napUppers } from '../data'
-import { AgeBadge, useBabyAge } from '../components/AgeBadge'
+import { useBabyAge } from '../components/AgeBadge'
 import { cn } from '@/lib/utils'
 import { statusTone, scheduleTone } from '../lib/tone'
 import { bandIndex } from '../lib/schedule'
@@ -29,14 +29,11 @@ export function Sleep() {
   const activeNap = baby ? bandIndex(baby.months, napUppers) : -1
   return (
     <section id="sleep">
-      {/* The age badge rides the first content row — the page header above is the
-          frame's, so this is where the "which baby / which band" cue belongs. */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <Eyebrow as="h3" size="md">
-          {ts.statsTitle}
-        </Eyebrow>
-        <AgeBadge />
-      </div>
+      {/* No age badge here any more: the frame's header band reads the child's
+          name and age on every route, so this was the same fact twice. */}
+      <Eyebrow as="h3" size="md" className="mb-4">
+        {ts.statsTitle}
+      </Eyebrow>
       <div className="mb-10 grid grid-cols-2 gap-4 lg:grid-cols-5">
         {sleepStats.map((stat, i) => (
           <Card

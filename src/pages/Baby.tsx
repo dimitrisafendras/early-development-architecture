@@ -1,6 +1,5 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Baby as BabyIcon, Trash2, Ruler, Weight, Pencil } from 'lucide-react'
-import { AgeBadge } from '../components/AgeBadge'
 import { ChoiceGroup } from '../components/ChoiceGroup'
 import { EmptyState } from '../components/EmptyState'
 import { StatTile } from '../components/StatTile'
@@ -49,11 +48,11 @@ export default function Baby() {
     createBaby({ ...input, household_id: household?.id ?? null })
 
   // Shared header props for every state below (gated / loading / first-run /
-  // full), so the age pill is always in the header — same as /feed and /tracker.
+  // full). No age pill any more: the frame's header band already reads the
+  // child's name and age on every route, so a second badge beside the title was
+  // the same fact twice.
   const page = {
     title: t.baby.title,
-    description: t.baby.subtitle,
-    aside: <AgeBadge />,
   }
 
   const toolbar =
@@ -247,7 +246,7 @@ function BabyDetail({
   deleteBaby,
   onCreate,
 }: {
-  page: { title: string; description: string; aside?: ReactNode }
+  page: { title: string }
   toolbar: ReactNode
   baby: BabyRecord
   updateBaby: (id: string, patch: { name?: string; birth_date?: string; palette?: Palette }) => Promise<unknown>

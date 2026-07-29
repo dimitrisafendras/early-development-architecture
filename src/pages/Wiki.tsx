@@ -35,7 +35,6 @@ export default function Wiki() {
   return (
     <PageFrame
       title={t.wiki.title}
-      description={t.wiki.subtitle}
       // The eyebrow pill stays in the header row as trailing content — the same
       // slot every other route uses for a badge. Above the title it would push
       // the H2 down and break the cross-route alignment this frame exists for.

@@ -308,6 +308,39 @@ export const interactionHow: { tone: StatusTone }[] = [
   { tone: 'danger' }, //  keep it screen-free
 ]
 
+/* ---------------------------------------------------------------- milestones */
+
+/** The four domains a CDC milestone checklist is grouped by. */
+export type MilestoneDomain = 'social' | 'language' | 'cognitive' | 'motor'
+
+export const milestoneDomainOrder: MilestoneDomain[] = ['social', 'language', 'cognitive', 'motor']
+
+/**
+ * The CDC "Learn the Signs. Act Early." checkpoints, which are also the ages of
+ * the recommended well-child developmental screenings. A milestone here is what
+ * **75% or more** of children can do by that age (the 2022 revision's criterion),
+ * so a missing one is a reason to ask — never a percentile or a pass mark.
+ *
+ * Text lives in i18n (`milestones.bands`) at the matching index.
+ */
+export const milestoneBands: { tone: ScheduleTone }[] = [
+  { tone: 'amber' }, //   2 mo
+  { tone: 'emerald' }, // 4 mo
+  { tone: 'sky' }, //     6 mo
+  { tone: 'cyan' }, //    9 mo
+  { tone: 'fuchsia' }, // 12 mo
+  { tone: 'indigo' }, //  15 mo
+  { tone: 'amber' }, //   18 mo
+  { tone: 'emerald' }, // 24 mo
+  { tone: 'sky' }, //     30 mo
+  { tone: 'cyan' }, //    36 mo
+]
+
+/** Exclusive upper age bound (months) per checkpoint; last is open-ended. A baby
+ *  of 3 months therefore sits on the "by 4 months" list — the next thing to
+ *  watch for, which is what a caregiver wants, rather than the one just passed. */
+export const milestoneUppers = [2, 4, 6, 9, 12, 15, 18, 24, 30, 999]
+
 /* --------------------------------------------------------- sleep & feeding */
 
 /** Sleep "at a glance" tiles; label/note localized in i18n. The three totals are

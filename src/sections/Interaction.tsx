@@ -26,7 +26,7 @@ import {
   screenBands,
   screenUppers,
 } from '../data'
-import { AgeBadge, useBabyAge } from '../components/AgeBadge'
+import { useBabyAge } from '../components/AgeBadge'
 import { bandIndex } from '../lib/schedule'
 import { cn } from '@/lib/utils'
 import { scheduleTone, statusTone } from '../lib/tone'
@@ -66,13 +66,11 @@ export function Interaction() {
         ))}
       </div>
 
-      {/* When — awake windows */}
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <Eyebrow as="h3" size="md">
-          {ti.whenTitle}
-        </Eyebrow>
-        <AgeBadge />
-      </div>
+      {/* When — awake windows. No age badge: the frame's header band reads the
+          child's name and age on every route. */}
+      <Eyebrow as="h3" size="md" className="mb-2">
+        {ti.whenTitle}
+      </Eyebrow>
       <p className="mb-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">{ti.whenNote}</p>
       <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {awakeWindows.map((w, i) => (

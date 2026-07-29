@@ -10,7 +10,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { feedingRows, feedingUppers } from '../data'
-import { AgeBadge, useBabyAge } from '../components/AgeBadge'
+import { useBabyAge } from '../components/AgeBadge'
 import { bandIndex } from '../lib/schedule'
 import { cn } from '@/lib/utils'
 import { statusTone } from '../lib/tone'
@@ -23,14 +23,11 @@ export function Feeding() {
   const activeRow = baby ? bandIndex(baby.months, feedingUppers) : -1
   return (
     <section id="feeding">
-      {/* The age badge rides the first content row — the page header above is the
-          frame's, so this is where the "which baby / which band" cue belongs. */}
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <Eyebrow as="h3" size="md">
-          {tf.tableTitle}
-        </Eyebrow>
-        <AgeBadge />
-      </div>
+      {/* No age badge here any more: the frame's header band reads the child's
+          name and age on every route, so this was the same fact twice. */}
+      <Eyebrow as="h3" size="md" className="mb-2">
+        {tf.tableTitle}
+      </Eyebrow>
       <p className="mb-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">{tf.tableNote}</p>
       <Card className="mb-10">
         <CardContent>

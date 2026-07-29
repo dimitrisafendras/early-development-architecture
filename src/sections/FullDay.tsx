@@ -6,7 +6,7 @@ import { Eyebrow } from '@/components/Eyebrow'
 import { ChoiceGroup } from '@/components/ChoiceGroup'
 import { cn } from '@/lib/utils'
 import { dayActivityMeta as activity, dayActivityOrder as legendOrder } from '../components/dayActivity'
-import { AgeBadge, useBabyAge } from '../components/AgeBadge'
+import { useBabyAge } from '../components/AgeBadge'
 import { dayTemplates, dayTemplateForAge, type DayTemplateId } from '../data'
 import { activeTimeIndex, slotEndTime, formatDuration } from '../lib/schedule'
 import { useT } from '../i18n'
@@ -57,15 +57,15 @@ export function FullDay() {
     <section id="full-day">
       {/* Which age's day. The pills are the page's primary control, so they sit
           above the legend, with the age badge trailing them. */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <ChoiceGroup
-          ariaLabel={tf.bandLabel}
-          value={band}
-          onChange={setBand}
-          options={dayTemplates.map((d) => ({ value: d.id, label: tf.dayLabels[d.id] }))}
-        />
-        <AgeBadge />
-      </div>
+      {/* No age badge beside the pills — the frame's header band already reads the
+          child's name and age on every route. */}
+      <ChoiceGroup
+        className="mb-6"
+        ariaLabel={tf.bandLabel}
+        value={band}
+        onChange={setBand}
+        options={dayTemplates.map((d) => ({ value: d.id, label: tf.dayLabels[d.id] }))}
+      />
 
       {/* Legend */}
       <div className="mb-8 flex flex-wrap items-center gap-x-5 gap-y-2">

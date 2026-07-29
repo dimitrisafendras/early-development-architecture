@@ -31,7 +31,6 @@ import { useT } from '../i18n'
  */
 export function WidgetPage({
   title,
-  description,
   aside,
   toolbar,
   className,
@@ -43,7 +42,6 @@ export function WidgetPage({
   children,
 }: {
   title: string
-  description: string
   /** Trailing header content — a badge or small status, beside the title. */
   aside?: ReactNode
   /** Full-width context switcher under the header (e.g. which baby). */
@@ -69,7 +67,6 @@ export function WidgetPage({
   return (
     <PageFrame
       title={title}
-      description={description}
       aside={aside}
       toolbar={toolbar}
       className={className}

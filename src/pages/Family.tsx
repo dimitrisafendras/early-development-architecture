@@ -58,7 +58,7 @@ export default function Family() {
   }
 
   return (
-    <PageFrame title={tf.title} description={tf.subtitle}>
+    <PageFrame title={tf.title}>
       {!ready ? (
         <EmptyState icon={<Users />}>{tf.signInPrompt}</EmptyState>
       ) : (

@@ -19,7 +19,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { GlassScrollArea } from '@/design-system/components'
 import { cn } from '@/lib/utils'
-import { AgeBadge } from '../components/AgeBadge'
 import { Eyebrow } from '../components/Eyebrow'
 import { ProgressRing } from '../components/ProgressRing'
 import { StatTile } from '../components/StatTile'
@@ -150,8 +149,6 @@ export default function Tracker() {
   return (
     <WidgetPage
       title={movement ? t.tracker.titleMovement : t.tracker.title}
-      description={movement ? t.tracker.subtitleMovement : t.tracker.subtitle}
-      aside={<AgeBadge />}
       inputLabel={movement ? t.tracker.sessionLabelMovement : t.tracker.sessionLabel}
       glance={
         <>

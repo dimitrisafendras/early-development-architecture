@@ -16,6 +16,7 @@ import {
   Blocks,
   Footprints,
   Infinity as InfinityIcon,
+  Milestone,
 } from 'lucide-react'
 import type { Messages } from '../i18n'
 import { Neurobiology } from './Neurobiology'
@@ -31,6 +32,7 @@ import { Sleep } from './Sleep'
 import { Feeding } from './Feeding'
 import { Bathing } from './Bathing'
 import { Soothing } from './Soothing'
+import { Milestones } from './Milestones'
 
 export type TopicGroup = 'foundations' | 'connection' | 'rhythm' | 'practice'
 
@@ -121,6 +123,7 @@ export interface Topic {
 export const topics: Topic[] = [
   // Foundations — why the early window matters
   { slug: 'brain-growth', module: 1, group: 'foundations', ages: ['anytime'], icon: Brain, label: (t) => t.nav.links.neurobiology, title: (t) => t.neurobiology.title, blurb: (t) => t.neurobiology.description, Component: Neurobiology },
+  { slug: 'milestones', module: 14, group: 'foundations', ages: ['newborn', 'baby', 'toddler'], icon: Milestone, label: (t) => t.nav.links.milestones, title: (t) => t.milestones.title, blurb: (t) => t.milestones.description, Component: Milestones },
   { slug: 'video-deficit', module: 6, group: 'foundations', ages: ['anytime'], icon: MonitorOff, label: (t) => t.nav.links.environment, title: (t) => t.environment.title, blurb: (t) => t.environment.description, Component: Environment },
   // Connection — how you bond, respond, and talk
   { slug: 'serve-return', module: 2, group: 'connection', ages: ['anytime'], icon: Repeat, label: (t) => t.nav.links.serveReturn, title: (t) => t.serveReturn.title, blurb: (t) => t.serveReturn.description, Component: ServeReturn },
