@@ -224,6 +224,16 @@ export const awakeWindows: { tone: ScheduleTone }[] = [
 /** Exclusive upper age bound (months) per awake-window band; last is open-ended. */
 export const awakeWindowUppers = [1, 3, 4, 999]
 
+/** Ground rules for the solo half of an awake window; text in i18n
+ *  (`interaction.soloRules`). The engaged/solo split itself is age-banded text
+ *  on `interaction.solo`, sharing the bands and tones of {@link awakeWindows}. */
+export const interactionSoloRules: { tone: StatusTone }[] = [
+  { tone: 'success' }, // solo still means supervised
+  { tone: 'warning' }, // answer cues that escalate
+  { tone: 'success' }, // sleep is its own thing, not solo play
+  { tone: 'danger' }, //  never alone on a raised surface
+]
+
 /** "How" method cards; title/text localized in i18n (`interaction.how`). */
 export const interactionHow: { tone: StatusTone }[] = [
   { tone: 'success' }, // serve & return

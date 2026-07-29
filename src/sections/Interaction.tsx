@@ -1,8 +1,27 @@
-import { Repeat, MessageCircle, BookOpen, Smile, Hand, MonitorOff, Clock } from 'lucide-react'
+import {
+  Repeat,
+  MessageCircle,
+  BookOpen,
+  Smile,
+  Hand,
+  MonitorOff,
+  Clock,
+  Users,
+  Eye,
+  HeartHandshake,
+  Moon,
+  TriangleAlert,
+} from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Eyebrow } from '@/components/Eyebrow'
 import { IconChip } from '@/components/IconChip'
-import { interactionStats, awakeWindows, awakeWindowUppers, interactionHow } from '../data'
+import {
+  interactionStats,
+  awakeWindows,
+  awakeWindowUppers,
+  interactionHow,
+  interactionSoloRules,
+} from '../data'
 import { AgeBadge, useBabyAge } from '../components/AgeBadge'
 import { bandIndex } from '../lib/schedule'
 import { cn } from '@/lib/utils'
@@ -10,6 +29,7 @@ import { scheduleTone, statusTone } from '../lib/tone'
 import { useT } from '../i18n'
 
 const howIcons = [Repeat, MessageCircle, BookOpen, Smile, Hand, MonitorOff]
+const soloRuleIcons = [Eye, HeartHandshake, Moon, TriangleAlert]
 
 export function Interaction() {
   const t = useT()
@@ -66,6 +86,73 @@ export function Interaction() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* How much of the window is *yours* — and how much is theirs. The awake
+          windows above say how long the baby is up; this says how that time
+          divides, which is the question a caregiver actually asks next. */}
+      <Eyebrow as="h3" size="md" className="mb-2">
+        {ti.togetherTitle}
+      </Eyebrow>
+      <p className="mb-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+        {ti.togetherNote}
+      </p>
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {awakeWindows.map((w, i) => (
+          <Card
+            key={`solo-${ti.windows[i].age}`}
+            className={cn('h-full', i === activeWindow && 'ring-2 ring-primary')}
+          >
+            <CardContent>
+              <Eyebrow as="h4" size="sm" tone="inherit" className={scheduleTone[w.tone].text}>
+                {ti.windows[i].age}
+              </Eyebrow>
+              {/* A definition list, not two paragraphs: each row is a labelled
+                  quantity, and the labels repeat down the four cards. */}
+              <dl className="mt-3 space-y-3">
+                <div>
+                  <dt className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                    <Users className="size-3.5" /> {ti.togetherLabel}
+                  </dt>
+                  <dd className="mt-0.5 text-[13px] font-semibold text-foreground">
+                    {ti.solo[i].together}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                    <Eye className="size-3.5" /> {ti.aloneLabel}
+                  </dt>
+                  <dd className="mt-0.5 text-[13px] font-semibold text-foreground">
+                    {ti.solo[i].alone}
+                  </dd>
+                </div>
+              </dl>
+              <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+                {ti.solo[i].note}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {interactionSoloRules.map((rule, i) => {
+          const Icon = soloRuleIcons[i]
+          return (
+            <Card key={ti.soloRules[i].title} className="h-full">
+              <CardContent>
+                <IconChip className={statusTone[rule.tone].chip}>
+                  <Icon />
+                </IconChip>
+                <p className="mt-3 mb-1 text-[15px] font-semibold text-foreground">
+                  {ti.soloRules[i].title}
+                </p>
+                <p className="m-0 text-[13px] leading-relaxed text-muted-foreground">
+                  {ti.soloRules[i].text}
+                </p>
+              </CardContent>
+            </Card>
+          )
+        })}
       </div>
 
       {/* How — make the minutes count */}

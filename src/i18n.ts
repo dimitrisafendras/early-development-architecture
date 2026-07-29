@@ -666,6 +666,51 @@ const en = {
       { age: '3–4 months', window: '1–2 hours', play: 'Floor play, reach-and-bat toys, mirror play, longer tummy time.' },
       { age: '4–6 months', window: '1.5–2.5 hours', play: 'Mostly floor play under a gym, reading, textures, back-and-forth babble.' },
     ],
+    togetherTitle: 'Together vs on their own',
+    togetherNote:
+      'No guideline sets a daily quota of one-on-one minutes — responsiveness during the awake windows is what counts, and most of it is folded into feeding, changing and bathing rather than added on top. What is quantified: answer cues within 1–4s, 15+ min of reading, 2–3 tummy sessions, and no screens. The solo figures below are typical starting points, not targets: contented time alone builds attention and self-settling, and it always happens with you in the room.',
+    togetherLabel: 'With you',
+    aloneLabel: 'On their own',
+    solo: [
+      {
+        together: 'Nearly all of it',
+        alone: '1–2 min at a time',
+        note: 'A newborn window is mostly feeding, cuddling and slow face-to-face. Solo time is the minute you set them down content, in your line of sight.',
+      },
+      {
+        together: 'Most of it',
+        alone: '2–5 min, a few times a day',
+        note: 'Start real solo stretches here: a play mat or gym while you stay in the room. Stop while they are still happy — end it before the fussing, not after.',
+      },
+      {
+        together: 'At least half',
+        alone: '5–10 min, 2–3 times a day',
+        note: 'Batting and reaching keeps them busy longer. Some of the window is genuinely theirs now, which is how longer attention spans get built.',
+      },
+      {
+        together: 'At least half',
+        alone: '10–15 min a stretch',
+        note: 'Longer floor play under a gym, with you nearby and looking up often. Rejoin for reading, songs and back-and-forth babble.',
+      },
+    ],
+    soloRules: [
+      {
+        title: 'Solo is still supervised',
+        text: 'Same room, in your line of sight, on a firm flat surface at floor level. Independent play means unstructured, never unwatched.',
+      },
+      {
+        title: 'Answer cues that escalate',
+        text: 'Grizzling that ramps up, arching, gaze aversion — go in, settle, try again later. Time alone only helps while they are content.',
+      },
+      {
+        title: 'Sleep is its own thing',
+        text: 'Naps and night are alone in their own sleep space, on the back — that is safe sleep, not independent play, and it does not count toward it.',
+      },
+      {
+        title: 'Never alone up high',
+        text: 'No unattended time on a bed, sofa or changing table, no propped bottle, and no sleeping in a bouncer, swing or car seat indoors.',
+      },
+    ],
     howTitle: 'How — make the minutes count',
     how: [
       { title: 'Serve & return', text: "Notice the baby's cue and answer within 1–4 seconds — the single most important habit." },
@@ -1491,6 +1536,51 @@ const el: Messages = {
       { age: '1–3 μηνών', window: '~1 ώρα', play: 'Πρόσωπο-με-πρόσωπο «κουβέντες», μίμηση γουργουρισμάτων, κάρτες αντίθεσης, τραγούδι.' },
       { age: '3–4 μηνών', window: '1–2 ώρες', play: 'Παιχνίδι στο πάτωμα, άπλωμα & χτύπημα παιχνιδιών, καθρέφτης, περισσότερο μπρούμυτα.' },
       { age: '4–6 μηνών', window: '1,5–2,5 ώρες', play: 'Κυρίως πάτωμα κάτω από γυμναστήριο, ανάγνωση, υφές, εναλλαγή ψελλισμάτων.' },
+    ],
+    togetherTitle: 'Μαζί ή μόνο του',
+    togetherNote:
+      'Καμία οδηγία δεν ορίζει ημερήσια ποσόστωση λεπτών ένας-προς-έναν — μετρά η ανταπόκριση στα παράθυρα εγρήγορσης, και το μεγαλύτερο μέρος εντάσσεται στο τάισμα, την αλλαγή και το μπάνιο αντί να προστίθεται από πάνω. Αυτά που έχουν αριθμό: απάντηση σε 1–4 δευτ., 15+ λεπτά ανάγνωσης, 2–3 συνεδρίες μπρούμυτα, καθόλου οθόνες. Οι παρακάτω τιμές για μόνο του είναι τυπικές αφετηρίες, όχι στόχοι: ο ευχάριστος χρόνος μόνο του χτίζει προσοχή και αυτορρύθμιση, και γίνεται πάντα με εσάς στο δωμάτιο.',
+    togetherLabel: 'Μαζί σας',
+    aloneLabel: 'Μόνο του',
+    solo: [
+      {
+        together: 'Σχεδόν όλο',
+        alone: '1–2 λεπτά κάθε φορά',
+        note: 'Το παράθυρο του νεογνού είναι κυρίως τάισμα, αγκαλιά και αργό πρόσωπο-με-πρόσωπο. Ο χρόνος μόνο του είναι το λεπτό που το ακουμπάτε ευχαριστημένο, μέσα στο οπτικό σας πεδίο.',
+      },
+      {
+        together: 'Το μεγαλύτερο μέρος',
+        alone: '2–5 λεπτά, λίγες φορές τη μέρα',
+        note: 'Εδώ ξεκινούν τα πραγματικά διαστήματα μόνο του: στρωματάκι ή γυμναστήριο, με εσάς στο δωμάτιο. Σταματήστε όσο είναι ακόμη χαρούμενο — πριν τη γκρίνια, όχι μετά.',
+      },
+      {
+        together: 'Τουλάχιστον το μισό',
+        alone: '5–10 λεπτά, 2–3 φορές τη μέρα',
+        note: 'Το άπλωμα και το χτύπημα παιχνιδιών το απασχολούν περισσότερο. Ένα μέρος του παραθύρου είναι πια πραγματικά δικό του — έτσι χτίζεται μεγαλύτερο εύρος προσοχής.',
+      },
+      {
+        together: 'Τουλάχιστον το μισό',
+        alone: '10–15 λεπτά συνεχόμενα',
+        note: 'Περισσότερο παιχνίδι στο πάτωμα κάτω από γυμναστήριο, με εσάς κοντά και συχνό βλέμμα. Επιστρέψτε για ανάγνωση, τραγούδια και εναλλαγή ψελλισμάτων.',
+      },
+    ],
+    soloRules: [
+      {
+        title: 'Μόνο του σημαίνει υπό επίβλεψη',
+        text: 'Ίδιο δωμάτιο, μέσα στο οπτικό σας πεδίο, σε σταθερή επίπεδη επιφάνεια στο ύψος του πατώματος. Ανεξάρτητο παιχνίδι σημαίνει αδόμητο, ποτέ αφύλακτο.',
+      },
+      {
+        title: 'Απαντήστε στα σήματα που κλιμακώνονται',
+        text: 'Γκρίνια που ανεβαίνει, τόξο στο σώμα, αποστροφή βλέμματος — πηγαίνετε, ηρεμήστε το, ξαναδοκιμάστε αργότερα. Ο χρόνος μόνο του ωφελεί μόνο όσο είναι ευχαριστημένο.',
+      },
+      {
+        title: 'Ο ύπνος είναι άλλο πράγμα',
+        text: 'Οι ύπνοι και η νύχτα γίνονται μόνο του, στον δικό του χώρο, ανάσκελα — αυτό είναι ασφαλής ύπνος, όχι ανεξάρτητο παιχνίδι, και δεν προσμετράται.',
+      },
+      {
+        title: 'Ποτέ μόνο του ψηλά',
+        text: 'Καθόλου χρόνος χωρίς επίβλεψη σε κρεβάτι, καναπέ ή αλλαξιέρα, ποτέ στηριγμένο μπιβερόν, και καθόλου ύπνος σε ρηλάξ, κούνια ή κάθισμα αυτοκινήτου μέσα στο σπίτι.',
+      },
     ],
     howTitle: 'Πώς — αξιοποιήστε τα λεπτά',
     how: [
