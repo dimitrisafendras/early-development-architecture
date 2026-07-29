@@ -1,5 +1,5 @@
 import type { ComponentType } from 'react'
-import { Milk, Moon, ToyBrick, Baby, Bath, Sparkles } from 'lucide-react'
+import { Milk, Utensils, Moon, ToyBrick, Baby, Bath, Sparkles } from 'lucide-react'
 import type { DayActivity } from '../data'
 
 /** Per-activity icon + soft theme-aware accent (dot background + text).
@@ -12,6 +12,9 @@ export const dayActivityMeta: Record<
   { icon: ComponentType<{ className?: string }>; dot: string; text: string; bar: string; accent: string }
 > = {
   feed: { icon: Milk, dot: 'bg-sky-500/15 text-sky-600 dark:text-sky-400', text: 'text-sky-700 dark:text-sky-400', bar: 'bg-sky-500', accent: '#0ea5e9' },
+  // Solid food from ~6 months: its own hue and a fork, because a toddler's three
+  // meals a day are not milk feeds and must not read as bottles on the timeline.
+  meal: { icon: Utensils, dot: 'bg-orange-500/15 text-orange-600 dark:text-orange-400', text: 'text-orange-700 dark:text-orange-400', bar: 'bg-orange-500', accent: '#f97316' },
   sleep: { icon: Moon, dot: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400', text: 'text-indigo-700 dark:text-indigo-400', bar: 'bg-indigo-500', accent: '#6366f1' },
   play: { icon: ToyBrick, dot: 'bg-amber-500/15 text-amber-600 dark:text-amber-400', text: 'text-amber-700 dark:text-amber-400', bar: 'bg-amber-500', accent: '#f59e0b' },
   tummy: { icon: Baby, dot: 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400', text: 'text-emerald-700 dark:text-emerald-400', bar: 'bg-emerald-500', accent: '#10b981' },
@@ -19,4 +22,4 @@ export const dayActivityMeta: Record<
   wind: { icon: Sparkles, dot: 'bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400', text: 'text-fuchsia-700 dark:text-fuchsia-400', bar: 'bg-fuchsia-500', accent: '#d946ef' },
 }
 
-export const dayActivityOrder: DayActivity[] = ['feed', 'sleep', 'play', 'tummy', 'care', 'wind']
+export const dayActivityOrder: DayActivity[] = ['feed', 'meal', 'sleep', 'play', 'tummy', 'care', 'wind']

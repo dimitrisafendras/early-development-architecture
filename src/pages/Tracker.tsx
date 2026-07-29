@@ -27,7 +27,7 @@ import { TummyWeekChart } from '../components/charts'
 import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
 import { useBabies } from '../lib/useBabies'
 import { useTummyTracker, useWeeklyMinutes, type TrackerSession } from '../lib/useTummyTracker'
-import { tummyTargetForAgeMonths, ageInMonths, todayKey } from '../lib/schedule'
+import { activityTargetForAge, ageInMonths, todayKey } from '../lib/schedule'
 import { formatDateKey, useDateLocale } from '../lib/dates'
 import { useT } from '../i18n'
 
@@ -88,7 +88,9 @@ export default function Tracker() {
   const wideConsole = useMediaQuery('(min-width: 64rem)')
 
   const ageM = currentBaby ? ageInMonths(currentBaby.birth_date) : null
-  const target = tummyTargetForAgeMonths(ageM)
+  // Under a year this is the tummy-time ramp; from the first birthday it is the
+  // WHO's 180 min/day of movement, and `kind` swaps the page's labels with it.
+  const { mins: target, kind: targetKind } = activityTargetForAge(ageM)
   const runningMin = tracker.isRunning ? tracker.elapsedSeconds / 60 : 0
   const totalWithRunning = tracker.completedMinutes + runningMin
   const remaining = Math.max(0, Math.round(target - totalWithRunning))
@@ -141,12 +143,16 @@ export default function Tracker() {
     ? t.tracker.targetForBaby.replace('{name}', currentBaby.name).replace('{age}', String(ageM))
     : t.tracker.targetForNoBaby
 
+  // Past the first birthday this page is an *active-play* log, not a tummy-time
+  // log: same timer, same target ring, different thing being timed.
+  const movement = targetKind === 'movement'
+
   return (
     <WidgetPage
-      title={t.tracker.title}
-      description={t.tracker.subtitle}
+      title={movement ? t.tracker.titleMovement : t.tracker.title}
+      description={movement ? t.tracker.subtitleMovement : t.tracker.subtitle}
       aside={<AgeBadge />}
-      inputLabel={t.tracker.sessionLabel}
+      inputLabel={movement ? t.tracker.sessionLabelMovement : t.tracker.sessionLabel}
       glance={
         <>
           <WidgetStatGrid>

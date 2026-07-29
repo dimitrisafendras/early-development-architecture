@@ -1,26 +1,37 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Sparkles } from 'lucide-react'
+import { ArrowRight, Sparkles, Baby as BabyIcon } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Eyebrow } from '../components/Eyebrow'
 import { IconChip } from '../components/IconChip'
 import { PageFrame } from '../components/PageFrame'
 import {
-  learnGroups,
-  groupMeta,
-  wikiTopicsInGroup,
+  ageGroupOrder,
+  ageGroupMeta,
+  ageGroupForMonths,
+  wikiTopicsInAgeGroup,
   wikiPath,
-  type TopicGroup,
+  type AgeGroup,
 } from '../sections/registry'
+import { useBabyAge } from '../components/AgeBadge'
 import { useT } from '../i18n'
 
 /**
- * The Wiki home: every theory topic organized into chapters by theme
- * (Foundations / Connection / Rhythm). Each chapter lists its topics as cards
- * that open a focused subpage at `/wiki/:slug`.
+ * The Wiki home: every topic organized into chapters by the child's stage
+ * (Newborn / Baby / Toddler, then the cross-cutting "any age" chapter). A care
+ * topic appears in every stage it applies to. Each chapter lists its topics as
+ * cards that open a focused subpage at `/wiki/:slug`.
+ *
+ * The chapter matching the current baby's age is marked the same way every
+ * age-banded row in the app is: a `ring-2 ring-primary` on the chapter mark plus
+ * the standard `soft` badge — not a bespoke highlight component.
  */
 export default function Wiki() {
   const t = useT()
+  // One hook call for the page, then passed down: `Chapter` renders four times
+  // and each instance would otherwise re-subscribe to the baby list.
+  const baby = useBabyAge()
+  const activeAge = baby ? ageGroupForMonths(baby.months) : undefined
   return (
     <PageFrame
       title={t.wiki.title}
@@ -38,20 +49,21 @@ export default function Wiki() {
       }
     >
       <div className="flex flex-col gap-12">
-        {learnGroups.map((group, i) => (
-          <Chapter key={group} group={group} number={i + 1} />
+        {ageGroupOrder.map((age, i) => (
+          <Chapter key={age} age={age} number={i + 1} active={age === activeAge} />
         ))}
       </div>
     </PageFrame>
   )
 }
 
-function Chapter({ group, number }: { group: TopicGroup; number: number }) {
+function Chapter({ age, number, active }: { age: AgeGroup; number: number; active: boolean }) {
   const t = useT()
-  const Icon = groupMeta[group].icon
-  const topics = wikiTopicsInGroup(group)
+  const Icon = ageGroupMeta[age].icon
+  const chapter = t.hub.ageGroups[age]
+  const topics = wikiTopicsInAgeGroup(age)
   return (
-    <section aria-labelledby={`chapter-${group}`}>
+    <section aria-labelledby={`chapter-${age}`}>
       <div className="flex items-center gap-3">
         {/* `text-3xl font-semibold`: at `text-4xl font-bold` this numeral was the
             same size as the page `h1` from `sm` up and the only `font-bold`
@@ -59,21 +71,30 @@ function Chapter({ group, number }: { group: TopicGroup; number: number }) {
         <span className="bg-gradient-to-b from-primary/45 to-primary/5 bg-clip-text font-heading text-3xl font-semibold leading-none tabular-nums text-transparent">
           {String(number).padStart(2, '0')}
         </span>
-        <IconChip>
+        <IconChip className={active ? 'ring-2 ring-primary' : undefined}>
           <Icon />
         </IconChip>
         <div className="min-w-0">
-          <Eyebrow tone="muted">{t.wiki.chapter}</Eyebrow>
-          <h2
-            id={`chapter-${group}`}
-            className="truncate font-heading text-xl font-semibold tracking-tight text-foreground"
-          >
-            {t.hub.groups[group]}
-          </h2>
+          <Eyebrow tone="muted">
+            {t.wiki.chapter} · {chapter.label}
+          </Eyebrow>
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <h2
+              id={`chapter-${age}`}
+              className="truncate font-heading text-xl font-semibold tracking-tight text-foreground"
+            >
+              {chapter.title}
+            </h2>
+            {active && (
+              <Badge variant="soft" size="sm">
+                <BabyIcon aria-hidden /> {t.hub.ageMatch}
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
       <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-        {t.hub.groupBlurbs[group]}
+        {chapter.blurb}
       </p>
       <div className="mt-4 h-px w-full bg-gradient-to-r from-primary/40 via-border to-transparent" />
 

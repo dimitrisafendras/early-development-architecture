@@ -14,9 +14,9 @@ export const heroMetrics = [
     color: '#38bdf8',
   },
   {
-    label: 'Tummy Time Goal',
-    value: '60 Mins',
-    note: 'Daily target by 4 months',
+    label: 'Movement Target',
+    value: '180 Mins',
+    note: '180 min/day from age 1 (WHO)',
     color: '#34d399',
   },
   {
@@ -170,7 +170,19 @@ export const scheduleBlocks: ScheduleBlock[] = [
   },
 ]
 
-export const checklistItems = [
+/** Today's caregiver checklist. `minMonths`/`maxMonths` gate an item to an age
+ *  window (exclusive upper bound) — a two-year-old is not owed 60 minutes of
+ *  tummy time, and a newborn is not owed 180 minutes of running about. Items
+ *  keep their position in this array for ever: the localized text in
+ *  `summary.items` is matched by index, so new items are appended, never
+ *  inserted (see {@link checklistItemsForAge}). */
+export const checklistItems: {
+  id: string
+  title: string
+  desc: string
+  minMonths?: number
+  maxMonths?: number
+}[] = [
   {
     id: 'respond',
     title: 'Respond Swiftly (1–4s)',
@@ -185,6 +197,7 @@ export const checklistItems = [
     id: 'tummy',
     title: 'Prioritize Daily Tummy Time',
     desc: 'Progressively build up to 60 cumulative minutes daily by 4 months while awake and supervised.',
+    maxMonths: 12,
   },
   {
     id: 'music',
@@ -201,7 +214,43 @@ export const checklistItems = [
     title: 'Maintain Safe Sleep Practices',
     desc: 'Always place infants strictly on their back on a flat, firm surface to protect airway and consolidate memory.',
   },
+  // Appended for the 1–3 year range. Never reorder this array — the localized
+  // text is index-matched.
+  {
+    id: 'movement',
+    title: 'Reach 180 Minutes of Movement',
+    desc: 'Walking, climbing, dancing, playground time — any intensity, in any number of bursts, across the whole day.',
+    minMonths: 12,
+  },
+  {
+    id: 'mealtogether',
+    title: 'Eat at Least One Meal Together',
+    desc: 'Same food, same table, no screens. Children learn to eat, talk and take turns by watching you do it.',
+    minMonths: 12,
+  },
+  {
+    id: 'feelings',
+    title: 'Name the Feelings Out Loud',
+    desc: 'Put words to the frustration before it peaks, and offer two real choices. Language is what makes a tantrum shorter.',
+    minMonths: 15,
+  },
 ]
+
+/** The checklist for a child of `months`, each item paired with its permanent
+ *  index into {@link checklistItems} so the index-matched i18n text still lines
+ *  up after filtering. `null` (no baby on file) shows the birth-to-6-month set. */
+export function checklistItemsForAge(
+  months: number | null,
+): { item: (typeof checklistItems)[number]; index: number }[] {
+  const age = months ?? 0
+  return checklistItems
+    .map((item, index) => ({ item, index }))
+    .filter(
+      ({ item }) =>
+        (item.minMonths == null || age >= item.minMonths) &&
+        (item.maxMonths == null || age < item.maxMonths),
+    )
+}
 
 /* ------------------------------------------------------------ interaction */
 
@@ -214,15 +263,30 @@ export const interactionStats: { value: string; color: string }[] = [
   { value: '1–4', color: '#e879f9' }, //    second response window
 ]
 
-/** Age-banded awake windows; text (age / window / play) localized in i18n. */
+/** Age-banded awake windows, birth to three years; text (age / window / play)
+ *  localized in i18n. */
 export const awakeWindows: { tone: ScheduleTone }[] = [
   { tone: 'amber' }, // 0–1 mo
   { tone: 'emerald' }, // 1–3 mo
-  { tone: 'sky' }, // 3–4 mo
-  { tone: 'fuchsia' }, // 4–6 mo
+  { tone: 'sky' }, // 3–6 mo
+  { tone: 'cyan' }, // 6–12 mo
+  { tone: 'fuchsia' }, // 12–18 mo
+  { tone: 'indigo' }, // 18–24 mo
+  { tone: 'amber' }, // 2–3 y
 ]
 /** Exclusive upper age bound (months) per awake-window band; last is open-ended. */
-export const awakeWindowUppers = [1, 3, 4, 999]
+export const awakeWindowUppers = [1, 3, 6, 12, 18, 24, 999]
+
+/** Screen-media guidance per age band (AAP + WHO). `maxMins` is the daily
+ *  ceiling: 0 = none recommended, and the text in i18n carries the nuance
+ *  (video chat is exempt; 18–24 mo only with an adult watching along). */
+export const screenBands: { tone: StatusTone; maxMins: number }[] = [
+  { tone: 'danger', maxMins: 0 }, // 0–18 mo — none (video chat aside)
+  { tone: 'warning', maxMins: 0 }, // 18–24 mo — only co-viewed, no solo screens
+  { tone: 'warning', maxMins: 60 }, // 2–3 y — up to 1 h of high-quality, co-viewed
+]
+/** Exclusive upper age bound (months) per screen band; last is open-ended. */
+export const screenUppers = [18, 24, 999]
 
 /** Ground rules for the solo half of an awake window; text in i18n
  *  (`interaction.soloRules`). The engaged/solo split itself is age-banded text
@@ -246,13 +310,28 @@ export const interactionHow: { tone: StatusTone }[] = [
 
 /* --------------------------------------------------------- sleep & feeding */
 
-/** Sleep "at a glance" tiles; label/note localized in i18n. */
+/** Sleep "at a glance" tiles; label/note localized in i18n. The three totals are
+ *  the AASM bands the AAP endorses; the fourth is the safe-sleep boundary. */
 export const sleepStats: { value: string; color: string }[] = [
   { value: '14–17h', color: '#818cf8' }, // 0–3 mo total / 24h
   { value: '12–16h', color: '#34d399' }, // 4–12 mo total / 24h
-  { value: '2–3', color: '#fbbf24' }, //    naps/day at 4–6 mo
+  { value: '11–14h', color: '#fbbf24' }, // 1–2 y total / 24h
+  { value: '10–13h', color: '#e879f9' }, // 3 y total / 24h
   { value: '1 yr', color: '#38bdf8' }, //   back-to-sleep until
 ]
+
+/** How the naps themselves change, band by band; text localized in i18n
+ *  (`sleep.naps`). Highlighted against the baby's age like every other band. */
+export const napBands: { tone: ScheduleTone }[] = [
+  { tone: 'amber' }, // 0–3 mo — no fixed pattern
+  { tone: 'emerald' }, // 3–6 mo — 3 naps
+  { tone: 'sky' }, // 6–12 mo — 2–3 naps
+  { tone: 'cyan' }, // 12–18 mo — 2 naps to 1
+  { tone: 'fuchsia' }, // 18–24 mo — 1 nap
+  { tone: 'indigo' }, // 2–3 y — 1 nap or quiet time
+]
+/** Exclusive upper age bound (months) per nap band; last is open-ended. */
+export const napUppers = [3, 6, 12, 18, 24, 999]
 
 /** Safe-sleep rules; title/text localized in i18n. tone drives the accent. */
 export const safeSleepRules: { tone: StatusTone }[] = [
@@ -260,6 +339,7 @@ export const safeSleepRules: { tone: StatusTone }[] = [
   { tone: 'success' }, // firm flat surface, own space
   { tone: 'success' }, // room-share 6–12 mo
   { tone: 'danger' }, //  no soft bedding / bumpers / toys
+  { tone: 'warning' }, // cot to bed at 2–3 y, when they can climb out
 ]
 
 /** Feeding frequency/amount rows by age band; all text localized in i18n.
@@ -270,16 +350,25 @@ export const feedingRows: { tone: ScheduleTone; feedsPerDay: [number, number] }[
   { tone: 'amber', feedsPerDay: [8, 12] }, // newborn 0–1 mo
   { tone: 'emerald', feedsPerDay: [7, 9] }, // 1–2 mo
   { tone: 'sky', feedsPerDay: [6, 8] }, // 2–4 mo
-  { tone: 'fuchsia', feedsPerDay: [4, 5] }, // 4–6 mo
+  { tone: 'fuchsia', feedsPerDay: [4, 6] }, // 4–6 mo — milk only, solids not yet
+  { tone: 'cyan', feedsPerDay: [4, 5] }, // 6–9 mo — milk + 2–3 solid meals
+  { tone: 'indigo', feedsPerDay: [3, 4] }, // 9–12 mo — milk + 3 meals + a snack
+  { tone: 'amber', feedsPerDay: [2, 3] }, // 12–24 mo — cup milk beside 3 meals + 2 snacks
+  { tone: 'emerald', feedsPerDay: [2, 3] }, // 2–3 y — same shape, bigger portions
 ]
-/** Exclusive upper age bound (months) per feeding band; last is open-ended. */
-export const feedingUppers = [1, 2, 4, 999]
+/** Exclusive upper age bound (months) per feeding band; last is open-ended.
+ *  From 6 months the count is *milk* feeds only — the solid meals sit beside it
+ *  and are described in the band's i18n text. */
+export const feedingUppers = [1, 2, 4, 6, 9, 12, 24, 999]
 
 /* ------------------------------------------------------------- full day */
 
 /** Activity kinds on the hour-by-hour full-day schedule. Drives colour + icon
- *  + the legend; the slot text is localized in i18n (`fullDay.slots`). */
-export type DayActivity = 'feed' | 'sleep' | 'play' | 'tummy' | 'care' | 'wind'
+ *  + the legend; the slot text is localized in i18n (`fullDay.days`).
+ *  `feed` is milk (breast/bottle/cup) and `meal` is solid food — one kind could
+ *  not carry both once the app covered 6 months to 3 years, where a day holds
+ *  three meals *and* a milk drink. */
+export type DayActivity = 'feed' | 'meal' | 'sleep' | 'play' | 'tummy' | 'care' | 'wind'
 
 /** A fully-resolved schedule slot (when it starts, how long it takes, and its
  *  own text). The built-in {@link fullDaySchedule} pairs with localized text in
@@ -304,6 +393,7 @@ export interface ScheduleSlot {
  *  carried a duration. Same evidence base as {@link fullDaySchedule}. */
 export const defaultSlotMins: Record<DayActivity, number> = {
   feed: 25,
+  meal: 30,
   sleep: 75,
   play: 30,
   tummy: 10,
@@ -311,45 +401,165 @@ export const defaultSlotMins: Record<DayActivity, number> = {
   wind: 15,
 }
 
+/** The age bands the sample days are written for. `id` keys the localized text
+ *  in `fullDay.days` / `fullDay.dayLabels`; `upperMonths` is the exclusive upper
+ *  bound (the last band is open-ended). */
+export type DayTemplateId = 'newborn' | 'infant' | 'older' | 'oneNap' | 'toddler'
+
+export interface DayTemplate {
+  id: DayTemplateId
+  /** Exclusive upper age bound in months; `999` = open-ended. */
+  upperMonths: number
+  slots: { time: string; type: DayActivity; mins: number }[]
+}
+
 /**
- * A realistic ~3–4-month sample day, in order. Time is locale-independent; each
- * entry's title/detail live in i18n at the same index.
+ * One realistic sample day per age band, birth to three years, each in order.
+ * Times are locale-independent; every slot's title/detail live in i18n under
+ * `fullDay.days[id]` at the same index.
  *
- * The durations are the typical middles of the published ranges for this age,
- * not targets (see `fullDay.sourcesLabel`):
- * - **feeds** 20–30 min at the breast/bottle, shorter at night (most feeds fall
- *   in the 12–30 min band; night feeds are kept deliberately brief);
- * - **naps** a 3-nap day totalling ~4–5 h — a ~1h15 morning nap, the longest
- *   midday one at ~1h30, and a ~45 min afternoon catnap — with the first night
- *   stretch running to the ~23:00 feed;
- * - **tummy time** 5–10 min a session, 2–3 sessions, so the day totals the
- *   20–30 min a 3-month-old is aiming for;
- * - **awake blocks** (play + care + tummy) sized so each wake window lands
- *   inside the 75–120 min a 3–4-month-old tolerates before the next sleep.
+ * Durations are the typical middles of the published ranges for the band, never
+ * targets (see `fullDay.sourcesLabel`). The invariants each day is built to:
+ * - **total sleep** inside the AASM/AAP band for the age — 14–17 h at 0–3 mo,
+ *   12–16 h at 4–12 mo, 11–14 h at 1–2 y, 10–13 h at 3 y;
+ * - **wake windows** inside the age's tolerance — 45–60 min for a newborn,
+ *   75–120 min at 3–4 mo, 2.5–3.5 h at 6–12 mo, 4–6 h on one nap, 5–6 h at 2–3 y;
+ * - **feeds** 8–12 milk feeds a day at 0–1 mo thinning to ~4 by a year, then
+ *   3 meals + 2 snacks with ~470–710 ml of milk a day through 1–3 y;
+ * - **movement** tummy time 5–10 min a session while pre-mobile, then floor and
+ *   active play adding up to the WHO 180 min a day from the first birthday.
  */
-export const fullDaySchedule: { time: string; type: DayActivity; mins: number }[] = [
-  { time: '07:00', type: 'feed', mins: 25 },
-  { time: '07:40', type: 'care', mins: 20 },
-  { time: '08:00', type: 'play', mins: 30 },
-  { time: '08:30', type: 'tummy', mins: 10 },
-  { time: '09:00', type: 'sleep', mins: 75 },
-  { time: '10:15', type: 'feed', mins: 25 },
-  { time: '10:45', type: 'play', mins: 35 },
-  { time: '11:30', type: 'tummy', mins: 10 },
-  { time: '12:00', type: 'sleep', mins: 90 },
-  { time: '13:30', type: 'feed', mins: 25 },
-  { time: '14:00', type: 'play', mins: 60 },
-  { time: '15:15', type: 'sleep', mins: 45 },
-  { time: '16:15', type: 'feed', mins: 25 },
-  { time: '16:45', type: 'play', mins: 40 },
-  { time: '17:30', type: 'tummy', mins: 5 },
-  { time: '18:00', type: 'care', mins: 30 },
-  { time: '18:45', type: 'wind', mins: 15 },
-  { time: '19:00', type: 'feed', mins: 25 },
-  { time: '19:30', type: 'sleep', mins: 210 },
-  { time: '23:00', type: 'feed', mins: 20 },
-  { time: '03:00', type: 'feed', mins: 15 },
+export const dayTemplates: DayTemplate[] = [
+  {
+    id: 'newborn',
+    upperMonths: 3,
+    slots: [
+      { time: '07:00', type: 'feed', mins: 30 },
+      { time: '07:35', type: 'care', mins: 15 },
+      { time: '07:55', type: 'play', mins: 15 },
+      { time: '08:10', type: 'tummy', mins: 3 },
+      { time: '08:20', type: 'sleep', mins: 90 },
+      { time: '09:50', type: 'feed', mins: 30 },
+      { time: '10:25', type: 'play', mins: 20 },
+      { time: '10:50', type: 'sleep', mins: 90 },
+      { time: '12:20', type: 'feed', mins: 30 },
+      { time: '12:55', type: 'tummy', mins: 3 },
+      { time: '13:05', type: 'play', mins: 15 },
+      { time: '13:25', type: 'sleep', mins: 100 },
+      { time: '15:05', type: 'feed', mins: 30 },
+      { time: '15:40', type: 'play', mins: 20 },
+      { time: '16:05', type: 'sleep', mins: 75 },
+      { time: '17:20', type: 'feed', mins: 30 },
+      { time: '17:55', type: 'care', mins: 20 },
+      { time: '18:20', type: 'wind', mins: 20 },
+      { time: '18:45', type: 'feed', mins: 30 },
+      { time: '19:20', type: 'sleep', mins: 180 },
+      { time: '22:30', type: 'feed', mins: 25 },
+      { time: '01:30', type: 'feed', mins: 25 },
+      { time: '04:30', type: 'feed', mins: 25 },
+    ],
+  },
+  {
+    id: 'infant',
+    upperMonths: 6,
+    slots: [
+      { time: '07:00', type: 'feed', mins: 25 },
+      { time: '07:40', type: 'care', mins: 20 },
+      { time: '08:00', type: 'play', mins: 30 },
+      { time: '08:30', type: 'tummy', mins: 10 },
+      { time: '09:00', type: 'sleep', mins: 75 },
+      { time: '10:15', type: 'feed', mins: 25 },
+      { time: '10:45', type: 'play', mins: 35 },
+      { time: '11:30', type: 'tummy', mins: 10 },
+      { time: '12:00', type: 'sleep', mins: 90 },
+      { time: '13:30', type: 'feed', mins: 25 },
+      { time: '14:00', type: 'play', mins: 60 },
+      { time: '15:15', type: 'sleep', mins: 45 },
+      { time: '16:15', type: 'feed', mins: 25 },
+      { time: '16:45', type: 'play', mins: 40 },
+      { time: '17:30', type: 'tummy', mins: 5 },
+      { time: '18:00', type: 'care', mins: 30 },
+      { time: '18:45', type: 'wind', mins: 15 },
+      { time: '19:00', type: 'feed', mins: 25 },
+      { time: '19:30', type: 'sleep', mins: 210 },
+      { time: '23:00', type: 'feed', mins: 20 },
+      { time: '03:00', type: 'feed', mins: 15 },
+    ],
+  },
+  {
+    id: 'older',
+    upperMonths: 12,
+    slots: [
+      { time: '07:00', type: 'feed', mins: 20 },
+      { time: '07:30', type: 'meal', mins: 25 },
+      { time: '08:00', type: 'care', mins: 15 },
+      { time: '08:20', type: 'play', mins: 40 },
+      { time: '09:00', type: 'tummy', mins: 15 },
+      { time: '09:30', type: 'sleep', mins: 60 },
+      { time: '10:30', type: 'feed', mins: 20 },
+      { time: '11:00', type: 'play', mins: 45 },
+      { time: '11:45', type: 'meal', mins: 30 },
+      { time: '12:30', type: 'sleep', mins: 90 },
+      { time: '14:00', type: 'feed', mins: 20 },
+      { time: '14:30', type: 'play', mins: 60 },
+      { time: '15:45', type: 'sleep', mins: 30 },
+      { time: '16:15', type: 'meal', mins: 20 },
+      { time: '16:45', type: 'play', mins: 45 },
+      { time: '17:30', type: 'meal', mins: 30 },
+      { time: '18:05', type: 'care', mins: 25 },
+      { time: '18:35', type: 'wind', mins: 15 },
+      { time: '18:50', type: 'feed', mins: 20 },
+      { time: '19:15', type: 'sleep', mins: 660 },
+    ],
+  },
+  {
+    id: 'oneNap',
+    upperMonths: 24,
+    slots: [
+      { time: '07:00', type: 'meal', mins: 30 },
+      { time: '07:45', type: 'care', mins: 15 },
+      { time: '08:15', type: 'play', mins: 75 },
+      { time: '09:45', type: 'meal', mins: 15 },
+      { time: '10:15', type: 'play', mins: 90 },
+      { time: '11:45', type: 'meal', mins: 30 },
+      { time: '12:30', type: 'sleep', mins: 120 },
+      { time: '14:30', type: 'meal', mins: 15 },
+      { time: '15:00', type: 'play', mins: 90 },
+      { time: '16:45', type: 'play', mins: 30 },
+      { time: '17:30', type: 'meal', mins: 30 },
+      { time: '18:15', type: 'care', mins: 25 },
+      { time: '18:45', type: 'wind', mins: 20 },
+      { time: '19:15', type: 'sleep', mins: 690 },
+    ],
+  },
+  {
+    id: 'toddler',
+    upperMonths: 999,
+    slots: [
+      { time: '07:00', type: 'meal', mins: 30 },
+      { time: '07:45', type: 'care', mins: 20 },
+      { time: '08:15', type: 'play', mins: 90 },
+      { time: '09:45', type: 'meal', mins: 15 },
+      { time: '10:15', type: 'play', mins: 105 },
+      { time: '12:00', type: 'meal', mins: 35 },
+      { time: '12:45', type: 'sleep', mins: 90 },
+      { time: '14:30', type: 'meal', mins: 15 },
+      { time: '15:00', type: 'play', mins: 120 },
+      { time: '17:00', type: 'play', mins: 30 },
+      { time: '17:45', type: 'meal', mins: 35 },
+      { time: '18:30', type: 'care', mins: 25 },
+      { time: '19:00', type: 'wind', mins: 25 },
+      { time: '19:30', type: 'sleep', mins: 660 },
+    ],
+  },
 ]
+
+/** The template for an age in months (the app's default when there's no baby on
+ *  file is the 3–6 month day, which is where a recognisable clock first appears). */
+export function dayTemplateForAge(months: number | null): DayTemplate {
+  if (months == null) return dayTemplates[1]
+  return dayTemplates.find((d) => months < d.upperMonths) ?? dayTemplates[dayTemplates.length - 1]
+}
 
 export const efficiencyScores: {
   label: string

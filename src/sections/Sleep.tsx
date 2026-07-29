@@ -1,21 +1,32 @@
-import { MoonStar, Bed, DoorOpen, Ban } from 'lucide-react'
+import { MoonStar, Bed, DoorOpen, Ban, BedDouble, Clock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Eyebrow } from '@/components/Eyebrow'
 import { IconChip } from '@/components/IconChip'
-import { sleepStats, safeSleepRules } from '../data'
+import { sleepStats, safeSleepRules, napBands, napUppers } from '../data'
 import { AgeBadge, useBabyAge } from '../components/AgeBadge'
 import { cn } from '@/lib/utils'
-import { statusTone } from '../lib/tone'
+import { statusTone, scheduleTone } from '../lib/tone'
+import { bandIndex } from '../lib/schedule'
 import { useT } from '../i18n'
 
-const ruleIcons = [MoonStar, Bed, DoorOpen, Ban]
+const ruleIcons = [MoonStar, Bed, DoorOpen, Ban, BedDouble]
 
 export function Sleep() {
   const t = useT()
   const ts = t.sleep
   const baby = useBabyAge()
-  // Tile 0 = newborn (0–3 mo), tile 1 = infant (4–12 mo); highlight the one that fits.
-  const activeStat = baby ? (baby.months < 4 ? 0 : baby.months < 12 ? 1 : -1) : -1
+  // Tiles 0–3 are the four sleep-total bands (0–3 mo, 4–12 mo, 1–2 y, 3 y); tile
+  // 4 is the safe-sleep boundary and is never "current".
+  const activeStat = baby
+    ? baby.months < 4
+      ? 0
+      : baby.months < 12
+        ? 1
+        : baby.months < 24
+          ? 2
+          : 3
+    : -1
+  const activeNap = baby ? bandIndex(baby.months, napUppers) : -1
   return (
     <section id="sleep">
       {/* The age badge rides the first content row — the page header above is the
@@ -26,7 +37,7 @@ export function Sleep() {
         </Eyebrow>
         <AgeBadge />
       </div>
-      <div className="mb-10 grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="mb-10 grid grid-cols-2 gap-4 lg:grid-cols-5">
         {sleepStats.map((stat, i) => (
           <Card
             key={ts.stats[i].label}
@@ -48,10 +59,36 @@ export function Sleep() {
         ))}
       </div>
 
+      {/* How the naps consolidate and drop — the question that replaces "how much
+          sleep" once the totals stop moving much. Same age-banded card idiom as
+          the awake windows on the interaction page. */}
+      <Eyebrow as="h3" size="md" className="mb-2">
+        {ts.napsTitle}
+      </Eyebrow>
+      <p className="mb-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">{ts.napsNote}</p>
+      <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {napBands.map((band, i) => (
+          <Card
+            key={ts.naps[i].age}
+            className={cn('h-full', i === activeNap && 'ring-2 ring-primary')}
+          >
+            <CardContent>
+              <Eyebrow as="h4" size="sm" tone="inherit" className={scheduleTone[band.tone].text}>
+                {ts.naps[i].age}
+              </Eyebrow>
+              <div className="mt-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <Clock className="size-3.5" /> {ts.napHeaders.naps}: {ts.naps[i].naps}
+              </div>
+              <p className="mt-3 text-[13px] leading-relaxed text-foreground">{ts.naps[i].shape}</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
       <Eyebrow as="h3" size="md" className="mb-4">
         {ts.safeTitle}
       </Eyebrow>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {safeSleepRules.map((rule, i) => {
           const Icon = ruleIcons[i]
           return (

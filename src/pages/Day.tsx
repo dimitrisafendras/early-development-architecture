@@ -30,7 +30,7 @@ import {
   activeTimeIndex,
   slotTiming,
   formatDuration,
-  tummyTargetForAgeMonths,
+  activityTargetForAge,
   ageInMonths,
   bandIndex,
 } from '../lib/schedule'
@@ -55,6 +55,7 @@ function useNow(): Date {
 /** Wiki topic each activity maps to, for the panel's "learn more" link + info. */
 const typeWiki: Record<DayActivity, string> = {
   feed: 'feeding',
+  meal: 'feeding',
   sleep: 'sleep',
   play: 'serve-return',
   tummy: 'tummy-time',
@@ -658,7 +659,11 @@ function TummyWidget() {
   const t = useT()
   const { currentBaby } = useBabies()
   const tracker = useTummyTracker(currentBaby?.id ?? null, currentBaby?.household_id ?? null)
-  const target = tummyTargetForAgeMonths(currentBaby ? ageInMonths(currentBaby.birth_date) : null)
+  // From the first birthday the target stops being tummy time and becomes the
+  // WHO's 180 min/day of movement — the label has to move with the number.
+  const { mins: target, kind } = activityTargetForAge(
+    currentBaby ? ageInMonths(currentBaby.birth_date) : null,
+  )
   const runningMin = tracker.isRunning ? tracker.elapsedSeconds / 60 : 0
   const total = tracker.completedMinutes + runningMin
   const pct = Math.round((total / target) * 100)
@@ -691,7 +696,7 @@ function TummyWidget() {
                 <span className="text-sm font-medium text-muted-foreground">/{target}</span>
               </span>
               <Eyebrow as="span" tone="muted" className="mt-1">
-                {t.daily.tummyMinutes}
+                {kind === 'movement' ? t.daily.movementMinutes : t.daily.tummyMinutes}
               </Eyebrow>
             </>
           )}

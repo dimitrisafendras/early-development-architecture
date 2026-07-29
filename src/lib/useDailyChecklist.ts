@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { checklistItems } from '../data'
+import { checklistItemsForAge } from '../data'
+import { useBabyAge } from '../components/AgeBadge'
 import { useAppStore, computeStreak } from '../store'
 import { todayKey } from './schedule'
 import { isSupabaseEnabled } from './supabase'
@@ -10,6 +11,10 @@ import { getChecklistForDay, upsertChecklistEntry } from './db'
  * Today's caregiver checklist, shared by the Action-Items section and the
  * daily dashboard. Local-first via the zustand `checklistHistory` map; when
  * signed in it pulls the server's today-set on load and upserts on toggle.
+ *
+ * The item set is age-gated (`items`), so both the total and the streak follow
+ * the child: tummy time drops off at a year and movement, family meals and
+ * naming feelings take its place.
  */
 export function useDailyChecklist() {
   const checklistHistory = useAppStore((s) => s.checklistHistory)
@@ -19,10 +24,13 @@ export function useDailyChecklist() {
   const { session } = useSession()
   const signedIn = isSupabaseEnabled && Boolean(session)
 
+  const baby = useBabyAge()
+  const items = checklistItemsForAge(baby?.months ?? null)
+
   const day = todayKey()
   const checked = checklistHistory[day] ?? []
-  const streak = computeStreak(checklistHistory, checklistItems.length)
-  const total = checklistItems.length
+  const streak = computeStreak(checklistHistory, items.length)
+  const total = items.length
   const allDone = checked.length === total
 
   useEffect(() => {
@@ -50,5 +58,5 @@ export function useDailyChecklist() {
     if (signedIn) for (const id of prev) void upsertChecklistEntry(day, id, false).catch(() => {})
   }
 
-  return { checked, streak, total, allDone, signedIn, toggle, reset }
+  return { items, checked, streak, total, allDone, signedIn, toggle, reset }
 }

@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label'
 import { dayActivityMeta, dayActivityOrder } from '../components/dayActivity'
 import { defaultSlotMins, type ScheduleSlot } from '../data'
 import { useSchedule, buildDefaultSchedule } from '../lib/useSchedule'
+import { useBabyAge } from '../components/AgeBadge'
 import { useFieldLabels } from '../lib/useFieldLabels'
 import { useAppStore } from '../store'
 import { useT } from '../i18n'
@@ -20,6 +21,9 @@ export default function Schedule() {
   const t = useT()
   const ts = t.schedule
   const setCustomSchedule = useAppStore((s) => s.setCustomSchedule)
+  // Resetting goes back to the built-in day for *this child's age*, not to the
+  // 3–6 month one — the app now ships five sample days.
+  const baby = useBabyAge()
   const initial = useSchedule()
   const [rows, setRows] = useState<ScheduleSlot[]>(initial)
   const [saved, setSaved] = useState(false)
@@ -59,7 +63,7 @@ export default function Schedule() {
   const reset = () => {
     if (!window.confirm(ts.resetConfirm)) return
     setCustomSchedule(null)
-    setRows(buildDefaultSchedule(t))
+    setRows(buildDefaultSchedule(t, baby?.months ?? null))
     setSaved(true)
   }
 

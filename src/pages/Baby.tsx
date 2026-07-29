@@ -578,7 +578,7 @@ function AddMeasurementForm({
             />
           </div>
           {/*  The three `indicator*` scales are read-outs, not limits: they span the
-              plausible range of the first two years (WHO 0–24 months, boys and
+              plausible range of the first three years (WHO 0–36 months, boys and
               girls, roughly 3rd–97th centile, rounded outward), so the bar under
               the value says "about here in the range" while you step. Weight
               starts at 0 because a newborn's 3kg genuinely belongs near the
@@ -593,7 +593,7 @@ function AddMeasurementForm({
               floor={0}
               step={0.1}
               smallStep={0.01}
-              indicatorMax={15}
+              indicatorMax={20}
               {...fields.stepper}
             />
           </div>

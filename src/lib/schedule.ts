@@ -78,7 +78,25 @@ export function minutesUntilBlockStart(index: number, now: Date = new Date()): n
   return diff
 }
 
-/** Cumulative daily tummy-time target (minutes) by age; mirrors the chart ramp. */
+/**
+ * The daily floor-time target in minutes, and which kind of movement it is.
+ *
+ * Under a year it is tummy time, ramping 5 → 60 min a day by four months (the
+ * chart's ramp). From the first birthday tummy time stops being the point: the
+ * WHO 24-hour guidance for 1–4 year-olds is **180 min a day of activity of any
+ * intensity**, so the target jumps and the label has to change with it —
+ * otherwise a two-year-old's tracker asks for 60 minutes of lying on their front.
+ */
+export function activityTargetForAge(months: number | null): {
+  mins: number
+  kind: 'tummy' | 'movement'
+} {
+  if (months != null && months >= 12) return { mins: 180, kind: 'movement' }
+  return { mins: tummyTargetForAgeMonths(months), kind: 'tummy' }
+}
+
+/** Cumulative daily tummy-time target (minutes) by age; mirrors the chart ramp.
+ *  Only meaningful under a year — see {@link activityTargetForAge}. */
 export function tummyTargetForAgeMonths(months: number | null): number {
   if (months == null) return 60
   if (months < 1) return 5

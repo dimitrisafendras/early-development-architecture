@@ -6,11 +6,13 @@ import {
   Hand,
   MonitorOff,
   Clock,
+  Hourglass,
   Users,
   Eye,
   HeartHandshake,
   Moon,
   TriangleAlert,
+  Tv,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Eyebrow } from '@/components/Eyebrow'
@@ -21,6 +23,8 @@ import {
   awakeWindowUppers,
   interactionHow,
   interactionSoloRules,
+  screenBands,
+  screenUppers,
 } from '../data'
 import { AgeBadge, useBabyAge } from '../components/AgeBadge'
 import { bandIndex } from '../lib/schedule'
@@ -36,6 +40,7 @@ export function Interaction() {
   const ti = t.interaction
   const baby = useBabyAge()
   const activeWindow = baby ? bandIndex(baby.months, awakeWindowUppers) : -1
+  const activeScreen = baby ? bandIndex(baby.months, screenUppers) : -1
   return (
     <section id="interaction">
       {/* How much — daily dose */}
@@ -153,6 +158,34 @@ export function Interaction() {
             </Card>
           )
         })}
+      </div>
+
+      {/* Screens — the one number here that is a ceiling, not a target. It sits
+          with the interaction dose because that is what a screen displaces. */}
+      <Eyebrow as="h3" size="md" className="mb-2">
+        {ti.screenTitle}
+      </Eyebrow>
+      <p className="mb-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">{ti.screenNote}</p>
+      <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-3">
+        {screenBands.map((band, i) => (
+          <Card
+            key={ti.screens[i].age}
+            className={cn('h-full', i === activeScreen && 'ring-2 ring-primary')}
+          >
+            <CardContent>
+              <IconChip className={statusTone[band.tone].chip}>
+                <Tv />
+              </IconChip>
+              <p className="mt-3 text-[15px] font-semibold text-foreground">{ti.screens[i].age}</p>
+              <div className="mt-1 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <Hourglass className="size-3.5" aria-hidden /> {ti.screens[i].limit}
+              </div>
+              <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+                {ti.screens[i].text}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* How — make the minutes count */}

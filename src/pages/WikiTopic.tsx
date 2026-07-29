@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { Eyebrow } from '../components/Eyebrow'
 import { PageFrame } from '../components/PageFrame'
-import { wikiTopics, wikiPath, findTopic, groupOfTopic } from '../sections/registry'
+import { wikiTopics, wikiPath, findTopic, ageGroupOfTopic } from '../sections/registry'
 import { useT } from '../i18n'
 
 /**
@@ -42,7 +42,9 @@ export default function WikiTopic() {
 
   const prev = index > 0 ? wikiTopics[index - 1] : undefined
   const next = index < wikiTopics.length - 1 ? wikiTopics[index + 1] : undefined
-  const group = groupOfTopic(topic.slug)
+  // The topic's primary age chapter — a care topic sits in several chapters, and
+  // the breadcrumb names the first one it appears in (same order the pager walks).
+  const chapter = ageGroupOfTopic(topic.slug)
   const Section = topic.Component
 
   return (
@@ -61,10 +63,10 @@ export default function WikiTopic() {
             <BookOpen className="size-3.5" />
             {t.wiki.index}
           </Link>
-          {group && (
+          {chapter && (
             <>
               <ChevronRight className="size-3.5 shrink-0" aria-hidden />
-              <span className="text-muted-foreground">{t.hub.groups[group]}</span>
+              <span className="text-muted-foreground">{t.hub.ageGroups[chapter].title}</span>
             </>
           )}
           <ChevronRight className="size-3.5 shrink-0" aria-hidden />

@@ -1,27 +1,31 @@
 import { TriangleAlert } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
+import { Eyebrow } from '@/components/Eyebrow'
 import { Badge } from '@/components/ui/badge'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { statusTone } from '../lib/tone'
 import { TummyTimeChart } from '../components/charts'
 import { useBabyAge } from '../components/AgeBadge'
-import { tummyTargetForAgeMonths } from '../lib/schedule'
+import { activityTargetForAge } from '../lib/schedule'
 import { useT } from '../i18n'
 
 export function TummyTime() {
   const t = useT()
   const tt = t.tummyTime
   const baby = useBabyAge()
+  // Past the first birthday the banner has to stop asking for tummy minutes and
+  // start asking for movement minutes — same field, different target entirely.
+  const target = activityTargetForAge(baby?.months ?? null)
   return (
     <section id="tummy-time">
       {baby && (
         <Card className="mb-6 bg-primary/5 ring-1 ring-primary/30">
           <CardContent className="text-sm font-medium text-foreground">
-            {tt.ageTarget
+            {(target.kind === 'movement' ? tt.ageTargetMovement : tt.ageTarget)
               .replace('{name}', baby.name)
               .replace('{age}', String(baby.months))
-              .replace('{mins}', String(tummyTargetForAgeMonths(baby.months)))}
+              .replace('{mins}', String(target.mins))}
           </CardContent>
         </Card>
       )}
@@ -97,6 +101,23 @@ export function TummyTime() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Where tummy time goes after six months. Without this the page reads as
+          though a two-year-old still owes 60 minutes on their front. */}
+      <Eyebrow as="h3" size="md" className="mt-10 mb-2">
+        {tt.afterTitle}
+      </Eyebrow>
+      <p className="mb-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">{tt.afterNote}</p>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {tt.after.map((row) => (
+          <div
+            key={row.strong}
+            className="rounded-xl bg-muted p-4 text-[13px] leading-relaxed text-muted-foreground"
+          >
+            <strong className="text-foreground">{row.strong}</strong> {row.text}
+          </div>
+        ))}
       </div>
     </section>
   )

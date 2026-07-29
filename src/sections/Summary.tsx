@@ -4,13 +4,12 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { statusTone } from '../lib/tone'
-import { checklistItems } from '../data'
 import { useDailyChecklist } from '../lib/useDailyChecklist'
 import { useT } from '../i18n'
 
 export function Summary() {
   const t = useT()
-  const { checked, streak, total, allDone, signedIn, toggle, reset } = useDailyChecklist()
+  const { items, checked, streak, total, allDone, signedIn, toggle, reset } = useDailyChecklist()
 
   return (
     <section id="summary">
@@ -31,7 +30,7 @@ export function Summary() {
             </div>
           )}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {checklistItems.map((item, i) => {
+            {items.map(({ item, index: i }) => {
               const isChecked = checked.includes(item.id)
               return (
                 <label
