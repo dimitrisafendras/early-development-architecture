@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
+import { Hourglass } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Eyebrow } from '@/components/Eyebrow'
 import { cn } from '@/lib/utils'
 import { dayActivityMeta as activity, dayActivityOrder as legendOrder } from '../components/dayActivity'
 import { fullDaySchedule } from '../data'
-import { activeTimeIndex } from '../lib/schedule'
+import { activeTimeIndex, slotEndTime, formatDuration } from '../lib/schedule'
 import { useT } from '../i18n'
 
 export function FullDay() {
@@ -106,8 +107,11 @@ export function FullDay() {
                     )}
                   >
                     <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                      {/* The window, not just the start: "09:00 – 10:15" answers
+                          when it happens and how long it runs in one read, with
+                          the duration spelled out after it for the long ones. */}
                       <span className="font-heading text-sm font-bold tabular-nums text-foreground">
-                        {slot.time}
+                        {slot.time} – {slotEndTime(slot.time, slot.mins)}
                       </span>
                       <span className="text-[15px] font-semibold text-foreground">
                         {tf.slots[i].title}
@@ -115,6 +119,11 @@ export function FullDay() {
                       <Eyebrow as="span" size="sm" tone="inherit" className={a.text}>
                         {tf.types[slot.type]}
                       </Eyebrow>
+                      <span className="inline-flex items-center gap-1 text-xs font-semibold tabular-nums text-muted-foreground">
+                        <Hourglass className="size-3.5" aria-hidden />
+                        <span className="sr-only">{tf.durationLabel}: </span>
+                        {formatDuration(slot.mins, t.routineLive.hour, t.routineLive.minute)}
+                      </span>
                       {isNow && (
                         <Eyebrow
                           as="span"
@@ -139,6 +148,11 @@ export function FullDay() {
 
       <p className="mt-6 rounded-xl bg-muted p-4 text-xs leading-relaxed text-muted-foreground">
         {tf.note}
+      </p>
+      {/* The lengths are typical middles of published ranges, not stopwatch
+          targets — say so next to the timeline that now shows them. */}
+      <p className="mt-3 rounded-xl bg-muted p-4 text-xs leading-relaxed text-muted-foreground">
+        {tf.lengthNote}
       </p>
       <p className="mt-6 text-xs text-muted-foreground">{tf.sourcesLabel}</p>
     </section>

@@ -26,7 +26,14 @@ import { Button } from '@/components/ui/button'
 import { GlassButton, GlassScrollArea, type GlassScrollAreaHandle } from '@/design-system/components'
 import { cn } from '@/lib/utils'
 import { feedingRows, feedingUppers, type DayActivity, type ScheduleSlot } from '../data'
-import { activeTimeIndex, tummyTargetForAgeMonths, ageInMonths, bandIndex } from '../lib/schedule'
+import {
+  activeTimeIndex,
+  slotTiming,
+  formatDuration,
+  tummyTargetForAgeMonths,
+  ageInMonths,
+  bandIndex,
+} from '../lib/schedule'
 import { useSchedule } from '../lib/useSchedule'
 import { wikiPath, findTopic } from '../sections/registry'
 import { useBabies } from '../lib/useBabies'
@@ -113,31 +120,6 @@ export default function Day() {
   )
 }
 
-/* ------------------------------------------------------------------ helpers */
-
-function formatCountdown(mins: number, h: string, m: string): string {
-  const hr = Math.floor(mins / 60)
-  const mn = mins % 60
-  return hr > 0 ? `${hr}${h} ${mn}${m}` : `${mn}${m}`
-}
-
-function minutesOfDay(hhmm: string): number {
-  const m = hhmm.match(/(\d{1,2}):(\d{2})/)
-  return m ? Number(m[1]) * 60 + Number(m[2]) : 0
-}
-
-/** Minutes remaining in the slot at `idx` and how far through it we are (0–100). */
-function slotProgress(schedule: ScheduleSlot[], idx: number, now: Date) {
-  const nextIdx = (idx + 1) % schedule.length
-  const curStart = minutesOfDay(schedule[idx].time)
-  const nextStart = minutesOfDay(schedule[nextIdx].time)
-  const span = ((nextStart - curStart + 24 * 60) % (24 * 60)) || 24 * 60
-  const cur = now.getHours() * 60 + now.getMinutes()
-  const remaining = (nextStart - cur + 24 * 60) % (24 * 60)
-  const pct = Math.min(100, Math.max(2, ((span - remaining) / span) * 100))
-  return { nextIdx, remaining, pct }
-}
-
 /* ---------------------------------------------------------------- moment card */
 
 /** The one live surface for the active moment: what it is, how far through it we
@@ -167,9 +149,11 @@ function MomentCard({
   const type = cur.type
   const meta = dayActivityMeta[type]
   const Icon = meta.icon
-  // `remaining`/`pct` only mean anything for the live slot; a previewed slot uses
-  // the same hand-off but shows the next slot's clock time instead of a countdown.
-  const { nextIdx, remaining, pct } = slotProgress(schedule, slot, now)
+  // `remaining`/`pct`/`running` only mean anything for the live slot; a previewed
+  // slot uses the same hand-off but shows its own clock window instead of a
+  // countdown. All of it comes from the slot's own `mins`, so "20m left" is time
+  // left *of the feed*, not time until whatever is next on the list.
+  const { nextIdx, mins, endTime, remaining, untilNext, pct, running } = slotTiming(schedule, slot, now)
   const next = schedule[nextIdx]
   const nextMeta = dayActivityMeta[next.type]
   const NextIcon = nextMeta.icon
@@ -263,11 +247,16 @@ function MomentCard({
             {/* Type + countdown on one line, then the title. The slot's detail
                 lives in the schedule beside this card — no need to repeat it. */}
             <div className="min-w-0 flex-1">
+              {/* Type, then the moment's *time*: how long it takes and — live —
+                  how much of that is left. The two facts the schedule used to
+                  leave out, side by side with the name of the activity. */}
               <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
                 <Eyebrow as="span" tone="inherit" className={meta.text}>
                   {t.fullDay.types[type]}
                 </Eyebrow>
-                {isNow ? (
+                {isNow && running ? (
+                  // "left of 3h 30m", never a bare countdown: the remainder only
+                  // means something against the length it is a remainder of.
                   <span
                     className={cn(
                       'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums',
@@ -276,12 +265,21 @@ function MomentCard({
                     style={{ backgroundColor: `${a}1f` }}
                   >
                     <Timer className="size-3.5" />
-                    {formatCountdown(remaining, tl.hour, tl.minute)} {t.daily.timeLeft}
+                    {formatDuration(remaining, tl.hour, tl.minute)} {t.daily.timeLeft} {t.day.ofDuration}{' '}
+                    {formatDuration(mins, tl.hour, tl.minute)}
+                  </span>
+                ) : isNow ? (
+                  // The activity's window has passed but the next one hasn't
+                  // started: say when it does rather than freeze a spent countdown.
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold tabular-nums text-muted-foreground">
+                    <Timer className="size-3.5" />
+                    {t.day.nextIn} {formatDuration(untilNext, tl.hour, tl.minute)}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold tabular-nums text-muted-foreground">
                     <Clock className="size-3.5" />
-                    {cur.time}
+                    <span className="sr-only">{t.day.durationLabel}: </span>
+                    {cur.time} – {endTime} · {formatDuration(mins, tl.hour, tl.minute)}
                   </span>
                 )}
               </div>
@@ -377,9 +375,12 @@ function Timeline({
   onSelect: (i: number) => void
 }) {
   const t = useT()
+  const tl = t.routineLive
   // How far through the live slot we are — drives both the ring around the NOW
-  // dot and how much of the rail segment leaving it is filled in.
-  const livePct = slotProgress(schedule, currentSlot, now).pct
+  // dot and how much of the rail segment leaving it is filled in. Measured
+  // against the slot's own length, so the arc completes when the activity is
+  // done rather than when the next one happens to start.
+  const livePct = slotTiming(schedule, currentSlot, now).pct
   const areaRef = useRef<GlassScrollAreaHandle>(null)
   const itemRefs = useRef<(HTMLLIElement | null)[]>([])
   const didCenter = useRef(false)
@@ -558,6 +559,9 @@ function Timeline({
                           type in words — so the rows stay two lines, uniform.
                           `gap-y-1` still matters in Greek, where the title itself
                           can wrap. */}
+                      {/* The duration rides *inside* the time chip rather than
+                          beside it: a third flex item is what used to wrap this
+                          ~290px column onto a ragged extra line. */}
                       <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
                         <span
                           className={cn(
@@ -571,6 +575,10 @@ function Timeline({
                           }
                         >
                           {slot.time}
+                          <span className="font-medium opacity-70">
+                            {' · '}
+                            {formatDuration(slot.mins, tl.hour, tl.minute)}
+                          </span>
                         </span>
                         <span
                           className={cn(

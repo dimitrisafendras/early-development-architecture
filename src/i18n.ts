@@ -184,6 +184,9 @@ const en = {
     jumpToNow: 'Jump to now',
     panelNowTag: 'Happening now',
     panelSelectedTag: 'Selected',
+    durationLabel: 'How long',
+    nextIn: 'Next in',
+    ofDuration: 'of',
     panelToolHint: 'Your tool for right now',
     noTool: 'No timer for this one — here’s what helps.',
     learnFull: 'Read more in the Wiki',
@@ -193,7 +196,7 @@ const en = {
   schedule: {
     title: 'Edit your day',
     subtitle:
-      'Tailor the daily rhythm to your baby. Add, remove, or re-order moments and set each time — the Day page follows this.',
+      'Tailor the daily rhythm to your baby. Add, remove, or re-order moments and set when each one starts and how long it takes — the Day page follows this.',
     addSlot: 'Add a moment',
     reset: 'Reset to default',
     resetConfirm: 'Replace your custom schedule with the built-in one?',
@@ -202,6 +205,7 @@ const en = {
     done: 'Done',
     empty: 'No moments yet — add one to start your day.',
     timeLabel: 'Time',
+    durationLabel: 'How long',
     typeLabel: 'Type',
     titleLabel: 'Title',
     detailLabel: 'Detail',
@@ -211,6 +215,8 @@ const en = {
     moveDown: 'Move later',
     remove: 'Remove',
     orderNote: 'Listed in the order they happen through the day.',
+    durationNote:
+      'Typical lengths at 3–4 months: a feed 20–30 min (10–20 at night), a nap 45 min–1h30, tummy time 5–10 min a session (2–3 sessions, 20–30 min a day), bath and massage ~30 min, wind-down 15–20 min. Keep each awake block — play, care and tummy time together — inside about 1h15–2h before the next sleep.',
   },
   daily: {
     title: 'Your Day',
@@ -528,52 +534,53 @@ const en = {
     description:
       'A predictable yet adaptable rhythm balancing direct engagement, physical tummy sessions, sensory regulation, and caregiver recovery.',
     nowLink: 'See what’s happening now',
+    durationLabel: 'How long',
     blocks: [
       {
         title: 'Morning Awakening & Auditory Scaffolding',
         items: [
-          { strong: 'Parentese Activation:', text: 'Speak in slow, warm, high-pitched tones during diaper changes & feedings.' },
-          { strong: 'Contingent Eye Contact:', text: 'Respond swiftly (1–4s) to morning coos or gazes.' },
+          { strong: 'Parentese Activation:', text: 'Speak in slow, warm, high-pitched tones during diaper changes & feedings.', dur: 'Every change & feed — 20–30 min a feed' },
+          { strong: 'Contingent Eye Contact:', text: 'Respond swiftly (1–4s) to morning coos or gazes.', dur: '10–15 min bursts, as long as they stay engaged' },
         ],
         focus: 'Focus: High linguistic input & emotional reconnect',
       },
       {
         title: 'Mid-Morning Physical & Cognitive Focus',
         items: [
-          { strong: 'Targeted Tummy Time:', text: 'Place baby on firm play mat while fully awake & supervised.' },
-          { strong: 'Face-to-Face Engagement:', text: 'Get down to eye level with high-contrast visual cards.' },
+          { strong: 'Targeted Tummy Time:', text: 'Place baby on firm play mat while fully awake & supervised.', dur: '5–10 min a session, 2–3 sessions a day' },
+          { strong: 'Face-to-Face Engagement:', text: 'Get down to eye level with high-contrast visual cards.', dur: '10–15 min while alert' },
         ],
         focus: 'Focus: Core muscle building & visual scanning',
       },
       {
         title: 'Midday Reset, Sensory Regulation & Music',
         items: [
-          { strong: 'Acoustic & Rhythmic Stimuli:', text: 'Play soft background lullabies or sing softly to regulate cortisol.' },
-          { strong: 'Environmental Control:', text: 'Keep screens OFF and background noise minimal.' },
+          { strong: 'Acoustic & Rhythmic Stimuli:', text: 'Play soft background lullabies or sing softly to regulate cortisol.', dur: '10–20 min of music or singing' },
+          { strong: 'Environmental Control:', text: 'Keep screens OFF and background noise minimal.', dur: 'All day, not a session' },
         ],
         focus: 'Focus: Sensory reset & nervous system calming',
       },
       {
         title: 'Afternoon Play & Dynamic Movement',
         items: [
-          { strong: 'Secondary Tummy Session:', text: 'Short 5–10 min tummy intervals to avoid motor fatigue.' },
-          { strong: 'Active Serve & Return:', text: 'Respond to leg kicks and babbling with warm touch & speech.' },
+          { strong: 'Secondary Tummy Session:', text: 'Short tummy intervals to avoid motor fatigue.', dur: '5–10 min — stop at the first grumble' },
+          { strong: 'Active Serve & Return:', text: 'Respond to leg kicks and babbling with warm touch & speech.', dur: '15–30 min of floor play' },
         ],
         focus: 'Focus: Dynamic mobility & tactile exploration',
       },
       {
         title: 'Evening Wind-Down & Acoustic Transition',
         items: [
-          { strong: 'Calming Auditory Cues:', text: 'Transition to slow vocal tones and dim lighting.' },
-          { strong: 'Caregiver Self-Care Buffer:', text: 'Rotate parenting duties to prevent caregiver burnout.' },
+          { strong: 'Calming Auditory Cues:', text: 'Transition to slow vocal tones and dim lighting.', dur: '15–20 min before the bedtime feed' },
+          { strong: 'Caregiver Self-Care Buffer:', text: 'Rotate parenting duties to prevent caregiver burnout.', dur: '20–30 min fully off duty' },
         ],
         focus: 'Focus: Melatonin onset & emotional grounding',
       },
       {
         title: 'Safe Nighttime Sleep & Memory Consolidation',
         items: [
-          { strong: 'Back-to-Sleep Position:', text: 'Place baby strictly on their back on a firm, flat mattress.' },
-          { strong: 'Neural Consolidation:', text: 'Deep slow-wave sleep converts daily synapses into long-term memory.' },
+          { strong: 'Back-to-Sleep Position:', text: 'Place baby strictly on their back on a firm, flat mattress.', dur: 'Every sleep, day and night' },
+          { strong: 'Neural Consolidation:', text: 'Deep slow-wave sleep converts daily synapses into long-term memory.', dur: '10–12 h overnight, 1–2 feeds inside it' },
         ],
         focus: 'Focus: Airway safety & memory wiring',
       },
@@ -778,6 +785,7 @@ const en = {
     description:
       'A realistic sample day (~3–4 months) weaving feeds, naps, tummy time, play, and wind-down into one rhythm. Shift the clock to your own baby — the order and balance matter more than the exact times.',
     legendTitle: 'Activity types',
+    durationLabel: 'How long',
     types: {
       feed: 'Feed',
       sleep: 'Sleep / nap',
@@ -787,12 +795,14 @@ const en = {
       wind: 'Wind-down',
     },
     note: "Newborns (0–3 mo) won't hold a fixed clock yet — feed on demand and follow sleepy cues. A pattern like this usually emerges around 3–4 months.",
+    lengthNote:
+      'Each length is the typical middle of the published range for this age, not a stopwatch target: feeds 20–30 min (most fall between 12 and 30, and night feeds stay short on purpose), naps 45 min–1h30 across three naps totalling ~4–5 h of daytime sleep, tummy time 5–10 min a session toward 20–30 min a day by 3 months, and each awake block roughly 1h15–2h before the next sleep. Your baby will run shorter or longer — end an activity when they tell you to, not when the clock does.',
     slots: [
       { title: 'Wake & morning feed', detail: 'Full feed after the longest sleep; plenty of eye contact and warm parentese.' },
       { title: 'Nappy & dress', detail: 'Narrate each step — a calm, chatty start sets the tone for the day.' },
       { title: 'Floor play & serve-return', detail: 'Get face-to-face, answer coos within 1–4s, offer high-contrast toys.' },
       { title: 'Tummy time', detail: 'Short supervised session while alert and happy.' },
-      { title: 'Morning nap', detail: '~1–1.5h. Watch for the first sleepy cues (yawning, gaze away) and settle early.' },
+      { title: 'Morning nap', detail: 'Watch for the first sleepy cues (yawning, gaze away) and settle early.' },
       { title: 'Feed on waking', detail: 'Offer a feed as soon as baby is awake and calm.' },
       { title: 'Books & singing', detail: 'Read aloud and sing rhymes; name whatever baby looks at.' },
       { title: 'Tummy time', detail: 'Second short session — add a mirror or mat toys for interest.' },
@@ -1000,6 +1010,9 @@ const el: Messages = {
     jumpToNow: 'Μετάβαση στο τώρα',
     panelNowTag: 'Συμβαίνει τώρα',
     panelSelectedTag: 'Επιλεγμένο',
+    durationLabel: 'Διάρκεια',
+    nextIn: 'Επόμενο σε',
+    ofDuration: 'από',
     panelToolHint: 'Το εργαλείο σας για τώρα',
     noTool: 'Δεν υπάρχει χρονομετρητής εδώ — να τι βοηθά.',
     learnFull: 'Διαβάστε περισσότερα στο Wiki',
@@ -1009,7 +1022,7 @@ const el: Messages = {
   schedule: {
     title: 'Επεξεργασία της μέρας',
     subtitle:
-      'Προσαρμόστε τον ημερήσιο ρυθμό στο μωρό σας. Προσθέστε, αφαιρέστε ή αναδιατάξτε στιγμές και ορίστε την ώρα — η σελίδα «Μέρα» τα ακολουθεί.',
+      'Προσαρμόστε τον ημερήσιο ρυθμό στο μωρό σας. Προσθέστε, αφαιρέστε ή αναδιατάξτε στιγμές και ορίστε πότε ξεκινά και πόσο διαρκεί καθεμία — η σελίδα «Μέρα» τα ακολουθεί.',
     addSlot: 'Προσθήκη στιγμής',
     reset: 'Επαναφορά στο προεπιλεγμένο',
     resetConfirm: 'Αντικατάσταση του προσαρμοσμένου προγράμματος με το προεπιλεγμένο;',
@@ -1018,6 +1031,7 @@ const el: Messages = {
     done: 'Τέλος',
     empty: 'Καμία στιγμή ακόμη — προσθέστε μία για να ξεκινήσει η μέρα.',
     timeLabel: 'Ώρα',
+    durationLabel: 'Διάρκεια',
     typeLabel: 'Τύπος',
     titleLabel: 'Τίτλος',
     detailLabel: 'Λεπτομέρεια',
@@ -1027,6 +1041,8 @@ const el: Messages = {
     moveDown: 'Αργότερα',
     remove: 'Αφαίρεση',
     orderNote: 'Εμφανίζονται με τη σειρά που συμβαίνουν μέσα στη μέρα.',
+    durationNote:
+      'Τυπικές διάρκειες στους 3–4 μήνες: τάισμα 20–30 λεπτά (10–20 τη νύχτα), υπνάκος 45 λεπτά–1ώ30, χρόνος μπρούμυτα 5–10 λεπτά ανά συνεδρία (2–3 συνεδρίες, 20–30 λεπτά τη μέρα), μπάνιο και μασάζ ~30 λεπτά, χαλάρωση 15–20 λεπτά. Κρατήστε κάθε περίοδο εγρήγορσης — παιχνίδι, φροντίδα και μπρούμυτα μαζί — γύρω στη 1ώ15–2ώ πριν τον επόμενο ύπνο.',
   },
   daily: {
     title: 'Η Μέρα σας',
@@ -1344,52 +1360,53 @@ const el: Messages = {
     description:
       'Ένας προβλέψιμος αλλά προσαρμόσιμος ρυθμός που ισορροπεί την άμεση αλληλεπίδραση, τις σωματικές συνεδρίες μπρούμυτα, την αισθητηριακή ρύθμιση και την ανάκαμψη του φροντιστή.',
     nowLink: 'Δείτε τι συμβαίνει τώρα',
+    durationLabel: 'Διάρκεια',
     blocks: [
       {
         title: 'Πρωινό Ξύπνημα & Ακουστική Υποστήριξη',
         items: [
-          { strong: 'Ενεργοποίηση Παιδικής Ομιλίας:', text: 'Μιλήστε με αργό, ζεστό, υψίτονο τρόπο κατά την αλλαγή πάνας & τα γεύματα.' },
-          { strong: 'Έγκαιρη Βλεμματική Επαφή:', text: 'Ανταποκριθείτε γρήγορα (1–4 δευτ.) στα πρωινά γουργουρίσματα ή βλέμματα.' },
+          { strong: 'Ενεργοποίηση Παιδικής Ομιλίας:', text: 'Μιλήστε με αργό, ζεστό, υψίτονο τρόπο κατά την αλλαγή πάνας & τα γεύματα.', dur: 'Σε κάθε αλλαγή & τάισμα — 20–30 λεπτά το τάισμα' },
+          { strong: 'Έγκαιρη Βλεμματική Επαφή:', text: 'Ανταποκριθείτε γρήγορα (1–4 δευτ.) στα πρωινά γουργουρίσματα ή βλέμματα.', dur: 'Ριπές 10–15 λεπτών, όσο κρατά το ενδιαφέρον' },
         ],
         focus: 'Εστίαση: Υψηλή γλωσσική είσοδος & συναισθηματική επανασύνδεση',
       },
       {
         title: 'Μεσοπρωινή Σωματική & Γνωστική Εστίαση',
         items: [
-          { strong: 'Στοχευμένος Χρόνος Μπρούμυτα:', text: 'Τοποθετήστε το μωρό σε σταθερό στρωματάκι ενώ είναι ξύπνιο & υπό επίβλεψη.' },
-          { strong: 'Πρόσωπο με Πρόσωπο:', text: 'Κατεβείτε στο ύψος των ματιών με κάρτες υψηλής οπτικής αντίθεσης.' },
+          { strong: 'Στοχευμένος Χρόνος Μπρούμυτα:', text: 'Τοποθετήστε το μωρό σε σταθερό στρωματάκι ενώ είναι ξύπνιο & υπό επίβλεψη.', dur: '5–10 λεπτά ανά συνεδρία, 2–3 συνεδρίες τη μέρα' },
+          { strong: 'Πρόσωπο με Πρόσωπο:', text: 'Κατεβείτε στο ύψος των ματιών με κάρτες υψηλής οπτικής αντίθεσης.', dur: '10–15 λεπτά όσο είναι σε εγρήγορση' },
         ],
         focus: 'Εστίαση: Ενδυνάμωση κορμού & οπτική σάρωση',
       },
       {
         title: 'Μεσημεριανή Αποφόρτιση, Αισθητηριακή Ρύθμιση & Μουσική',
         items: [
-          { strong: 'Ακουστικά & Ρυθμικά Ερεθίσματα:', text: 'Παίξτε απαλά νανουρίσματα ή τραγουδήστε σιγανά για να ρυθμίσετε την κορτιζόλη.' },
-          { strong: 'Έλεγχος Περιβάλλοντος:', text: 'Κρατήστε τις οθόνες ΚΛΕΙΣΤΕΣ και τον θόρυβο υποβάθρου ελάχιστο.' },
+          { strong: 'Ακουστικά & Ρυθμικά Ερεθίσματα:', text: 'Παίξτε απαλά νανουρίσματα ή τραγουδήστε σιγανά για να ρυθμίσετε την κορτιζόλη.', dur: '10–20 λεπτά μουσικής ή τραγουδιού' },
+          { strong: 'Έλεγχος Περιβάλλοντος:', text: 'Κρατήστε τις οθόνες ΚΛΕΙΣΤΕΣ και τον θόρυβο υποβάθρου ελάχιστο.', dur: 'Όλη τη μέρα, δεν είναι συνεδρία' },
         ],
         focus: 'Εστίαση: Αισθητηριακή επαναφορά & ηρεμία νευρικού συστήματος',
       },
       {
         title: 'Απογευματινό Παιχνίδι & Δυναμική Κίνηση',
         items: [
-          { strong: 'Δεύτερη Συνεδρία Μπρούμυτα:', text: 'Σύντομα διαστήματα 5–10 λεπτών για αποφυγή κινητικής κόπωσης.' },
-          { strong: 'Ενεργό Σερβίρισμα & Επιστροφή:', text: 'Ανταποκριθείτε στις κλωτσιές και το ψέλλισμα με ζεστό άγγιγμα & ομιλία.' },
+          { strong: 'Δεύτερη Συνεδρία Μπρούμυτα:', text: 'Σύντομα διαστήματα για αποφυγή κινητικής κόπωσης.', dur: '5–10 λεπτά — σταματήστε στο πρώτο γκρίνιασμα' },
+          { strong: 'Ενεργό Σερβίρισμα & Επιστροφή:', text: 'Ανταποκριθείτε στις κλωτσιές και το ψέλλισμα με ζεστό άγγιγμα & ομιλία.', dur: '15–30 λεπτά παιχνιδιού στο πάτωμα' },
         ],
         focus: 'Εστίαση: Δυναμική κινητικότητα & απτική εξερεύνηση',
       },
       {
         title: 'Βραδινή Χαλάρωση & Ακουστική Μετάβαση',
         items: [
-          { strong: 'Καθησυχαστικά Ακουστικά Σήματα:', text: 'Μετάβαση σε αργούς φωνητικούς τόνους και χαμηλό φωτισμό.' },
-          { strong: 'Διάλειμμα Αυτοφροντίδας Φροντιστή:', text: 'Εναλλάξτε τα καθήκοντα ανατροφής για να αποφύγετε την εξουθένωση.' },
+          { strong: 'Καθησυχαστικά Ακουστικά Σήματα:', text: 'Μετάβαση σε αργούς φωνητικούς τόνους και χαμηλό φωτισμό.', dur: '15–20 λεπτά πριν το τάισμα του ύπνου' },
+          { strong: 'Διάλειμμα Αυτοφροντίδας Φροντιστή:', text: 'Εναλλάξτε τα καθήκοντα ανατροφής για να αποφύγετε την εξουθένωση.', dur: '20–30 λεπτά εντελώς εκτός υπηρεσίας' },
         ],
         focus: 'Εστίαση: Έναρξη μελατονίνης & συναισθηματική σταθεροποίηση',
       },
       {
         title: 'Ασφαλής Νυχτερινός Ύπνος & Παγίωση Μνήμης',
         items: [
-          { strong: 'Θέση Ανάσκελα για Ύπνο:', text: 'Τοποθετήστε το μωρό αυστηρά ανάσκελα σε σταθερό, επίπεδο στρώμα.' },
-          { strong: 'Νευρική Παγίωση:', text: 'Ο βαθύς ύπνος βραδέων κυμάτων μετατρέπει τις καθημερινές συνάψεις σε μακροπρόθεσμη μνήμη.' },
+          { strong: 'Θέση Ανάσκελα για Ύπνο:', text: 'Τοποθετήστε το μωρό αυστηρά ανάσκελα σε σταθερό, επίπεδο στρώμα.', dur: 'Σε κάθε ύπνο, μέρα και νύχτα' },
+          { strong: 'Νευρική Παγίωση:', text: 'Ο βαθύς ύπνος βραδέων κυμάτων μετατρέπει τις καθημερινές συνάψεις σε μακροπρόθεσμη μνήμη.', dur: '10–12 ώρες τη νύχτα, με 1–2 ταΐσματα μέσα' },
         ],
         focus: 'Εστίαση: Ασφάλεια αεραγωγού & αποτύπωση μνήμης',
       },
@@ -1594,6 +1611,7 @@ const el: Messages = {
     description:
       'Μια ρεαλιστική ενδεικτική μέρα (~3–4 μηνών) που πλέκει ταΐσματα, ύπνους, χρόνο μπρούμυτα, παιχνίδι και χαλάρωση σε έναν ρυθμό. Προσαρμόστε το ρολόι στο δικό σας μωρό — η σειρά και η ισορροπία μετρούν περισσότερο από τις ακριβείς ώρες.',
     legendTitle: 'Τύποι δραστηριότητας',
+    durationLabel: 'Διάρκεια',
     types: {
       feed: 'Τάισμα',
       sleep: 'Ύπνος',
@@ -1603,12 +1621,14 @@ const el: Messages = {
       wind: 'Χαλάρωση',
     },
     note: 'Τα νεογνά (0–3 μην.) δεν κρατούν σταθερό ρολόι ακόμη — ταΐστε όποτε το ζητά και ακολουθήστε τα σημάδια ύπνου. Ένα μοτίβο σαν αυτό εμφανίζεται συνήθως γύρω στους 3–4 μήνες.',
+    lengthNote:
+      'Κάθε διάρκεια είναι το τυπικό μέσο του δημοσιευμένου εύρους για αυτή την ηλικία, όχι στόχος χρονομέτρου: ταΐσματα 20–30 λεπτά (τα περισσότερα πέφτουν μεταξύ 12 και 30, και τα νυχτερινά μένουν σύντομα επίτηδες), ύπνοι 45 λεπτά–1ώ30 σε τρεις υπνάκους που αθροίζουν ~4–5 ώρες ημερήσιου ύπνου, χρόνος μπρούμυτα 5–10 λεπτά ανά συνεδρία προς 20–30 λεπτά τη μέρα στους 3 μήνες, και κάθε περίοδος εγρήγορσης περίπου 1ώ15–2ώ πριν τον επόμενο ύπνο. Το δικό σας μωρό θα πάει πιο σύντομα ή πιο μακριά — τελειώστε μια δραστηριότητα όταν το λέει εκείνο, όχι το ρολόι.',
     slots: [
       { title: 'Ξύπνημα & πρωινό τάισμα', detail: 'Πλήρες τάισμα μετά τον μεγαλύτερο ύπνο· άφθονη βλεμματική επαφή και ζεστή παιδική ομιλία.' },
       { title: 'Αλλαγή & ντύσιμο', detail: 'Περιγράψτε κάθε βήμα — μια ήρεμη, ομιλητική αρχή δίνει τον τόνο της ημέρας.' },
       { title: 'Παιχνίδι στο πάτωμα & σερβίρισμα-επιστροφή', detail: 'Πρόσωπο με πρόσωπο, απαντήστε στα γουργουρίσματα σε 1–4 δευτ., κάρτες αντίθεσης.' },
       { title: 'Χρόνος μπρούμυτα', detail: 'Σύντομη εποπτευόμενη συνεδρία όσο είναι ξύπνιο και χαρούμενο.' },
-      { title: 'Πρωινός ύπνος', detail: '~1–1,5ω. Προσέξτε τα πρώτα σημάδια ύπνου (χασμουρητά, αποστροφή βλέμματος) και κοιμίστε νωρίς.' },
+      { title: 'Πρωινός ύπνος', detail: 'Προσέξτε τα πρώτα σημάδια ύπνου (χασμουρητά, αποστροφή βλέμματος) και κοιμίστε νωρίς.' },
       { title: 'Τάισμα στο ξύπνημα', detail: 'Προσφέρετε τάισμα μόλις το μωρό είναι ξύπνιο και ήρεμο.' },
       { title: 'Βιβλία & τραγούδι', detail: 'Διαβάστε δυνατά και τραγουδήστε ρίμες· ονομάστε ό,τι κοιτάζει το μωρό.' },
       { title: 'Χρόνος μπρούμυτα', detail: 'Δεύτερη σύντομη συνεδρία — προσθέστε καθρέφτη ή παιχνίδια στο στρωματάκι.' },

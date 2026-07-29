@@ -1,4 +1,6 @@
-import { scheduleBlocks } from '../data'
+import { scheduleBlocks, type ScheduleSlot } from '../data'
+
+const DAY = 24 * 60
 
 /** Local day key YYYY-MM-DD (not UTC) — used for checklist + tummy grouping. */
 export function todayKey(d: Date = new Date()): string {
@@ -8,11 +10,31 @@ export function todayKey(d: Date = new Date()): string {
   return `${y}-${m}-${day}`
 }
 
-/** Minutes since local midnight for the "HH:MM" that starts a block's label. */
-function startMinutes(time: string): number {
+/** Minutes since local midnight for the first "HH:MM" in a label — so it reads a
+ *  bare time ("09:00") and the start of a range ("06:00 – 08:30") alike. */
+export function minutesOfDay(time: string): number {
   const match = time.match(/(\d{1,2}):(\d{2})/)
   if (!match) return 0
   return Number(match[1]) * 60 + Number(match[2])
+}
+
+/** "HH:MM" for a minutes-since-midnight value, wrapping past midnight. */
+export function clockAt(mins: number): string {
+  const m = ((mins % DAY) + DAY) % DAY
+  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+}
+
+/** The clock time a slot of `mins` starting at `time` finishes. */
+export function slotEndTime(time: string, mins: number): string {
+  return clockAt(minutesOfDay(time) + mins)
+}
+
+/** A duration as "25m" / "1h 30m", using the locale's hour/minute suffixes. */
+export function formatDuration(mins: number, h: string, m: string): string {
+  const hr = Math.floor(mins / 60)
+  const mn = mins % 60
+  if (hr === 0) return `${mn}${m}`
+  return mn === 0 ? `${hr}${h}` : `${hr}${h} ${mn}${m}`
 }
 
 export interface BlockWindow {
@@ -28,7 +50,7 @@ export interface BlockWindow {
  * the first block's start the next morning.
  */
 export function blockWindows(): BlockWindow[] {
-  const starts = scheduleBlocks.map((b) => startMinutes(b.time))
+  const starts = scheduleBlocks.map((b) => minutesOfDay(b.time))
   return starts.map((startMin, index) => {
     const next = starts[(index + 1) % starts.length]
     const endMin = index === starts.length - 1 ? next + 24 * 60 : next
@@ -66,9 +88,43 @@ export function tummyTargetForAgeMonths(months: number | null): number {
   return 60
 }
 
-function minutesOf(time: string): number {
-  const m = time.match(/(\d{1,2}):(\d{2})/)
-  return m ? Number(m[1]) * 60 + Number(m[2]) : 0
+export interface SlotTiming {
+  /** Index of the slot that follows, wrapping at the end of the list. */
+  nextIdx: number
+  /** The slot's own length in minutes, and the clock time it ends at. */
+  mins: number
+  endTime: string
+  /** Whole minutes still to run of the activity itself (0 once it is over). */
+  remaining: number
+  /** Whole minutes from now until the *next* slot starts. */
+  untilNext: number
+  /** How far through the activity we are, 0–100 (clamped, min 2 so the arc shows). */
+  pct: number
+  /** `true` while now is inside the slot's own duration; `false` in the gap
+   *  between it finishing and the next slot starting. */
+  running: boolean
+}
+
+/** Where `now` sits inside the slot at `idx` — driven by the slot's own `mins`,
+ *  not by the gap to the next slot, so a 25-minute feed reads as 25 minutes even
+ *  when nothing else is scheduled for another 40. */
+export function slotTiming(schedule: ScheduleSlot[], idx: number, now: Date = new Date()): SlotTiming {
+  const slot = schedule[idx]
+  const mins = Math.max(1, slot.mins || 1)
+  const cur = now.getHours() * 60 + now.getMinutes()
+  const elapsed = (cur - minutesOfDay(slot.time) + DAY) % DAY
+  const nextIdx = (idx + 1) % schedule.length
+  const untilNext = (minutesOfDay(schedule[nextIdx].time) - cur + DAY) % DAY
+  const running = elapsed < mins
+  return {
+    nextIdx,
+    mins,
+    endTime: slotEndTime(slot.time, mins),
+    remaining: running ? mins - elapsed : 0,
+    untilNext,
+    pct: Math.min(100, Math.max(2, (elapsed / mins) * 100)),
+    running,
+  }
 }
 
 /**
@@ -83,7 +139,7 @@ export function activeTimeIndex(times: string[], now: Date = new Date()): number
   let latest = 0
   let latestStart = -1
   times.forEach((t, i) => {
-    const s = minutesOf(t)
+    const s = minutesOfDay(t)
     if (s <= cur && s > bestStart) {
       bestStart = s
       best = i

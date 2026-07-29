@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Check, ArrowRight } from 'lucide-react'
+import { Check, ArrowRight, Hourglass } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Eyebrow } from '@/components/Eyebrow'
 import { cn } from '@/lib/utils'
@@ -42,6 +42,14 @@ export function Routine() {
                         <Check className={cn('mt-0.5 size-4 shrink-0', ts.icon)} aria-hidden />
                         <span>
                           <strong className="text-foreground">{item.strong}</strong> {item.text}
+                          {/* How long the practice runs, on its own line under
+                              the instruction — the block header gives the window
+                              of the day, this gives the dose inside it. */}
+                          <span className="mt-1 flex items-center gap-1.5 text-xs font-medium">
+                            <Hourglass className={cn('size-3.5 shrink-0', ts.icon)} aria-hidden />
+                            <span className="sr-only">{t.routine.durationLabel}: </span>
+                            {item.dur}
+                          </span>
                         </span>
                       </div>
                     ))}

@@ -7,10 +7,12 @@ import { ChoiceGroup } from '../components/ChoiceGroup'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { dayActivityMeta, dayActivityOrder } from '../components/dayActivity'
-import type { ScheduleSlot } from '../data'
+import { defaultSlotMins, type ScheduleSlot } from '../data'
 import { useSchedule, buildDefaultSchedule } from '../lib/useSchedule'
+import { useFieldLabels } from '../lib/useFieldLabels'
 import { useAppStore } from '../store'
 import { useT } from '../i18n'
 
@@ -42,7 +44,12 @@ export default function Schedule() {
     dirty()
   }
   const add = () => {
-    setRows((r) => [...r, { time: '12:00', type: 'feed', title: '', detail: '' }])
+    // A new moment starts at the typical length for its kind rather than at 0 —
+    // an empty duration would render as an already-finished activity.
+    setRows((r) => [
+      ...r,
+      { time: '12:00', type: 'feed', mins: defaultSlotMins.feed, title: '', detail: '' },
+    ])
     dirty()
   }
   const save = () => {
@@ -98,7 +105,15 @@ export default function Schedule() {
 
       {/* Pulled up against the list it annotates — as a plain frame child it got
           the full block gap above *and* below and read as orphaned. */}
-      <p className="-mt-3 text-xs text-muted-foreground sm:-mt-5">{ts.orderNote}</p>
+      {/* One annotation block, not two frame children: the notes belong to the
+          list above them, so they share its pull-up and sit a line apart from
+          each other rather than a full block gap. The second one gives the
+          typical lengths — otherwise the duration is a number the caregiver has
+          to invent. */}
+      <div className="-mt-3 space-y-1.5 text-xs leading-relaxed text-muted-foreground sm:-mt-5">
+        <p>{ts.orderNote}</p>
+        <p>{ts.durationNote}</p>
+      </div>
 
       <div className="flex flex-wrap items-center gap-3 border-t border-border/70 pt-4">
         <Button variant="secondary" onClick={add}>
@@ -141,6 +156,7 @@ function SlotRow({
 }) {
   const t = useT()
   const ts = t.schedule
+  const fields = useFieldLabels()
   return (
     <Card>
       <CardContent className="flex flex-col gap-4">
@@ -153,6 +169,25 @@ function SlotRow({
               value={row.time}
               onChange={(e) => onPatch({ time: e.target.value })}
               className="w-32 tabular-nums"
+            />
+          </div>
+
+          {/* How long, beside when — the day is only followable if a moment says
+              both. `md`, matching the time field in the same row (never a height
+              patched by className). */}
+          <div className="space-y-1.5">
+            <Label htmlFor={`slot-mins-${index}`}>{ts.durationLabel}</Label>
+            <NumberInput
+              id={`slot-mins-${index}`}
+              {...fields.stepper}
+              size="md"
+              value={row.mins}
+              floor={1}
+              max={720}
+              step={5}
+              unit={t.tracker.minutesShort}
+              onValueChange={(v) => onPatch({ mins: v ?? defaultSlotMins[row.type] })}
+              className="w-36"
             />
           </div>
 

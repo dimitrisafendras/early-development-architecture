@@ -271,40 +271,74 @@ export const feedingUppers = [1, 2, 4, 999]
  *  + the legend; the slot text is localized in i18n (`fullDay.slots`). */
 export type DayActivity = 'feed' | 'sleep' | 'play' | 'tummy' | 'care' | 'wind'
 
-/** A fully-resolved schedule slot (time + type + its own text). The built-in
- *  {@link fullDaySchedule} pairs with localized text in i18n by index; a
- *  user-customized schedule (edited on /schedule) stores its text inline. */
+/** A fully-resolved schedule slot (when it starts, how long it takes, and its
+ *  own text). The built-in {@link fullDaySchedule} pairs with localized text in
+ *  i18n by index; a user-customized schedule (edited on /schedule) stores its
+ *  text inline.
+ *
+ *  `mins` is the slot's own length, not the gap to the next slot: a 07:00 feed
+ *  takes ~25 min even when the next thing on the list is at 07:40. Everything
+ *  that draws progress or a countdown reads `mins`, so the two are never
+ *  conflated (they used to be — a feed appeared to last 40 minutes). */
 export interface ScheduleSlot {
   time: string
   type: DayActivity
+  /** How long the activity itself takes, in whole minutes. */
+  mins: number
   title: string
   detail: string
 }
 
-/** A realistic ~3–4-month sample day, in order. Time is locale-independent;
- *  each entry's title/detail live in i18n at the same index. */
-export const fullDaySchedule: { time: string; type: DayActivity }[] = [
-  { time: '07:00', type: 'feed' },
-  { time: '07:40', type: 'care' },
-  { time: '08:00', type: 'play' },
-  { time: '08:30', type: 'tummy' },
-  { time: '09:00', type: 'sleep' },
-  { time: '10:15', type: 'feed' },
-  { time: '10:45', type: 'play' },
-  { time: '11:30', type: 'tummy' },
-  { time: '12:00', type: 'sleep' },
-  { time: '13:30', type: 'feed' },
-  { time: '14:00', type: 'play' },
-  { time: '15:15', type: 'sleep' },
-  { time: '16:15', type: 'feed' },
-  { time: '16:45', type: 'play' },
-  { time: '17:30', type: 'tummy' },
-  { time: '18:00', type: 'care' },
-  { time: '18:45', type: 'wind' },
-  { time: '19:00', type: 'feed' },
-  { time: '19:30', type: 'sleep' },
-  { time: '23:00', type: 'feed' },
-  { time: '03:00', type: 'feed' },
+/** Typical length per activity kind, used for a slot the caregiver has just
+ *  added on /schedule and to backfill a customized schedule saved before slots
+ *  carried a duration. Same evidence base as {@link fullDaySchedule}. */
+export const defaultSlotMins: Record<DayActivity, number> = {
+  feed: 25,
+  sleep: 75,
+  play: 30,
+  tummy: 10,
+  care: 20,
+  wind: 15,
+}
+
+/**
+ * A realistic ~3–4-month sample day, in order. Time is locale-independent; each
+ * entry's title/detail live in i18n at the same index.
+ *
+ * The durations are the typical middles of the published ranges for this age,
+ * not targets (see `fullDay.sourcesLabel`):
+ * - **feeds** 20–30 min at the breast/bottle, shorter at night (most feeds fall
+ *   in the 12–30 min band; night feeds are kept deliberately brief);
+ * - **naps** a 3-nap day totalling ~4–5 h — a ~1h15 morning nap, the longest
+ *   midday one at ~1h30, and a ~45 min afternoon catnap — with the first night
+ *   stretch running to the ~23:00 feed;
+ * - **tummy time** 5–10 min a session, 2–3 sessions, so the day totals the
+ *   20–30 min a 3-month-old is aiming for;
+ * - **awake blocks** (play + care + tummy) sized so each wake window lands
+ *   inside the 75–120 min a 3–4-month-old tolerates before the next sleep.
+ */
+export const fullDaySchedule: { time: string; type: DayActivity; mins: number }[] = [
+  { time: '07:00', type: 'feed', mins: 25 },
+  { time: '07:40', type: 'care', mins: 20 },
+  { time: '08:00', type: 'play', mins: 30 },
+  { time: '08:30', type: 'tummy', mins: 10 },
+  { time: '09:00', type: 'sleep', mins: 75 },
+  { time: '10:15', type: 'feed', mins: 25 },
+  { time: '10:45', type: 'play', mins: 35 },
+  { time: '11:30', type: 'tummy', mins: 10 },
+  { time: '12:00', type: 'sleep', mins: 90 },
+  { time: '13:30', type: 'feed', mins: 25 },
+  { time: '14:00', type: 'play', mins: 60 },
+  { time: '15:15', type: 'sleep', mins: 45 },
+  { time: '16:15', type: 'feed', mins: 25 },
+  { time: '16:45', type: 'play', mins: 40 },
+  { time: '17:30', type: 'tummy', mins: 5 },
+  { time: '18:00', type: 'care', mins: 30 },
+  { time: '18:45', type: 'wind', mins: 15 },
+  { time: '19:00', type: 'feed', mins: 25 },
+  { time: '19:30', type: 'sleep', mins: 210 },
+  { time: '23:00', type: 'feed', mins: 20 },
+  { time: '03:00', type: 'feed', mins: 15 },
 ]
 
 export const efficiencyScores: {
