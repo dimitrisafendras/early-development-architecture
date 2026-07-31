@@ -34,6 +34,26 @@ self.addEventListener('activate', (event) => {
   )
 })
 
+/* Clicking a notification opens the section it belongs to. An already-open tab
+   is focused and told the route (the app navigates client-side, see
+   NotificationsProvider); otherwise a new window opens directly on it. */
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close()
+  const path = (event.notification.data && event.notification.data.path) || '/'
+  const target = new URL(BASE.replace(/\/$/, '') + path, self.location.origin).href
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.startsWith(self.location.origin + BASE)) {
+          client.postMessage({ type: 'eda-navigate', path })
+          return 'focus' in client ? client.focus() : undefined
+        }
+      }
+      return self.clients.openWindow(target)
+    }),
+  )
+})
+
 self.addEventListener('fetch', (event) => {
   const req = event.request
   if (req.method !== 'GET') return

@@ -35,6 +35,20 @@ import { useEffect, useRef, type CSSProperties } from 'react'
  * #b24393, +26° #c0436a, +48° #bd4846) — a wider, better-tempered spread than
  * the crimson it replaced, which fanned into coral and read as a warning.
  *
+ * Motion has three independent layers, so the wash never repeats visibly:
+ * each field *drifts* (translate + scale), *swirls* (a small rotation, which the
+ * blur turns into a slow churn rather than a spin), and *breathes* (an opacity
+ * cycle on its own out-of-phase duration, so fields fade past each other instead
+ * of sliding as one sheet). Breathing only ever runs **downward** from full — see
+ * the contrast note below for why it must never overshoot 1.
+ *
+ * Grain: a tiled `feTurbulence` layer at ~4% sits over the fields. Its job is
+ * mostly technical — a 70px-blurred gradient across a whole viewport is exactly
+ * the case 8-bit-per-channel output bands on, and visible stair-stepping is what
+ * makes a big gradient read as cheap. The dither hides it and adds a little
+ * texture. It is a static tile, not animated: animated grain reads as noise on
+ * a video and costs a repaint every frame.
+ *
  * Contrast: the whole layer is dimmed to `opacity-40` in light mode and
  * `opacity-90` in dark. Light mode needs the heavier reduction because the light
  * `--primary` is a dark saturated blue/red; left at full strength an overlap of
@@ -44,9 +58,21 @@ import { useEffect, useRef, type CSSProperties } from 'react'
  * body text above 4.5:1 while still reading as a clear tint. In dark mode the
  * palette `--primary` is a pale blue/pink over a near-black background, so it
  * can run near full strength and still leave light text far above AA.
+ *
+ * **That budget is why the breath keyframes top out at exactly 1 and go down
+ * from there.** The peak alpha of every field is unchanged from the static
+ * design, so the AA headroom measured above still holds at every frame; the
+ * animation can only ever make the page lighter, never denser.
  */
 
 const FIELD_BLUR_PX = 70
+
+/** Tiled dither over the fields — see the grain note in the doc comment. A 160px
+ *  tile is large enough that the repeat is invisible and small enough that the
+ *  turbulence is rasterized once, cheaply. */
+const GRAIN_TILE_PX = 160
+const GRAIN_URL =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")"
 
 type AuroraField = {
   /** React key; also names where the field is anchored. */
@@ -59,12 +85,19 @@ type AuroraField = {
   color: string
   /** Degrees of hue nudge away from the token colour (see doc comment). */
   hue: number
-  /** Transform waypoints for the drift, starting from the identity transform so
-   *  the un-animated (reduced-motion) state is exactly the composed layout. */
+  /** Transform waypoints for the drift + swirl, starting from the identity
+   *  transform so the un-animated (reduced-motion) state is exactly the composed
+   *  layout. Rotation stays small: past ~10° the blurred ellipse starts to read
+   *  as a spinning object rather than a churning field. */
   path: string[]
   /** One-way duration in ms; the animation alternates, so a full there-and-back
    *  cycle is twice this. All are 19s+ → 38s+ per cycle. */
   duration: number
+  /** Opacity waypoints for the breath. Never above 1 — see the contrast note. */
+  breath: number[]
+  /** Deliberately coprime-ish with `duration` so drift and breath stay out of
+   *  phase for minutes rather than re-syncing every cycle. */
+  breathDuration: number
 }
 
 /** Anchored so the five fields cover the viewport corners plus one drifting
@@ -78,11 +111,13 @@ const AURORA_FIELDS: AuroraField[] = [
     color: 'color-mix(in oklab, var(--primary) 34%, transparent)',
     hue: 0,
     path: [
-      'translate3d(0%, 0%, 0) scale(1)',
-      'translate3d(7%, 5%, 0) scale(1.09)',
-      'translate3d(11%, -3%, 0) scale(1.15)',
+      'translate3d(0%, 0%, 0) scale(1) rotate(0deg)',
+      'translate3d(7%, 5%, 0) scale(1.09) rotate(4deg)',
+      'translate3d(11%, -3%, 0) scale(1.15) rotate(9deg)',
     ],
     duration: 19_000,
+    breath: [1, 0.84, 1],
+    breathDuration: 13_000,
   },
   {
     key: 'ne',
@@ -90,11 +125,13 @@ const AURORA_FIELDS: AuroraField[] = [
     color: 'color-mix(in oklab, var(--primary) 30%, transparent)',
     hue: -30,
     path: [
-      'translate3d(0%, 0%, 0) scale(1)',
-      'translate3d(-6%, 8%, 0) scale(1.12)',
-      'translate3d(-12%, 4%, 0) scale(1.05)',
+      'translate3d(0%, 0%, 0) scale(1) rotate(0deg)',
+      'translate3d(-6%, 8%, 0) scale(1.12) rotate(-5deg)',
+      'translate3d(-12%, 4%, 0) scale(1.05) rotate(-8deg)',
     ],
     duration: 23_500,
+    breath: [1, 0.79, 1],
+    breathDuration: 17_500,
   },
   {
     key: 'sw',
@@ -102,11 +139,13 @@ const AURORA_FIELDS: AuroraField[] = [
     color: 'color-mix(in oklab, var(--ring) 27%, transparent)',
     hue: 26,
     path: [
-      'translate3d(0%, 0%, 0) scale(1)',
-      'translate3d(9%, -6%, 0) scale(1.07)',
-      'translate3d(4%, -11%, 0) scale(1.16)',
+      'translate3d(0%, 0%, 0) scale(1) rotate(0deg)',
+      'translate3d(9%, -6%, 0) scale(1.07) rotate(6deg)',
+      'translate3d(4%, -11%, 0) scale(1.16) rotate(-3deg)',
     ],
     duration: 27_000,
+    breath: [1, 0.86, 1],
+    breathDuration: 22_000,
   },
   {
     key: 'se',
@@ -118,11 +157,13 @@ const AURORA_FIELDS: AuroraField[] = [
       'color-mix(in oklab, color-mix(in oklab, var(--accent) 55%, var(--primary)) 32%, transparent)',
     hue: 12,
     path: [
-      'translate3d(0%, 0%, 0) scale(1)',
-      'translate3d(-8%, -5%, 0) scale(1.13)',
-      'translate3d(-3%, -10%, 0) scale(1.06)',
+      'translate3d(0%, 0%, 0) scale(1) rotate(0deg)',
+      'translate3d(-8%, -5%, 0) scale(1.13) rotate(-4deg)',
+      'translate3d(-3%, -10%, 0) scale(1.06) rotate(7deg)',
     ],
     duration: 21_500,
+    breath: [1, 0.81, 1],
+    breathDuration: 15_500,
   },
   {
     key: 'mid',
@@ -130,11 +171,16 @@ const AURORA_FIELDS: AuroraField[] = [
     color: 'color-mix(in oklab, var(--primary) 22%, transparent)',
     hue: 48,
     path: [
-      'translate3d(0%, 0%, 0) scale(1)',
-      'translate3d(14%, 9%, 0) scale(1.18)',
-      'translate3d(22%, -4%, 0) scale(1.1)',
+      'translate3d(0%, 0%, 0) scale(1) rotate(0deg)',
+      'translate3d(14%, 9%, 0) scale(1.18) rotate(8deg)',
+      'translate3d(22%, -4%, 0) scale(1.1) rotate(-6deg)',
     ],
     duration: 30_500,
+    // The roaming highlight breathes deepest — it is the field most often over
+    // open page area, so letting it fall away entirely keeps the middle of a
+    // long document from sitting under a permanent tint.
+    breath: [1, 0.7, 1],
+    breathDuration: 19_500,
   },
 ]
 
@@ -169,12 +215,23 @@ export function AuroraBackground() {
       AURORA_FIELDS.forEach((field, index) => {
         const el = fieldRefs.current[index]
         if (!el) return
+        // Two animations per field rather than one composite keyframe list, so
+        // drift and breath keep their own durations and drift out of phase.
+        // They touch different properties, so they compose instead of colliding.
         animations.push(
           el.animate(
             { transform: field.path },
             {
               duration: field.duration,
               direction: 'alternate',
+              easing: 'ease-in-out',
+              iterations: Infinity,
+            },
+          ),
+          el.animate(
+            { opacity: field.breath },
+            {
+              duration: field.breathDuration,
               easing: 'ease-in-out',
               iterations: Infinity,
             },
@@ -211,11 +268,18 @@ export function AuroraBackground() {
             background: `radial-gradient(ellipse closest-side, ${field.color} 0%, transparent 76%)`,
             filter: `blur(${FIELD_BLUR_PX}px) hue-rotate(${field.hue}deg)`,
             // Promote once: the blurred gradient is painted a single time and
-            // only re-composited as it drifts.
-            willChange: 'transform',
+            // only re-composited as it drifts and breathes.
+            willChange: 'transform, opacity',
           }}
         />
       ))}
+      {/* Dither over the fields — kills the banding a viewport-wide blurred
+          gradient produces on 8-bit output. Static, and under the same parent
+          opacity as everything else, so it costs nothing per frame. */}
+      <div
+        className="absolute inset-0 opacity-[0.04] dark:opacity-[0.05]"
+        style={{ backgroundImage: GRAIN_URL, backgroundSize: `${GRAIN_TILE_PX}px ${GRAIN_TILE_PX}px` }}
+      />
     </div>
   )
 }

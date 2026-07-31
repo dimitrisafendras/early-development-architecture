@@ -33,6 +33,23 @@ interface AppState {
    *  page gets the width; expanded state persists across sessions. */
   navCollapsed: boolean
   toggleNav: () => void
+  /** Notification ids already opened/marked read. Ids are day-scoped, so the
+   *  list is pruned to today on every write and the bell re-lights tomorrow. */
+  notifSeen: string[]
+  markNotificationsSeen: (ids: string[]) => void
+  /** Ids the user swiped away — hidden for the rest of the day. */
+  notifDismissed: string[]
+  dismissNotification: (id: string) => void
+  /** Opt-in to mirroring notifications as OS notifications. The browser
+   *  permission is the other half; this only records the user's intent. */
+  notifPush: boolean
+  setNotifPush: (on: boolean) => void
+}
+
+/** Keep only ids belonging to `day` — notification ids carry their own day
+ *  (`kind:YYYY-MM-DD:…`), so yesterday's read/dismissed state never piles up. */
+function pruneToDay(ids: string[], day: string): string[] {
+  return ids.filter((id) => id.split(':')[1] === day)
 }
 
 export const useAppStore = create<AppState>()(
@@ -73,6 +90,21 @@ export const useAppStore = create<AppState>()(
       setCustomSchedule: (customSchedule) => set({ customSchedule }),
       navCollapsed: true,
       toggleNav: () => set((state) => ({ navCollapsed: !state.navCollapsed })),
+      notifSeen: [],
+      markNotificationsSeen: (ids) =>
+        set((state) => {
+          const day = todayKey()
+          const next = new Set([...pruneToDay(state.notifSeen, day), ...ids])
+          return { notifSeen: [...next] }
+        }),
+      notifDismissed: [],
+      dismissNotification: (id) =>
+        set((state) => {
+          const day = todayKey()
+          return { notifDismissed: [...new Set([...pruneToDay(state.notifDismissed, day), id])] }
+        }),
+      notifPush: false,
+      setNotifPush: (notifPush) => set({ notifPush }),
     }),
     {
       name: 'eda-theme',
@@ -86,6 +118,9 @@ export const useAppStore = create<AppState>()(
         cardOrder: state.cardOrder,
         customSchedule: state.customSchedule,
         navCollapsed: state.navCollapsed,
+        notifSeen: state.notifSeen,
+        notifDismissed: state.notifDismissed,
+        notifPush: state.notifPush,
       }),
     },
   ),

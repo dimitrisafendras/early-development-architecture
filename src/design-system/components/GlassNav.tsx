@@ -30,6 +30,14 @@ export interface GlassNavProps {
    * Falls back to `actions` when omitted.
    */
   mobileActions?: React.ReactNode
+  /**
+   * Controls that stay in the bar row at *every* breakpoint, between the brand
+   * and the section links. For the few controls that carry live state a user
+   * must be able to see without opening anything — a notification count, say —
+   * since `actions` is desktop-only and `mobileActions` is hidden behind the
+   * hamburger.
+   */
+  inlineActions?: React.ReactNode
   /** Currently-active anchor href, for link highlighting. */
   activeHref?: string
   /**
@@ -60,6 +68,7 @@ export function GlassNav({
   links = [],
   actions,
   mobileActions,
+  inlineActions,
   activeHref,
   renderLink,
   menuLabelOpen = 'Open menu',
@@ -148,6 +157,12 @@ export function GlassNav({
               {brand}
             </div>
 
+            {/* Always-visible controls — the brand's `flex-1` has already pushed
+                them to the trailing edge, so no `ml-auto` is needed. */}
+            {inlineActions && (
+              <div className="flex shrink-0 items-center gap-0.5">{inlineActions}</div>
+            )}
+
             {/* Section links — inline in the same row on `xl+`, collapsed into the
                 dropdown below that. */}
             {hasLinks && (
@@ -188,7 +203,7 @@ export function GlassNav({
                 {actions}
               </div>
             )}
-            {!actions && !hasLinks && <div className="ml-auto" />}
+            {!actions && !hasLinks && !inlineActions && <div className="ml-auto" />}
           </div>
         </GlassSurface>
 

@@ -164,8 +164,48 @@ everything still AA in all 4 theme×palette combos; `npm run build` green.
   not sent — the invitee accepts from their own Family page after signing in.)
 - **Extra:** hub cards are drag-reorderable within each theme group; order
   persists per browser (`cardOrder` in the zustand store).
-- **3.2 Reminders** — in-app scheduled toasts while open (simple); real Web
-  Push needs a push server → Supabase Edge Function + VAPID (evaluate then).
+- **3.2 Reminders / notifications** — ✅ PARTIAL (2026-07-31). One model, two
+  surfaces. `src/lib/notifications.ts` is pure: it takes a snapshot of live state
+  and returns today's notifications, each naming exactly one destination —
+  the moment happening now (`/`), a feed likely due or none logged yet (`/feed`),
+  floor time still owed (`/tracker`), a household invite waiting (`/family`),
+  the rotating topic of the day (`/wiki/:slug`), plus two ambient in-app-only
+  ones (checklist progress, "add your baby"). Ids are `kind:YYYY-MM-DD:detail`,
+  so read/dismissed/already-fired state expires at midnight by itself and
+  re-arms within the day (a new slot, another feed logged).
+  - In-app: `NotificationBell` (unread count + popover of link rows, dismiss,
+    mark-all-read) in the desktop rail and the mobile bar; state lives once in
+    `NotificationsProvider` (mounted in `Layout`) so the two bells share one set
+    of tracker/feed/baby subscriptions. `GlassNav` gained an `inlineActions` slot
+    for controls that must stay visible at every breakpoint.
+  - OS notifications: opt-in toggle in `SettingsMenu`, delivered via
+    `registration.showNotification` (`src/lib/push.ts`); `notificationclick` in
+    `public/sw.js` focuses an open tab and posts it the route, or opens a window
+    on it. `notifSeen` / `notifDismissed` / `notifPush` persist in the store.
+
+  ⬜ **Still to do — real background Web Push.** Delivery today is *local*: it
+  only fires while the app is running (background tab or minimised installed PWA
+  count; fully closed does not). Closing that gap needs a push server:
+  1. Generate a VAPID keypair; public key in `VITE_` env, private key as an Edge
+     Function secret (never in the repo).
+  2. `pushManager.subscribe({ applicationServerKey })` on opt-in; store the
+     subscription in a `push_subscriptions` table (owner + endpoint + keys,
+     RLS owner-only, unique on endpoint, prune on 404/410).
+  3. Supabase Edge Function on a cron (`pg_cron` or scheduled function) that
+     re-derives the same notification set server-side and pushes to each
+     subscription. **This means the rules in `notifications.ts` have to exist in
+     two places** — either port them to the function, or move the schedule/target
+     logic into Postgres and have both read it. Decide that before starting.
+  4. `push` event handler in `sw.js` (`event.data.json()` → `showNotification`
+     with the same `data.path` contract the click handler already reads).
+  5. Quiet hours + a per-kind opt-out, which local delivery didn't need because
+     the app being open was itself the filter.
+
+  ⬜ **Tune the routine cadence.** The "happening now" notification fires once
+  per schedule slot — ~12–14 a day on a newborn day. Correct for a routine
+  reminder and it is opt-in, but if it reads as too much: gate it to slots the
+  caregiver marks as reminder-worthy, or flip its `push` flag to in-app only
+  (one-line change in `buildNotifications`).
 - **3.3 Offline write queue** — SW/IndexedDB outbox replaying mutations
   (currently: localStorage-first covers the common case).
 - **3.4 el/en content for new features** — new strings go through the same

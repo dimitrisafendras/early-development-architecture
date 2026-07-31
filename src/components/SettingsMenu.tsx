@@ -6,6 +6,12 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Separator } from '@/components/ui/separator'
 import { useAppStore } from '../store'
 import { useInstall } from '../lib/useInstall'
+import {
+  pushPermission,
+  pushSupported,
+  requestPushPermission,
+  showPushNotification,
+} from '../lib/push'
 import { useT } from '../i18n'
 
 /**
@@ -32,6 +38,38 @@ export function SettingsMenu({
   const { canInstall, installed, ios, promptInstall } = useInstall()
   const [iosHint, setIosHint] = useState(false)
   const showInstall = !installed && (canInstall || ios)
+  const notifPush = useAppStore((s) => s.notifPush)
+  const setNotifPush = useAppStore((s) => s.setNotifPush)
+  const [pushDenied, setPushDenied] = useState(false)
+
+  /**
+   * Turning it on asks the browser first — the stored flag only records intent,
+   * so setting it without permission would leave a toggle that says "On" and
+   * silently delivers nothing. A one-off confirmation notification follows, so
+   * the effect of the switch is visible immediately.
+   */
+  async function togglePush(on: boolean) {
+    if (!on) {
+      setNotifPush(false)
+      setPushDenied(false)
+      return
+    }
+    const permission =
+      pushPermission() === 'granted' ? 'granted' : await requestPushPermission()
+    if (permission !== 'granted') {
+      setPushDenied(true)
+      setNotifPush(false)
+      return
+    }
+    setPushDenied(false)
+    setNotifPush(true)
+    void showPushNotification({
+      tag: 'push-enabled',
+      title: t.notifications.pushTestTitle,
+      body: t.notifications.pushTestBody,
+      path: '/',
+    })
+  }
 
   return (
     <Popover>
@@ -78,6 +116,26 @@ export function SettingsMenu({
             ]}
           />
         </Field>
+        {pushSupported() && (
+          <>
+            <Separator />
+            <Field label={t.notifications.push}>
+              <GlassToggleGroup
+                ariaLabel={t.notifications.push}
+                size="sm"
+                value={notifPush ? 'on' : 'off'}
+                onChange={(v) => void togglePush(v === 'on')}
+                options={[
+                  { value: 'off', label: t.notifications.pushOff },
+                  { value: 'on', label: t.notifications.pushOn },
+                ]}
+              />
+            </Field>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              {pushDenied ? t.notifications.pushDenied : t.notifications.pushHint}
+            </p>
+          </>
+        )}
         {showInstall && (
           <>
             <Separator />

@@ -132,6 +132,45 @@ const en = {
     iosBody: 'Tap the Share button, then "Add to Home Screen".',
     dismiss: 'Not now',
   },
+  // The notification centre (the nav bell) and the OS-notification opt-in.
+  // Every entry names a destination, so each notification is a way into a
+  // section rather than a message that ends where it starts.
+  notifications: {
+    title: 'Notifications',
+    unread: '{n} unread',
+    markAllRead: 'Mark all read',
+    dismiss: 'Dismiss',
+    empty: 'Nothing needs you right now.',
+    emptyHint:
+      'The moment you’re in, tummy time, feeds, and today’s topic show up here as they come due.',
+    push: 'Push notifications',
+    pushOn: 'On',
+    pushOff: 'Off',
+    pushHint:
+      'Reminders arrive while the app is open, including in a background tab. Opening one takes you straight to the section it belongs to.',
+    pushDenied:
+      'Your browser has blocked notifications for this site. Allow them in its site settings, then switch this on again.',
+    pushTestTitle: 'Notifications are on',
+    pushTestBody: 'You’ll be reminded about the moment you’re in, tummy time, and feeds.',
+    routineTitle: 'Happening now: {title}',
+    routineBody: '{mins} min left — open your day for the tool that goes with it.',
+    tummyTitle: 'Tummy time today',
+    movementTitle: 'Active play today',
+    tummyBody: '{mins} min still to go toward today’s target.',
+    feedDueTitle: 'A feed is likely due',
+    feedDueBody: 'The last one was {time} ago — your baby’s cues come first.',
+    feedNoneTitle: 'No feeds logged yet',
+    feedNoneBody: 'Log the first one to track today’s total and the gaps between feeds.',
+    checklistTitle: 'Today’s checklist',
+    checklistBody: '{done} of {total} done.',
+    wikiTitle: 'Today’s topic: {topic}',
+    babyTitle: 'Add your baby',
+    babyBody:
+      'With a birth date, the targets, the daily schedule and the Wiki chapters all tune themselves to their age.',
+    familyTitle: 'Family invitation',
+    familyBody: 'You have {n} invitation waiting.',
+    familyBodyPlural: 'You have {n} invitations waiting.',
+  },
   hero: {
     badge: 'Evidence-Based Early Psychology & Neuroscience',
     title: 'The Architecture of Early Development',
@@ -1311,6 +1350,43 @@ const el: Messages = {
     action: 'Εγκατάσταση',
     iosBody: 'Πατήστε το κουμπί Κοινή χρήση και μετά «Προσθήκη στην Αρχική οθόνη».',
     dismiss: 'Όχι τώρα',
+  },
+  notifications: {
+    title: 'Ειδοποιήσεις',
+    unread: '{n} μη αναγνωσμένες',
+    markAllRead: 'Σήμανση όλων ως αναγνωσμένων',
+    dismiss: 'Απόρριψη',
+    empty: 'Τίποτα δεν σας χρειάζεται αυτή τη στιγμή.',
+    emptyHint:
+      'Η στιγμή που διανύετε, ο χρόνος μπρούμυτα, τα ταΐσματα και το σημερινό θέμα εμφανίζονται εδώ μόλις προκύψουν.',
+    push: 'Ειδοποιήσεις συστήματος',
+    pushOn: 'Ναι',
+    pushOff: 'Όχι',
+    pushHint:
+      'Οι υπενθυμίσεις φτάνουν όσο η εφαρμογή είναι ανοιχτή, ακόμη και σε καρτέλα στο παρασκήνιο. Ανοίγοντας μία, πηγαίνετε κατευθείαν στην αντίστοιχη ενότητα.',
+    pushDenied:
+      'Ο browser σας έχει αποκλείσει τις ειδοποιήσεις για αυτόν τον ιστότοπο. Επιτρέψτε τις από τις ρυθμίσεις του και ενεργοποιήστε το ξανά.',
+    pushTestTitle: 'Οι ειδοποιήσεις είναι ενεργές',
+    pushTestBody: 'Θα σας υπενθυμίζουμε τη στιγμή που διανύετε, τον χρόνο μπρούμυτα και τα ταΐσματα.',
+    routineTitle: 'Τώρα: {title}',
+    routineBody: 'Απομένουν {mins} λεπτά — ανοίξτε τη μέρα σας για το κατάλληλο εργαλείο.',
+    tummyTitle: 'Χρόνος μπρούμυτα σήμερα',
+    movementTitle: 'Ενεργό παιχνίδι σήμερα',
+    tummyBody: 'Απομένουν {mins} λεπτά για τον σημερινό στόχο.',
+    feedDueTitle: 'Πιθανώς ήρθε η ώρα για τάισμα',
+    feedDueBody: 'Το τελευταίο ήταν πριν από {time} — τα σημάδια του μωρού προηγούνται.',
+    feedNoneTitle: 'Δεν έχει καταγραφεί τάισμα',
+    feedNoneBody:
+      'Καταγράψτε το πρώτο για να παρακολουθείτε το σύνολο της ημέρας και τα διαστήματα.',
+    checklistTitle: 'Η σημερινή λίστα',
+    checklistBody: '{done} από {total} ολοκληρώθηκαν.',
+    wikiTitle: 'Το σημερινό θέμα: {topic}',
+    babyTitle: 'Προσθέστε το μωρό σας',
+    babyBody:
+      'Με μια ημερομηνία γέννησης, οι στόχοι, το ημερήσιο πρόγραμμα και τα κεφάλαια του Wiki προσαρμόζονται στην ηλικία του.',
+    familyTitle: 'Πρόσκληση οικογένειας',
+    familyBody: 'Έχετε {n} πρόσκληση σε αναμονή.',
+    familyBodyPlural: 'Έχετε {n} προσκλήσεις σε αναμονή.',
   },
   hero: {
     badge: 'Τεκμηριωμένη Πρώιμη Ψυχολογία & Νευροεπιστήμη',

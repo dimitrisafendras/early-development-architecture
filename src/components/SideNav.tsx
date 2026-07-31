@@ -5,6 +5,7 @@ import '@/design-system/ds.css'
 import { cn } from '@/lib/utils'
 import { AccountControl } from './AccountControl'
 import { SettingsMenu } from './SettingsMenu'
+import { NotificationBell } from './NotificationBell'
 import { appAreas } from '../lib/appAreas'
 import { useAppStore } from '../store'
 import { useT } from '../i18n'
@@ -116,6 +117,11 @@ export function SideNav() {
             collapsed && 'items-center',
           )}
         >
+          <NotificationBell
+            align="start"
+            withLabel={!collapsed}
+            className={cn(row, 'text-foreground/70 hover:bg-foreground/5 hover:text-foreground')}
+          />
           <SettingsMenu
             align="start"
             withLabel={!collapsed}

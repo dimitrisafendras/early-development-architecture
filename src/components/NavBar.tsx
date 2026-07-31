@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { AccountControl } from './AccountControl'
 import { SettingsMenu } from './SettingsMenu'
 import { HeaderInfo, HeaderIdentity } from './HeaderContext'
+import { NotificationBell } from './NotificationBell'
 import { appAreas } from '../lib/appAreas'
 import { useT } from '../i18n'
 
@@ -55,6 +56,11 @@ export function NavBar() {
           </Link>
           <HeaderInfo />
         </>
+      }
+      // In the bar itself rather than the hamburger: an unread count is only
+      // useful if it can be seen without opening anything.
+      inlineActions={
+        <NotificationBell className="grid size-11 shrink-0 place-items-center rounded-full text-foreground/80 transition-colors outline-none hover:bg-foreground/5 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/70 active:bg-foreground/10 sm:size-9" />
       }
       mobileActions={<MobileActions activeHref={pathname} />}
     />

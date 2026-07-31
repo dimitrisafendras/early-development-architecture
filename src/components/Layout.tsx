@@ -4,6 +4,7 @@ import { NavBar } from './NavBar'
 import { SideNav } from './SideNav'
 import { BottomNav } from './BottomNav'
 import { InstallPrompt } from './InstallPrompt'
+import { NotificationsProvider } from './NotificationsProvider'
 
 /** The scrolling element at `xl` (the shell itself doesn't scroll there), so
  *  route changes can reset *its* scrollTop instead of the window's. */
@@ -28,22 +29,26 @@ export const APP_SCROLL_ID = 'app-scroll'
  */
 export function Layout() {
   return (
-    <div className="flex min-h-svh flex-col xl:h-svh xl:flex-row xl:overflow-hidden">
-      {/* Mounted once for the whole app — see AuroraBackground's mounting
-          contract: no ancestor may create a containing block for `fixed`. */}
-      <AuroraBackground />
-      <SideNav />
-      {/* `min-w-0` so wide page content (tables, charts) can't push the rail. */}
-      <div id={APP_SCROLL_ID} className="flex min-w-0 flex-1 flex-col xl:min-h-0 xl:overflow-y-auto">
-        <NavBar />
-        {/* Grow the content region so a short page (e.g. sign-in) fills the
-            viewport instead of floating mid-screen. */}
-        <div className="flex flex-1 flex-col pb-bottom-nav xl:min-h-0">
-          <Outlet />
+    // The notification model is owned here so both navigation surfaces share one
+    // set of subscriptions — see NotificationsProvider.
+    <NotificationsProvider>
+      <div className="flex min-h-svh flex-col xl:h-svh xl:flex-row xl:overflow-hidden">
+        {/* Mounted once for the whole app — see AuroraBackground's mounting
+            contract: no ancestor may create a containing block for `fixed`. */}
+        <AuroraBackground />
+        <SideNav />
+        {/* `min-w-0` so wide page content (tables, charts) can't push the rail. */}
+        <div id={APP_SCROLL_ID} className="flex min-w-0 flex-1 flex-col xl:min-h-0 xl:overflow-y-auto">
+          <NavBar />
+          {/* Grow the content region so a short page (e.g. sign-in) fills the
+              viewport instead of floating mid-screen. */}
+          <div className="flex flex-1 flex-col pb-bottom-nav xl:min-h-0">
+            <Outlet />
+          </div>
         </div>
+        <BottomNav />
+        <InstallPrompt />
       </div>
-      <BottomNav />
-      <InstallPrompt />
-    </div>
+    </NotificationsProvider>
   )
 }
