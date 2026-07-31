@@ -1,12 +1,37 @@
 import type { ReactNode } from 'react'
+import {
+  CloudDrizzle,
+  CloudFog,
+  CloudLightning,
+  CloudRain,
+  CloudRainWind,
+  CloudSnow,
+  CloudSun,
+  Cloudy,
+  Sun,
+  type LucideIcon,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Eyebrow } from './Eyebrow'
 import { useBabyAge } from './AgeBadge'
 import { useDateLocale, formatDateKey, formatTimeKey } from '../lib/dates'
 import { todayKey } from '../lib/schedule'
 import { useNow } from '../lib/useNow'
-import { useWeather } from '../lib/useWeather'
+import { useWeather, type Condition } from '../lib/useWeather'
 import { useT } from '../i18n'
+
+/** One icon per grouped WMO condition — see `toCondition` in lib/useWeather. */
+const CONDITION_ICON: Record<Condition, LucideIcon> = {
+  clear: Sun,
+  partly: CloudSun,
+  overcast: Cloudy,
+  fog: CloudFog,
+  drizzle: CloudDrizzle,
+  rain: CloudRain,
+  showers: CloudRainWind,
+  snow: CloudSnow,
+  thunder: CloudLightning,
+}
 
 /**
  * One reading in the header bar: a small tracked label, then its value, on a
@@ -34,6 +59,20 @@ function Stat({ label, value, accent }: { label: string; value: ReactNode; accen
         {value}
       </span>
     </span>
+  )
+}
+
+/**
+ * The condition as a glyph, sitting on the readout's baseline.
+ *
+ * `aria-hidden`, because the condition is already in the accessibility tree as
+ * text beside it — the icon is the *visual* carrier below `sm`, not the
+ * semantic one.
+ */
+function WeatherIcon({ condition }: { condition: Condition }) {
+  const Icon = CONDITION_ICON[condition]
+  return (
+    <Icon aria-hidden className="mr-1.5 inline size-4 align-[-0.2em] text-muted-foreground" />
   )
 }
 
@@ -85,16 +124,23 @@ export function HeaderStatus() {
     { label: t.header.now, value: formatTimeKey(time, locale) },
     // Last in the row, and absent entirely when unknown — the reading is a
     // convenience (is it outing weather?), not something the header owes you.
-    // The condition drops below `sm`: the temperature is the part you read at a
-    // glance, and "Partly cloudy" is what would wrap the band onto two lines.
+    // Below `sm` the icon carries the condition on its own: the temperature is
+    // what you read at a glance, and "Partly cloudy" is what would wrap the band
+    // onto two lines. `sr-only sm:not-sr-only` keeps the words in the
+    // accessibility tree at every width while only painting them from `sm` up —
+    // one node, so a screen reader never hears the condition twice.
     ...(weather
       ? [
           {
             label: t.header.weather,
             value: (
               <>
+                {/* `inline` + a baseline nudge rather than a nested flex: the
+                    band is baseline-aligned, and an svg has no baseline of its
+                    own to contribute. */}
+                <WeatherIcon condition={weather.condition} />
                 {weather.tempC}°C
-                <span className="hidden font-normal text-muted-foreground sm:inline">
+                <span className="sr-only font-normal text-muted-foreground sm:not-sr-only sm:inline">
                   {' '}
                   {t.header.conditions[weather.condition]}
                 </span>
