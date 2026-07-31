@@ -1,4 +1,4 @@
-import { spacingScale, radiusScale } from '../tokens'
+import { spacingScale, radiusScale } from '@dimitrisafendras/liquid-glass/tokens'
 import { DocSection, DocBlock, Panel } from './primitives'
 
 export function SpacingRadiusSection() {

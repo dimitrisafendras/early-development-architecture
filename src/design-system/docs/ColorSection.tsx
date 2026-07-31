@@ -1,6 +1,6 @@
 import { useAppStore } from '@/store'
 import { Badge } from '@/components/ui/badge'
-import { palettes, semanticTokens, contrastReport, type Palette } from '../tokens'
+import { palettes, semanticTokens, contrastReport, type Palette } from '@dimitrisafendras/liquid-glass/tokens'
 import { DocSection, DocBlock, Panel, useCssVar } from './primitives'
 
 function Ramp({ palette, active }: { palette: Palette; active: boolean }) {

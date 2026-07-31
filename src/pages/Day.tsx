@@ -22,7 +22,7 @@ import { FeedProgress } from '../components/FeedProgress'
 import { Card, CardContent } from '@/components/ui/card'
 import { WidgetCard } from '../components/WidgetPage'
 import { Button } from '@/components/ui/button'
-import { GlassButton, GlassScrollArea, type GlassScrollAreaHandle } from '@/design-system/components'
+import { GlassButton, GlassScrollArea, type GlassScrollAreaHandle } from '@dimitrisafendras/liquid-glass'
 import { cn } from '@/lib/utils'
 import { feedingRows, feedingUppers, type DayActivity, type ScheduleSlot } from '../data'
 import {

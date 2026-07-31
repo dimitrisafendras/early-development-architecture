@@ -1,7 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { BookOpen, PanelLeftClose, PanelLeftOpen, type LucideIcon } from 'lucide-react'
-import { GlassSurface } from '@/design-system/components'
-import '@/design-system/ds.css'
+import { GlassSurface } from '@dimitrisafendras/liquid-glass'
 import { cn } from '@/lib/utils'
 import { AccountControl } from './AccountControl'
 import { SettingsMenu } from './SettingsMenu'

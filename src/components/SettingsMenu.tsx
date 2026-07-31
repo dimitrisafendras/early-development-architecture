@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Sun, Moon, Palette, SlidersHorizontal, Download } from 'lucide-react'
-import { GlassToggleGroup } from '@/design-system/components'
+import { GlassToggleGroup } from '@dimitrisafendras/liquid-glass'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 import { useAppStore } from '../store'

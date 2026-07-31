@@ -36,7 +36,7 @@ ChartJS.defaults.font.family = "'Comfortaa Variable', ui-rounded, system-ui, san
  * Palette + theme aware chart colors. `primary` tracks the active accent palette
  * (blue "Boy" / red "Girl") and lightens for dark theme; `primarySoft` is the
  * lighter ramp step used for secondary segments. Values mirror the ramps in
- * src/design-system/tokens.ts. Neutrals come from the DS neutral ramp.
+ * @dimitrisafendras/liquid-glass/tokens. Neutrals come from the DS neutral ramp.
  */
 const paletteHex = {
   blue: {

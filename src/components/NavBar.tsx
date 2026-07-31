@@ -1,7 +1,6 @@
 import { Link, useLocation } from 'react-router-dom'
 import { BookOpen } from 'lucide-react'
-import { GlassNav } from '@/design-system/components'
-import '@/design-system/ds.css'
+import { GlassNav } from '@dimitrisafendras/liquid-glass'
 import { cn } from '@/lib/utils'
 import { AccountControl } from './AccountControl'
 import { SettingsMenu } from './SettingsMenu'

@@ -8,8 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { materials } from '../tokens'
-import { GlassSurface, GlassButton } from '../components'
+import { materials } from '@dimitrisafendras/liquid-glass/tokens'
+import { GlassSurface, GlassButton } from '@dimitrisafendras/liquid-glass'
 import { DocSection, DocBlock, Panel } from './primitives'
 
 function GlassDemoCard({ variant }: { variant: 'regular' | 'clear' }) {
@@ -94,7 +94,7 @@ export function MaterialsSection() {
         </div>
       </DocBlock>
 
-      <DocBlock title="Material tokens" description="The recipe behind each variant, exported from tokens.ts.">
+      <DocBlock title="Material tokens" description="The recipe behind each variant, exported from @dimitrisafendras/liquid-glass/tokens.">
         <Panel flush>
           <Table>
             <TableHeader>

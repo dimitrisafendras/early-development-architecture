@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
 import './index.css'
+// The Liquid Glass material, imported once for the whole app — the components
+// that use it are no longer local, so no component pulls its own stylesheet in.
+import '@dimitrisafendras/liquid-glass/styles.css'
 import { seedTestData, clearTestData } from './lib/devSeed'
 
 // Dev-only test-data helpers. Visit `?seed` to load a backlog of tummy/feed

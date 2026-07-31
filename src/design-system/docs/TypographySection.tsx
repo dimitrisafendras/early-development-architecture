@@ -1,4 +1,4 @@
-import { fontFamilies, typeScale, weights } from '../tokens'
+import { fontFamilies, typeScale, weights } from '@dimitrisafendras/liquid-glass/tokens'
 import { DocSection, DocBlock, Panel } from './primitives'
 
 export function TypographySection() {

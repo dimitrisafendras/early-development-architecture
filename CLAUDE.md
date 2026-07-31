@@ -27,6 +27,7 @@ Shared daily logic is hook-first: `useDailyChecklist` (checklist + streak + sync
 - **shadcn/ui** (style `base-nova`, base-ui primitives) — components are vendored source in `src/components/ui/`, configured by `components.json`, added with `npx shadcn@latest add <name>`
   - `cn()` utility: `src/lib/utils.ts`
   - Path alias `@/` → `src/` (see `vite.config.ts` and the tsconfig files)
+- **`@dimitrisafendras/liquid-glass`** — the Liquid Glass material, an **external package** pinned to a git tag (see "Liquid Glass" below). Not editable from here
 - **shadcn MCP server** configured in `.mcp.json` — use it to browse/search/install registry components
 - **zustand** — single global store at `src/store.ts`
 - **react-router-dom** — routing; `src/App.tsx` holds the `<Routes>`, pages live in `src/pages/`
@@ -41,9 +42,25 @@ Shared daily logic is hook-first: `useDailyChecklist` (checklist + streak + sync
 | `src/components/` | Shared app components — `Layout` (app shell), `SideNav` (desktop rail) / `NavBar` (mobile bar) / `BottomNav`, `SettingsMenu`, `AuroraBackground`, `PageFrame`, `WidgetPage`, `SectionHeader`, `StatTile`, `AgeBadge`, `ProgressRing`, `dayActivity`, `charts.tsx` |
 | `src/components/ui/` | Vendored shadcn primitives. These are **owned source, not a dependency** — edit them directly to extend variants/behavior |
 | `src/sections/` | The infographic topic sections (registry-driven, rendered on the Wiki topic pages) |
-| `src/design-system/` | Design system: `tokens.ts` (typed design tokens), `ds.css` (glass material + `.ds-scroll-glass`), `components/` — `GlassSurface`, `GlassNav`, `GlassButton`, `GlassToggleGroup` (Liquid Glass material) and `GlassScrollArea` (content scroll utility) |
+| `src/design-system/docs/` | Sections rendered by the `/design-system` route. These document *this app* — its shell, its widget-page rhythm, its control scale — as much as the glass material, which is why they stayed when the material left (see "Liquid Glass") |
 | `src/data.ts` | All infographic content/data |
 | `src/store.ts` | zustand store — `dark` / `toggleTheme`, `palette` (`'blue' | 'red'`) / `setPalette`, `navCollapsed` / `toggleNav` (sidebar), latency simulator state, checklist state |
+
+## Liquid Glass (external design system)
+
+The glass material lives in its own public repo — **[dimitrisafendras/liquid-glass](https://github.com/dimitrisafendras/liquid-glass)** — and is consumed here as a git dependency pinned to a tag:
+
+```json
+"@dimitrisafendras/liquid-glass": "git+https://github.com/dimitrisafendras/liquid-glass.git#v0.1.0"
+```
+
+It ships TypeScript source and builds itself on `npm install` (a `prepare` script), so there is no committed `dist` to go stale — and no `--ignore-scripts` anywhere in CI, or the package arrives unbuilt.
+
+- **Import from the package**, never from a local path: `import { GlassSurface, GlassNav, GlassButton, GlassToggleGroup, GlassScrollArea } from '@dimitrisafendras/liquid-glass'`. Design tokens are on the `/tokens` subpath.
+- **The stylesheet is imported once**, in `src/main.tsx`. Never re-import it per component.
+- **Tailwind must be told the package exists.** `src/index.css` carries `@source "../node_modules/@dimitrisafendras/liquid-glass/dist"`. Tailwind v4 skips git-ignored directories when it scans for sources, so without that line the package's utility classes are silently never generated and the whole nav layer renders unstyled. Don't remove it.
+- **The package expects semantic custom properties** — `--primary`, `--foreground`, `--popover`, `--border`, `--ring`, … — which `src/index.css` already declares per theme × palette. The palette values there mirror `palettes` in the package's `tokens`; changing one means changing both.
+- **To change a glass component, change it in the other repo**, tag a release, and bump the `#v…` ref here. Editing anything under `node_modules/` is not a fix.
 
 ## Theming
 
@@ -83,10 +100,10 @@ Documented on `/design-system` under **Patterns** (`src/design-system/docs/Patte
 
 ## When to use which technology
 
-- **Design system first (respect the DS)** — always reach for an existing shared component before writing markup: shadcn primitives in `src/components/ui/*`, the Liquid Glass components in `src/design-system/components/*`, and the shared app components in `src/components/*` (`PageFrame`, `WidgetPage`, `SectionHeader`, `StatTile`, `AgeBadge`, `ProgressRing`, `GlassScrollArea`, charts, …). If a component almost fits but lacks a variant or behavior, **extend that component** (it's owned source) rather than hand-rolling a one-off. If a pattern is used on more than one screen (stat tiles, scroll regions, page headers, empty states), **extract it into a shared component** instead of duplicating it per page. Never reintroduce a bespoke version of something the DS already provides.
+- **Design system first (respect the DS)** — always reach for an existing shared component before writing markup: shadcn primitives in `src/components/ui/*`, the Liquid Glass components from `@dimitrisafendras/liquid-glass`, and the shared app components in `src/components/*` (`PageFrame`, `WidgetPage`, `SectionHeader`, `StatTile`, `AgeBadge`, `ProgressRing`, `GlassScrollArea`, charts, …). If a component almost fits but lacks a variant or behavior, **extend that component** (it's owned source) rather than hand-rolling a one-off. If a pattern is used on more than one screen (stat tiles, scroll regions, page headers, empty states), **extract it into a shared component** instead of duplicating it per page. Never reintroduce a bespoke version of something the DS already provides.
 - **shadcn primitives (`src/components/ui/*`)** — default for all standard UI: buttons, cards, form controls, overlays, etc. Never hand-roll a raw `<button>` or `<input>` when a primitive already exists.
 - **Control sizes — one scale, one size per row.** Every control (`Button`, `Input`, `NumberInput`, `DatePicker`, `TimePicker`, `DateTimePicker`, `Toggle`/`ToggleGroup`/`ChoiceGroup`) takes the same three sizes — `sm` / `md` / `lg` — and at a given size they are **exactly the same height**. The scale is defined once in **`src/components/ui/control-size.ts`** (`sm` 36→28px, `md` 44→32px, `lg` 48→40px; mobile-first, so `md` meets the 44px touch minimum on phones). Rules: give every control standing side by side in a row the **same** size; make one stand out with its **`variant`**, never by being taller; never patch a height with a `className` (`h-10`, `sm:h-9`) — if a size is wrong, fix the scale. `default` is the legacy alias of `md` (~60 call sites); new code says `md`. `Button`'s `xs`/`icon-xs` are deliberately off-scale dense chips — never put one in a row beside a field. The Liquid Glass nav layer (`GlassButton`, `GlassToggleGroup`) keeps its own chunkier scale; it never shares a row with a field.
-- **Liquid Glass material (`GlassSurface` / `GlassNav` / `GlassButton` / `GlassToggleGroup`)** — only for the floating navigation/control layer (nav bars, floating toolbars, capsule controls), per Liquid Glass guidance. Never use the glass *material* for content surfaces, and never stack glass on glass. (`GlassScrollArea` is a content utility — a scroll viewport with edge fades + a frosted self-hiding scrollbar — not a glass material surface; use it for any in-card scroll region.)
+- **Liquid Glass material (`GlassSurface` / `GlassNav` / `GlassButton` / `GlassToggleGroup`, from `@dimitrisafendras/liquid-glass`)** — only for the floating navigation/control layer (nav bars, floating toolbars, capsule controls), per Liquid Glass guidance. Never use the glass *material* for content surfaces, and never stack glass on glass. (`GlassScrollArea` is a content utility — a scroll viewport with edge fades + a frosted self-hiding scrollbar — not a glass material surface; use it for any in-card scroll region.)
 - **Plain Tailwind + semantic HTML** — layout, typography, one-off decorative elements only. If it's reusable, promote it to a shared component (see "Design system first").
 - **Color** — always use shadcn token classes (`bg-background`, `text-muted-foreground`, `bg-primary`, `border-border`, ...) so both themes and both palettes work correctly. Raw Tailwind palette classes (e.g. `bg-red-500`) are only for semantically fixed colors like success/warning/danger.
 - **State** — zustand for anything shared across components/routes (theme, palette, checklist, simulator). Local `useState` for everything component-local. Don't add a new state library.

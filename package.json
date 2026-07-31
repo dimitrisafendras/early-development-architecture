@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
+    "@dimitrisafendras/liquid-glass": "git+https://github.com/dimitrisafendras/liquid-glass.git#v0.1.0",
     "@fontsource-variable/comfortaa": "^5.3.0",
     "@supabase/supabase-js": "^2.110.8",
     "@tailwindcss/vite": "^4.3.3",

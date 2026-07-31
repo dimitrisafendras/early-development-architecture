@@ -1,6 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { GlassSurface } from '@/design-system/components'
-import '@/design-system/ds.css'
+import { GlassSurface } from '@dimitrisafendras/liquid-glass'
 import { cn } from '@/lib/utils'
 import { appAreas } from '../lib/appAreas'
 import { useT } from '../i18n'

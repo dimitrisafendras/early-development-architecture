@@ -3,6 +3,12 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/comfortaa";
 
+/* Tailwind v4 discovers sources by scanning the project and skipping anything
+   git-ignored — which means `node_modules`. The Liquid Glass components live
+   there now, so without this their utility classes would never be generated and
+   the nav layer would render unstyled. */
+@source "../node_modules/@dimitrisafendras/liquid-glass/dist";
+
 @custom-variant dark (&:is(.dark *, [data-theme='dark'] *));
 
 * {
@@ -248,7 +254,8 @@ section {
    would be one green for boys and another for girls. If you find yourself
    wanting a palette-tinted green, you want `--primary`, not `--success`.
 --------------------------------------------------------------------------- */
-/* Values mirror src/design-system/tokens.ts (semantic role mapping).
+/* Values mirror the `palettes` semantic role mapping exported by
+   @dimitrisafendras/liquid-glass/tokens — keep the two in sync.
    primary-foreground on primary is WCAG AA (>=4.5:1) verified in every
    theme x palette combination: blue 5.89 / 7.04, girl 4.88 / 6.68
    (light / dark). `muted-foreground` on `--accent` is also >=4.5:1 in both
@@ -353,7 +360,8 @@ section {
 }
 
 /* Honour the OS "reduce motion" switch app-wide, not just for the glass
-   material (which handles itself in ds.css). Keeps the aurora, the nav morph,
+   material (which handles itself, in the Liquid Glass package's own
+   stylesheet). Keeps the aurora, the nav morph,
    the progress rings and the "now" pulse from animating. */
 @media (prefers-reduced-motion: reduce) {
   *,

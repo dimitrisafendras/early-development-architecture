@@ -43,7 +43,7 @@ import { nowDateTimeKey } from '@/lib/dates'
 
 import { controlSizes, type ControlSize } from '@/components/ui/control-size'
 
-import { GlassSurface, GlassButton, GlassToggleGroup } from '../components'
+import { GlassSurface, GlassButton, GlassToggleGroup } from '@dimitrisafendras/liquid-glass'
 import { DocSection, DocBlock, Panel, DoDont } from './primitives'
 
 /**

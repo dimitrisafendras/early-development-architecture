@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom'
 import { Baby, Moon, Sun, ArrowLeft } from 'lucide-react'
 
 import { useAppStore } from '@/store'
-import '@/design-system/ds.css'
-import { GlassNav, GlassToggleGroup, GlassSurface, GlassButton } from '@/design-system/components'
+import { GlassNav, GlassToggleGroup, GlassSurface, GlassButton } from '@dimitrisafendras/liquid-glass'
 import { PrinciplesSection } from '@/design-system/docs/PrinciplesSection'
 import { MaterialsSection } from '@/design-system/docs/MaterialsSection'
 import { ColorSection } from '@/design-system/docs/ColorSection'
@@ -128,6 +127,19 @@ export default function DesignSystem() {
               Explore principles
             </GlassButton>
             <GlassButton render={<a href="#materials" />}>See the material</GlassButton>
+            {/* The material is a package now, not a folder in this repo — the
+                page documents it, but doesn't own it. */}
+            <GlassButton
+              render={
+                <a
+                  href="https://github.com/dimitrisafendras/liquid-glass"
+                  target="_blank"
+                  rel="noreferrer"
+                />
+              }
+            >
+              Source on GitHub
+            </GlassButton>
           </div>
 
           <GlassSurface interactive radius={28} className="mt-14 w-full max-w-md p-6 text-white">
@@ -159,7 +171,18 @@ export default function DesignSystem() {
 
       <footer className="border-t border-border">
         <div className="page-px mx-auto flex max-w-6xl flex-col gap-2 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>Liquid Glass — design system for the early-development architecture.</p>
+          <p>
+            Liquid Glass — the material ships as{' '}
+            <a
+              href="https://github.com/dimitrisafendras/liquid-glass"
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-foreground hover:text-primary"
+            >
+              @dimitrisafendras/liquid-glass
+            </a>
+            ; the shell, conventions and patterns below are this app's.
+          </p>
           <Link
             to="/"
             className="inline-flex min-h-11 w-fit items-center font-medium text-foreground hover:text-primary sm:min-h-0"
