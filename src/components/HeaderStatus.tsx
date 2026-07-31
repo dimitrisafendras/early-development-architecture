@@ -20,17 +20,33 @@ import { useNow } from '../lib/useNow'
 import { useWeather, type Condition } from '../lib/useWeather'
 import { useT } from '../i18n'
 
-/** One icon per grouped WMO condition — see `toCondition` in lib/useWeather. */
-const CONDITION_ICON: Record<Condition, LucideIcon> = {
-  clear: Sun,
-  partly: CloudSun,
-  overcast: Cloudy,
-  fog: CloudFog,
-  drizzle: CloudDrizzle,
-  rain: CloudRain,
-  showers: CloudRainWind,
-  snow: CloudSnow,
-  thunder: CloudLightning,
+/**
+ * One icon per grouped WMO condition — see `toCondition` in lib/useWeather.
+ *
+ * **Why raw palette classes here, of all places.** The colour rule is token
+ * classes only, so both palettes keep working — with a stated exception for
+ * semantically fixed colours. Weather is exactly that: sun is amber and rain is
+ * blue whether the app is in the blue palette or the pink one. Tinting these
+ * with `--primary` would make the forecast change colour when you switch which
+ * child the app is set up for, which is nonsense.
+ *
+ * **Why the -600/-400 pairing and not -500 everywhere.** Below `sm` the icon is
+ * the only *visible* carrier of the condition, so it has to clear WCAG 1.4.11
+ * non-text contrast (3:1) against the page background. On white, `amber-500`
+ * manages about 2.2:1 and `sky-500` about 2.9:1 — both fail. The -600 step
+ * clears it in the light theme, and -400 clears it comfortably against the
+ * near-black dark background. Re-check if a step moves.
+ */
+const CONDITION_ICON: Record<Condition, { icon: LucideIcon; className: string }> = {
+  clear: { icon: Sun, className: 'text-amber-600 dark:text-amber-400' },
+  partly: { icon: CloudSun, className: 'text-amber-600 dark:text-amber-400' },
+  overcast: { icon: Cloudy, className: 'text-slate-500 dark:text-slate-400' },
+  fog: { icon: CloudFog, className: 'text-slate-500 dark:text-slate-400' },
+  drizzle: { icon: CloudDrizzle, className: 'text-sky-600 dark:text-sky-400' },
+  rain: { icon: CloudRain, className: 'text-blue-600 dark:text-blue-400' },
+  showers: { icon: CloudRainWind, className: 'text-blue-600 dark:text-blue-400' },
+  snow: { icon: CloudSnow, className: 'text-cyan-600 dark:text-cyan-300' },
+  thunder: { icon: CloudLightning, className: 'text-violet-600 dark:text-violet-400' },
 }
 
 /**
@@ -75,10 +91,8 @@ function Stat({ label, value, accent }: { label?: string; value: ReactNode; acce
  * semantic one.
  */
 function WeatherIcon({ condition }: { condition: Condition }) {
-  const Icon = CONDITION_ICON[condition]
-  return (
-    <Icon aria-hidden className="mr-1.5 inline size-4 align-[-0.2em] text-muted-foreground" />
-  )
+  const { icon: Icon, className } = CONDITION_ICON[condition]
+  return <Icon aria-hidden className={cn('mr-1.5 inline size-4 align-[-0.2em]', className)} />
 }
 
 /** Age as "0 mo" under a year and "2 y 3 mo" past it — "27 mo" is not how anyone
@@ -98,8 +112,13 @@ function formatAge(months: number, monthsShort: string, yearsShort: string): str
  * four competing capsules across the top of every page and made the header look
  * like a filter bar. This is an instrument readout instead: label above value,
  * hairline rules between columns, no fills at all. Nothing here is pressable, so
- * nothing should look pressable — the only colour is on the child's name, because
- * every number in this app is read against their age.
+ * nothing should look pressable.
+ *
+ * **Colour is rationed to two things**, and both earn it. The child's name takes
+ * the palette accent, because every number in this app is read against their
+ * age. The weather glyph takes a fixed condition colour, because it is the only
+ * reading here that is not a number — a shape alone is slower to read at a
+ * glance than a shape plus "amber means sun". Everything else stays type.
  *
  * Rendered by `PageFrame`, so it is identical on every route and no page can
  * drift its own version.
