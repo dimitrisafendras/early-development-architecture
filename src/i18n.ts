@@ -93,8 +93,8 @@ const en = {
     age: 'Age',
     today: 'Today',
     now: 'Now',
-    weather: 'Out',
-    // WMO weather codes, grouped — see `toCondition` in lib/useWeather.
+    // WMO weather codes, grouped — see `toCondition` in lib/useWeather. The
+    // weather reading has no label of its own; its icon is the label.
     conditions: {
       clear: 'Clear',
       partly: 'Partly cloudy',
@@ -1327,7 +1327,6 @@ const el: Messages = {
     age: 'Ηλικία',
     today: 'Σήμερα',
     now: 'Τώρα',
-    weather: 'Έξω',
     conditions: {
       clear: 'Αίθριος',
       partly: 'Λίγα σύννεφα',

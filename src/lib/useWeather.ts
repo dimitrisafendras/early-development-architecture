@@ -94,31 +94,46 @@ async function fetchWeather(lat: number, lon: number): Promise<Weather | null> {
 }
 
 /**
- * Coordinates, asked for at most once per person.
+ * Guards the ask for the rest of this page load.
  *
- * The store's `weatherAsked` flag is what makes that true: it is set on the
- * *attempt*, so a refusal is remembered as firmly as an allow and the browser
- * prompt never comes back on a later page load.
+ * `HeaderStatus` remounts on every route change, so without this the app would
+ * call `getCurrentPosition` again on each navigation. It is deliberately *not*
+ * persisted: a page load is the right granularity for retrying something that
+ * may simply have timed out.
+ */
+let askedThisLoad = false
+
+/**
+ * Coordinates, asked for at most once per page load and at most once ever after
+ * a real refusal.
+ *
+ * The distinction between the two matters and is the bug this shape exists to
+ * avoid. Only `PERMISSION_DENIED` is a decision by the user; `TIMEOUT` and
+ * `POSITION_UNAVAILABLE` leave the browser permission at `prompt`, meaning they
+ * never actually chose. Persisting those as "asked" locked people out of the
+ * feature for good — the browser would still have been willing to ask.
  */
 function useCoords(): { lat: number; lon: number } | null {
   const coords = useAppStore((s) => s.weatherCoords)
-  const asked = useAppStore((s) => s.weatherAsked)
+  const denied = useAppStore((s) => s.weatherDenied)
   const setCoords = useAppStore((s) => s.setWeatherCoords)
+  const deny = useAppStore((s) => s.denyWeather)
 
   useEffect(() => {
-    if (asked || coords) return
-    if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      setCoords(null)
-      return
-    }
+    if (coords || denied || askedThisLoad) return
+    if (typeof navigator === 'undefined' || !navigator.geolocation) return
+    askedThisLoad = true
     navigator.geolocation.getCurrentPosition(
       (pos) => setCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-      // Denied, unavailable, or timed out all land here and are recorded the
-      // same way: asked, no coordinates, widget stays hidden.
-      () => setCoords(null),
+      (err) => {
+        // A refusal is final and worth remembering. A timeout or an
+        // unavailable fix is not — leave the persisted state alone so the next
+        // page load can try again.
+        if (err.code === err.PERMISSION_DENIED) deny()
+      },
       { timeout: 10_000, maximumAge: 30 * 60 * 1000 },
     )
-  }, [asked, coords, setCoords])
+  }, [coords, denied, setCoords, deny])
 
   return coords
 }

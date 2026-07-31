@@ -43,13 +43,18 @@ const CONDITION_ICON: Record<Condition, LucideIcon> = {
  * (`items-end`, `items-center`) the title read as sitting too high or too low.
  * Inline label + value gives every reading the same baseline as the `h1`, so the
  * whole band sits on one line.
+ *
+ * `label` is optional: the weather reading names itself with an icon, so a word
+ * in front of it would be the only redundant thing in the band.
  */
-function Stat({ label, value, accent }: { label: string; value: ReactNode; accent?: boolean }) {
+function Stat({ label, value, accent }: { label?: string; value: ReactNode; accent?: boolean }) {
   return (
     <span className="inline-flex items-baseline gap-2">
-      <Eyebrow as="span" size="sm" tone="muted">
-        {label}
-      </Eyebrow>
+      {label && (
+        <Eyebrow as="span" size="sm" tone="muted">
+          {label}
+        </Eyebrow>
+      )}
       <span
         className={cn(
           'font-heading text-sm font-semibold tabular-nums',
@@ -107,21 +112,25 @@ export function HeaderStatus() {
   const weather = useWeather()
   const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
 
-  const stats: { label: string; value: ReactNode; accent?: boolean }[] = [
+  // `key` is separate from `label` because the weather reading has no label —
+  // the list needs a stable identity either way.
+  const stats: { key: string; label?: string; value: ReactNode; accent?: boolean }[] = [
     ...(baby
       ? [
-          { label: t.header.baby, value: baby.name, accent: true },
+          { key: 'baby', label: t.header.baby, value: baby.name, accent: true },
           {
+            key: 'age',
             label: t.header.age,
             value: formatAge(baby.months, t.baby.monthsShort, t.baby.yearsShort),
           },
         ]
       : []),
     {
+      key: 'today',
       label: t.header.today,
       value: formatDateKey(todayKey(now), locale, { weekday: 'short', day: 'numeric', month: 'short' }),
     },
-    { label: t.header.now, value: formatTimeKey(time, locale) },
+    { key: 'now', label: t.header.now, value: formatTimeKey(time, locale) },
     // Last in the row, and absent entirely when unknown — the reading is a
     // convenience (is it outing weather?), not something the header owes you.
     // Below `sm` the icon carries the condition on its own: the temperature is
@@ -129,10 +138,12 @@ export function HeaderStatus() {
     // onto two lines. `sr-only sm:not-sr-only` keeps the words in the
     // accessibility tree at every width while only painting them from `sm` up —
     // one node, so a screen reader never hears the condition twice.
+    // No label: the icon already says "weather", and a word in front of it
+    // would be the one redundant thing in the band.
     ...(weather
       ? [
           {
-            label: t.header.weather,
+            key: 'weather',
             value: (
               <>
                 {/* `inline` + a baseline nudge rather than a nested flex: the
@@ -154,7 +165,7 @@ export function HeaderStatus() {
   return (
     <div className="flex flex-wrap items-baseline gap-x-4 gap-y-2">
       {stats.map((stat, i) => (
-        <span key={stat.label} className="inline-flex items-baseline gap-x-4">
+        <span key={stat.key} className="inline-flex items-baseline gap-x-4">
           {/* A rule *between* readings, never before the first — drawn on the item
               rather than with `divide-x` so it survives wrapping. `self-center`
               keeps it centred on the line while everything else baseline-aligns. */}

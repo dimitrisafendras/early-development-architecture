@@ -45,17 +45,24 @@ interface AppState {
   notifPush: boolean
   setNotifPush: (on: boolean) => void
   /**
-   * Coordinates for the header's weather reading, and whether we've already
-   * asked the browser for them.
+   * Coordinates for the header's weather reading, and whether the user actually
+   * refused to give them.
    *
-   * `weatherAsked` is what keeps the permission prompt to once per person: a
-   * denial leaves `weatherCoords` null forever, and without the flag every page
-   * load would ask again. Both persist, so an allow is remembered too and the
-   * reading is there on the next visit without a prompt.
+   * `weatherDenied` records a *decision*, not an attempt. The first version
+   * recorded the attempt, which quietly conflated three different outcomes: a
+   * real refusal, a prompt the user dismissed without answering, and a
+   * timeout. Only the first is a decision — the other two leave the browser
+   * permission sitting at `prompt`, meaning the user never chose, yet the app
+   * had already resolved never to ask again. Weather was then unreachable
+   * without clearing site data.
+   *
+   * Both persist: an allow is remembered too, so the reading is there on the
+   * next visit with no prompt at all.
    */
   weatherCoords: { lat: number; lon: number } | null
-  weatherAsked: boolean
-  setWeatherCoords: (coords: { lat: number; lon: number } | null) => void
+  weatherDenied: boolean
+  setWeatherCoords: (coords: { lat: number; lon: number }) => void
+  denyWeather: () => void
 }
 
 /** Keep only ids belonging to `day` — notification ids carry their own day
@@ -118,10 +125,10 @@ export const useAppStore = create<AppState>()(
       notifPush: false,
       setNotifPush: (notifPush) => set({ notifPush }),
       weatherCoords: null,
-      weatherAsked: false,
-      // `weatherAsked` flips on the attempt, not on success — a denial has to be
-      // remembered too, or the prompt returns on every load.
-      setWeatherCoords: (weatherCoords) => set({ weatherCoords, weatherAsked: true }),
+      weatherDenied: false,
+      setWeatherCoords: (weatherCoords) => set({ weatherCoords }),
+      // Only ever called for PERMISSION_DENIED — see useWeather.
+      denyWeather: () => set({ weatherDenied: true, weatherCoords: null }),
     }),
     {
       name: 'eda-theme',
@@ -139,7 +146,10 @@ export const useAppStore = create<AppState>()(
         notifDismissed: state.notifDismissed,
         notifPush: state.notifPush,
         weatherCoords: state.weatherCoords,
-        weatherAsked: state.weatherAsked,
+        // Renamed from `weatherAsked`, which self-migrates: the old key is no
+        // longer read, so anyone the previous logic had wrongly locked out gets
+        // asked once more.
+        weatherDenied: state.weatherDenied,
       }),
     },
   ),
