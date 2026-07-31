@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { Baby, Moon, Sun, ArrowLeft } from 'lucide-react'
 
-import { useAppStore } from '@/store'
-import { GlassNav, GlassToggleGroup, GlassSurface, GlassButton } from '@dimitrisafendras/liquid-glass'
+import { cn } from '@/lib/utils'
+import { PageFrame } from '@/components/PageFrame'
+import { GlassSurface, GlassButton } from '@dimitrisafendras/liquid-glass'
 import { PrinciplesSection } from '@/design-system/docs/PrinciplesSection'
 import { MaterialsSection } from '@/design-system/docs/MaterialsSection'
 import { ColorSection } from '@/design-system/docs/ColorSection'
@@ -51,109 +50,106 @@ function useActiveSection() {
   return active
 }
 
+/**
+ * "On this page" jump nav, in the frame's toolbar slot.
+ *
+ * It scrolls horizontally rather than wrapping: ten section names would other-
+ * wise stack to three rows on a phone and push the whole document down.
+ */
+function SectionNav({ activeHref }: { activeHref: string }) {
+  return (
+    <nav
+      aria-label="On this page"
+      className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
+      {SECTIONS.map((s) => {
+        const active = activeHref === s.href
+        return (
+          <a
+            key={s.href}
+            href={s.href}
+            aria-current={active ? 'true' : undefined}
+            className={cn(
+              'shrink-0 rounded-full px-3 py-1.5 text-[0.8rem] font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring/70',
+              active
+                ? 'bg-primary/15 text-foreground'
+                : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground',
+            )}
+          >
+            {s.label}
+          </a>
+        )
+      })}
+    </nav>
+  )
+}
+
+/**
+ * The one place the page shows the material at full strength rather than
+ * describing it: a bounded aurora band with real glass floating on it.
+ *
+ * `dark` scope forces the dark glass tint — the aurora is vivid in both app
+ * themes, so a dark frosted surface is what keeps the white text legible. It is
+ * a contained, rounded band rather than a full-bleed hero because this page now
+ * sits inside the app shell like every other route.
+ */
+function Hero() {
+  return (
+    <div className="ds-aurora dark relative overflow-hidden rounded-3xl">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-black/55 via-black/15 to-transparent"
+      />
+      <div className="relative z-10 flex flex-col items-start p-6 sm:p-10">
+        <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-[0.16em] text-white uppercase backdrop-blur">
+          Design System
+        </span>
+        <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85 drop-shadow sm:text-lg">
+          A translucent material for the control layer — highlight, shadow and illumination, lensing the
+          content behind it. Built on shadcn/ui, adaptive across light, dark and two soft accent palettes.
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <GlassButton tone="primary" size="sm" render={<a href="#principles" />}>
+            Explore principles
+          </GlassButton>
+          <GlassButton size="sm" render={<a href="#materials" />}>
+            See the material
+          </GlassButton>
+          <GlassButton
+            size="sm"
+            render={
+              <a
+                href="https://github.com/dimitrisafendras/liquid-glass"
+                target="_blank"
+                rel="noreferrer"
+              />
+            }
+          >
+            Source on GitHub
+          </GlassButton>
+        </div>
+
+        <GlassSurface interactive radius={24} className="mt-8 w-full max-w-md p-5 text-white">
+          <p className="text-xs font-semibold tracking-[0.16em] text-white/70 uppercase">Regular glass</p>
+          <p className="mt-1.5 font-heading text-lg font-semibold drop-shadow">Legible anywhere</p>
+          <p className="mt-1.5 text-sm text-white/85 drop-shadow-sm">
+            This card is real glass over the animated backdrop — the color behind it concentrates through
+            the material. Hover to feel the lensing lift.
+          </p>
+        </GlassSurface>
+      </div>
+    </div>
+  )
+}
+
 export default function DesignSystem() {
-  const dark = useAppStore((s) => s.dark)
-  const toggleTheme = useAppStore((s) => s.toggleTheme)
-  const palette = useAppStore((s) => s.palette)
-  const setPalette = useAppStore((s) => s.setPalette)
   const activeHref = useActiveSection()
 
   return (
-    <div className="min-h-svh bg-background text-foreground">
-      <GlassNav
-        activeHref={activeHref}
-        links={SECTIONS}
-        brand={
-          <>
-            <Baby className="size-4 shrink-0 text-primary" aria-hidden />
-            <span className="hidden truncate sm:inline">Liquid Glass</span>
-          </>
-        }
-        actions={
-          <>
-            <GlassToggleGroup
-              ariaLabel="Color theme"
-              size="sm"
-              value={dark ? 'dark' : 'light'}
-              onChange={(v) => {
-                if ((v === 'dark') !== dark) toggleTheme()
-              }}
-              options={[
-                { value: 'light', label: <Sun className="size-3.5" />, ariaLabel: 'Light theme' },
-                { value: 'dark', label: <Moon className="size-3.5" />, ariaLabel: 'Dark theme' },
-              ]}
-            />
-            <GlassToggleGroup
-              ariaLabel="Accent palette"
-              size="sm"
-              value={palette}
-              onChange={(v) => setPalette(v)}
-              options={[
-                { value: 'blue', label: 'Boy' },
-                { value: 'red', label: 'Girl' },
-              ]}
-            />
-            <GlassButton size="sm" aria-label="Back to infographic" render={<Link to="/" />}>
-              <ArrowLeft className="size-3.5" />
-              <span className="hidden sm:inline">Infographic</span>
-            </GlassButton>
-          </>
-        }
-      />
+    <PageFrame title="Liquid Glass" toolbar={<SectionNav activeHref={activeHref} />}>
+      <Hero />
 
-      {/* Hero — `dark` scope forces the dark glass tint on the floating glass
-          card/buttons (the aurora backdrop is vivid in both themes, so a dark
-          frosted surface keeps their white text legible). A soft scrim darkens
-          the backdrop under the on-aurora heading/subtitle for worst-case
-          (animated) legibility while keeping the aurora vivid to the right. */}
-      <header className="ds-aurora dark relative overflow-hidden">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 z-0 bg-gradient-to-br from-black/55 via-black/15 to-transparent"
-        />
-        <div className="page-px relative z-10 mx-auto flex max-w-6xl flex-col items-start py-24 sm:py-32">
-          <span className="rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-[0.16em] text-white uppercase backdrop-blur">
-            Design System
-          </span>
-          <h1 className="mt-6 max-w-3xl font-heading text-5xl font-semibold leading-[1.02] tracking-tight text-white drop-shadow-lg sm:text-7xl">
-            Liquid Glass
-          </h1>
-          <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/85 drop-shadow">
-            A translucent material for the control layer — highlight, shadow and illumination, lensing the content
-            behind it. Built on shadcn/ui, adaptive across light, dark and two soft accent palettes.
-          </p>
-          <div className="mt-8 flex flex-wrap gap-3">
-            <GlassButton tone="primary" render={<a href="#principles" />}>
-              Explore principles
-            </GlassButton>
-            <GlassButton render={<a href="#materials" />}>See the material</GlassButton>
-            {/* The material is a package now, not a folder in this repo — the
-                page documents it, but doesn't own it. */}
-            <GlassButton
-              render={
-                <a
-                  href="https://github.com/dimitrisafendras/liquid-glass"
-                  target="_blank"
-                  rel="noreferrer"
-                />
-              }
-            >
-              Source on GitHub
-            </GlassButton>
-          </div>
-
-          <GlassSurface interactive radius={28} className="mt-14 w-full max-w-md p-6 text-white">
-            <p className="text-xs font-semibold tracking-[0.16em] text-white/70 uppercase">Regular glass</p>
-            <p className="mt-2 font-heading text-xl font-semibold drop-shadow">Legible anywhere</p>
-            <p className="mt-1.5 text-sm text-white/85 drop-shadow-sm">
-              This card is real glass over the animated backdrop — the color behind it concentrates through the
-              material. Hover to feel the lensing lift.
-            </p>
-          </GlassSurface>
-        </div>
-      </header>
-
-      <main>
+      <div>
         <PrinciplesSection />
         <MaterialsSection />
         <ColorSection />
@@ -167,30 +163,20 @@ export default function DesignSystem() {
         <ConventionsSection />
         <PatternsSection />
         <AccessibilitySection />
-      </main>
+      </div>
 
-      <footer className="border-t border-border">
-        <div className="page-px mx-auto flex max-w-6xl flex-col gap-2 py-10 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            Liquid Glass — the material ships as{' '}
-            <a
-              href="https://github.com/dimitrisafendras/liquid-glass"
-              target="_blank"
-              rel="noreferrer"
-              className="font-medium text-foreground hover:text-primary"
-            >
-              @dimitrisafendras/liquid-glass
-            </a>
-            ; the shell, conventions and patterns below are this app's.
-          </p>
-          <Link
-            to="/"
-            className="inline-flex min-h-11 w-fit items-center font-medium text-foreground hover:text-primary sm:min-h-0"
-          >
-            ← Back to infographic
-          </Link>
-        </div>
-      </footer>
-    </div>
+      <p className="border-t border-border pt-6 text-sm text-muted-foreground">
+        The material ships as{' '}
+        <a
+          href="https://github.com/dimitrisafendras/liquid-glass"
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-foreground hover:text-primary"
+        >
+          @dimitrisafendras/liquid-glass
+        </a>
+        ; the shell, conventions and patterns above are this app's.
+      </p>
+    </PageFrame>
   )
 }

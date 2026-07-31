@@ -49,12 +49,12 @@ export default function App() {
           <Route path="/feed" element={<FeedLog />} />
           <Route path="/signin" element={<Auth mode="signin" />} />
           <Route path="/signup" element={<Auth mode="signup" />} />
+          <Route path="/design-system" element={<DesignSystem />} />
           {/* Back-compat redirects for the pre-refactor routes. */}
           <Route path="/daily" element={<Navigate to="/" replace />} />
           <Route path="/learn/:group" element={<Navigate to="/wiki" replace />} />
           <Route path="/topic/:slug" element={<TopicRedirect />} />
         </Route>
-        <Route path="/design-system" element={<DesignSystem />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

@@ -20,7 +20,10 @@ export function DocSection({
   className?: string
 }) {
   return (
-    <section id={id} className={cn('page-px mx-auto w-full max-w-6xl scroll-mt-28 py-16 sm:py-20', className)}>
+    // No width, gutter or centring here: the page renders inside `PageFrame`
+    // like every other route, and the frame owns those. `scroll-mt` keeps a
+    // hash-linked section clear of the floating nav below `xl`.
+    <section id={id} className={cn('w-full scroll-mt-24 py-6 sm:py-8', className)}>
       <header className="mb-10 max-w-2xl">
         {/* 0.16em — the app-wide eyebrow tracking. This doc page was itself one of
             the twelve places that disagreed, at 0.18em. */}
