@@ -1,14 +1,32 @@
 import { useAppStore } from '@/store'
 import { Badge } from '@/components/ui/badge'
-import { palettes, semanticTokens, contrastReport, type Palette } from '@dimitrisafendras/liquid-glass/tokens'
+import {
+  palettes,
+  semanticTokens,
+  contrastReport,
+  type Palette,
+  type PaletteId,
+} from '@dimitrisafendras/liquid-glass/tokens'
 import { DocSection, DocBlock, Panel, useCssVar } from './primitives'
+
+/**
+ * This app's names for the two palettes.
+ *
+ * The package calls them "Blue" and "Orchid" — it describes what the colour is,
+ * not who it is for, which is the only sensible thing for a general-purpose
+ * design system to do. Here they are the boy/girl axis the app is actually
+ * built around, so the app supplies its own wording rather than pushing that
+ * framing back into the package.
+ */
+const APP_PALETTE_LABEL: Record<PaletteId, string> = { blue: 'Boy', red: 'Girl' }
 
 function Ramp({ palette, active }: { palette: Palette; active: boolean }) {
   return (
     <Panel>
       <div className="mb-4 flex items-center gap-2">
         <h4 className="font-heading text-base font-semibold">
-          {palette.label} <span className="text-muted-foreground">· {palette.audience}</span>
+          {APP_PALETTE_LABEL[palette.id]}{' '}
+          <span className="text-muted-foreground">· {palette.audience}</span>
         </h4>
         {active && <Badge>Active</Badge>}
       </div>
@@ -194,7 +212,7 @@ export function ColorSection() {
             {contrastReport.map((r) => (
               <div key={`${r.palette}-${r.theme}`} className="rounded-xl border border-border p-4">
                 <div className="text-sm font-medium capitalize">
-                  {palettes[r.palette].label} · {r.theme}
+                  {APP_PALETTE_LABEL[r.palette]} · {r.theme}
                 </div>
                 <div className="mt-1 font-heading text-2xl font-semibold tabular-nums">{r.ratio.toFixed(2)}:1</div>
                 <Badge variant="secondary" className="mt-2">
