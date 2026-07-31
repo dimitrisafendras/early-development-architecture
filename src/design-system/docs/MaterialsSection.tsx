@@ -19,29 +19,23 @@ function GlassDemoCard({ variant }: { variant: 'regular' | 'clear' }) {
       variant={variant}
       interactive
       radius={24}
-      className="relative w-full text-white"
-      // The padding rides on the content layer, not the root: the scrim below is
-      // a child, so it is positioned against the content box. With the padding on
-      // the root, `inset-0` stopped 24px short on every side and the scrim read
-      // as a second, smaller card nested inside the glass.
-      contentClassName="p-6"
+      // Clear glass is intentionally very transparent; over the vivid aurora it
+      // needs a dimming scrim (as the material guidance states) for its white
+      // text to clear AA at the brightest backdrop regions. The surface owns the
+      // scrim, so it covers the whole card rather than the padded content box.
+      scrim={isClear}
+      className="relative w-full p-6 text-white"
     >
-      {/* Clear glass is intentionally very transparent; over the vivid aurora it
-          needs a dimming scrim (as the material guidance states) for its white
-          text to clear AA at the brightest backdrop regions. */}
-      {isClear && (
-        <span aria-hidden className="pointer-events-none absolute inset-0 z-0 rounded-[inherit] bg-black/35" />
-      )}
-      <p className="relative z-10 text-xs font-semibold tracking-[0.16em] text-white/70 uppercase">{variant}</p>
-      <p className="relative z-10 mt-2 font-heading text-2xl font-semibold tracking-tight text-white drop-shadow">
+      <p className="text-xs font-semibold tracking-[0.16em] text-white/70 uppercase">{variant}</p>
+      <p className="mt-2 font-heading text-2xl font-semibold tracking-tight text-white drop-shadow">
         {isClear ? 'Clear glass' : 'Regular glass'}
       </p>
-      <p className="relative z-10 mt-2 text-sm leading-relaxed text-white/85 drop-shadow-sm">
+      <p className="mt-2 text-sm leading-relaxed text-white/85 drop-shadow-sm">
         {isClear
           ? 'Thinner and more transparent — notice more of the backdrop bleeds through. For bright media only.'
           : 'Adaptive and legible over anything. Watch the color behind it concentrate through the material.'}
       </p>
-      <div className="relative z-10 mt-4 flex gap-2">
+      <div className="mt-4 flex gap-2">
         <GlassButton variant={variant} size="sm" tone="primary">
           Action
         </GlassButton>
@@ -78,22 +72,14 @@ export function MaterialsSection() {
       >
         <div className="ds-photo dark relative overflow-hidden rounded-3xl p-6 sm:p-10">
           <div className="relative z-10 mx-auto max-w-md">
-            <GlassSurface
-              variant="clear"
-              radius={24}
-              className="relative text-white"
-              contentClassName="p-6"
-            >
-              {/* Clear glass over bright media: a scrim is required (per guidance)
-                  so the white label/body text clears AA over the brightest pixels.
-                  Padding is on the content layer so this covers the whole surface —
-                  see the note in GlassDemoCard. */}
-              <span aria-hidden className="pointer-events-none absolute inset-0 z-0 rounded-[inherit] bg-black/35" />
-              <p className="relative z-10 font-heading text-xl font-semibold drop-shadow">Now Playing</p>
-              <p className="relative z-10 mt-1 text-sm text-white/85 drop-shadow-sm">
+            {/* Clear glass over bright media: a scrim is required (per guidance)
+                so the white label/body text clears AA over the brightest pixels. */}
+            <GlassSurface variant="clear" radius={24} scrim className="relative p-6 text-white">
+              <p className="font-heading text-xl font-semibold drop-shadow">Now Playing</p>
+              <p className="mt-1 text-sm text-white/85 drop-shadow-sm">
                 Over saturated imagery, clear glass keeps the media the hero while the controls float in front.
               </p>
-              <div className="relative z-10 mt-4 flex items-center gap-3">
+              <div className="mt-4 flex items-center gap-3">
                 <GlassButton variant="clear" size="icon" tone="primary" aria-label="Play">
                   ▶
                 </GlassButton>
