@@ -6,7 +6,9 @@ export function TypographySection() {
     <DocSection
       id="typography"
       eyebrow="Typography"
-      title="Geist, tuned for hierarchy"
+      // The family has been Comfortaa for a long time; this heading still said
+      // Geist, directly above a specimen rendering the real stack.
+      title="Comfortaa, tuned for hierarchy"
       intro="One variable family carries the whole system. Hierarchy comes from size, weight and tracking rather than switching typefaces."
     >
       <DocBlock title="Families">

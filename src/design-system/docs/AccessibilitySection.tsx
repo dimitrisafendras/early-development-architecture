@@ -11,7 +11,7 @@ const rules = [
   {
     icon: EyeOff,
     title: 'Reduced transparency',
-    body: 'prefers-reduced-transparency: reduce swaps every glass surface for a near-opaque one, drops the blur and removes the highlight / illumination layers — enforced in CSS.',
+    body: 'prefers-reduced-transparency: reduce swaps every glass surface for a near-opaque one, drops the blur and removes the highlight / illumination layers — enforced in CSS. The scrim deliberately stays: it is a legibility device, not an effect.',
   },
   {
     icon: Gauge,
@@ -21,7 +21,7 @@ const rules = [
   {
     icon: Type,
     title: 'Legibility over media',
-    body: 'Text on clear glass carries a subtle shadow, and clear glass is restricted to bright content. If legibility drops, add a dimming scrim rather than switching variant.',
+    body: 'Text on clear glass carries a subtle shadow, and clear glass is restricted to bright content. If legibility drops, ask the surface for a scrim (GlassSurface takes one) rather than switching variant.',
   },
 ]
 
