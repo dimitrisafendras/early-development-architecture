@@ -91,7 +91,12 @@ export default function Day() {
       {/* `grid-rows-[minmax(0,1fr)]` lets the single row shrink below its content
           so the cards take the row's height and scroll inside; an `auto` row would
           grow to the full schedule list and push the page past the viewport. */}
-      <div className="grid grid-cols-1 gap-6 lg:min-h-[24rem] lg:flex-1 lg:grid-cols-[minmax(0,23rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] xl:min-h-0">
+      {/* No `min-h` floor: from `lg` the shell is one viewport tall, so `flex-1`
+          already hands this grid the exact height left over. The floor existed
+          for the window where `lg` laid out two columns but the column had no
+          fixed height yet — it would now fight the viewport on a short landscape
+          tablet and push the row past the fold. */}
+      <div className="grid grid-cols-1 gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,23rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)]">
         <div className="min-h-0 lg:order-2">
           <MomentCard
             schedule={schedule}
