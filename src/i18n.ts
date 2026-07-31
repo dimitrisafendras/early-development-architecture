@@ -93,6 +93,19 @@ const en = {
     age: 'Age',
     today: 'Today',
     now: 'Now',
+    weather: 'Out',
+    // WMO weather codes, grouped — see `toCondition` in lib/useWeather.
+    conditions: {
+      clear: 'Clear',
+      partly: 'Partly cloudy',
+      overcast: 'Overcast',
+      fog: 'Fog',
+      drizzle: 'Drizzle',
+      rain: 'Rain',
+      showers: 'Showers',
+      snow: 'Snow',
+      thunder: 'Thunderstorm',
+    },
   },
   common: {
     module: 'Module',
@@ -1314,6 +1327,18 @@ const el: Messages = {
     age: 'Ηλικία',
     today: 'Σήμερα',
     now: 'Τώρα',
+    weather: 'Έξω',
+    conditions: {
+      clear: 'Αίθριος',
+      partly: 'Λίγα σύννεφα',
+      overcast: 'Συννεφιά',
+      fog: 'Ομίχλη',
+      drizzle: 'Ψιχάλα',
+      rain: 'Βροχή',
+      showers: 'Μπόρες',
+      snow: 'Χιόνι',
+      thunder: 'Καταιγίδα',
+    },
   },
   common: {
     module: 'Ενότητα',

@@ -5,6 +5,7 @@ import { useBabyAge } from './AgeBadge'
 import { useDateLocale, formatDateKey, formatTimeKey } from '../lib/dates'
 import { todayKey } from '../lib/schedule'
 import { useNow } from '../lib/useNow'
+import { useWeather } from '../lib/useWeather'
 import { useT } from '../i18n'
 
 /**
@@ -64,6 +65,7 @@ export function HeaderStatus() {
   const now = useNow(30_000)
   const locale = useDateLocale()
   const baby = useBabyAge()
+  const weather = useWeather()
   const time = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
 
   const stats: { label: string; value: ReactNode; accent?: boolean }[] = [
@@ -81,6 +83,26 @@ export function HeaderStatus() {
       value: formatDateKey(todayKey(now), locale, { weekday: 'short', day: 'numeric', month: 'short' }),
     },
     { label: t.header.now, value: formatTimeKey(time, locale) },
+    // Last in the row, and absent entirely when unknown — the reading is a
+    // convenience (is it outing weather?), not something the header owes you.
+    // The condition drops below `sm`: the temperature is the part you read at a
+    // glance, and "Partly cloudy" is what would wrap the band onto two lines.
+    ...(weather
+      ? [
+          {
+            label: t.header.weather,
+            value: (
+              <>
+                {weather.tempC}°C
+                <span className="hidden font-normal text-muted-foreground sm:inline">
+                  {' '}
+                  {t.header.conditions[weather.condition]}
+                </span>
+              </>
+            ),
+          },
+        ]
+      : []),
   ]
 
   return (

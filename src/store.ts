@@ -44,6 +44,18 @@ interface AppState {
    *  permission is the other half; this only records the user's intent. */
   notifPush: boolean
   setNotifPush: (on: boolean) => void
+  /**
+   * Coordinates for the header's weather reading, and whether we've already
+   * asked the browser for them.
+   *
+   * `weatherAsked` is what keeps the permission prompt to once per person: a
+   * denial leaves `weatherCoords` null forever, and without the flag every page
+   * load would ask again. Both persist, so an allow is remembered too and the
+   * reading is there on the next visit without a prompt.
+   */
+  weatherCoords: { lat: number; lon: number } | null
+  weatherAsked: boolean
+  setWeatherCoords: (coords: { lat: number; lon: number } | null) => void
 }
 
 /** Keep only ids belonging to `day` — notification ids carry their own day
@@ -105,6 +117,11 @@ export const useAppStore = create<AppState>()(
         }),
       notifPush: false,
       setNotifPush: (notifPush) => set({ notifPush }),
+      weatherCoords: null,
+      weatherAsked: false,
+      // `weatherAsked` flips on the attempt, not on success — a denial has to be
+      // remembered too, or the prompt returns on every load.
+      setWeatherCoords: (weatherCoords) => set({ weatherCoords, weatherAsked: true }),
     }),
     {
       name: 'eda-theme',
@@ -121,6 +138,8 @@ export const useAppStore = create<AppState>()(
         notifSeen: state.notifSeen,
         notifDismissed: state.notifDismissed,
         notifPush: state.notifPush,
+        weatherCoords: state.weatherCoords,
+        weatherAsked: state.weatherAsked,
       }),
     },
   ),
