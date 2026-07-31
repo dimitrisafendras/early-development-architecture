@@ -13,6 +13,7 @@ import {
   Tooltip,
 } from 'chart.js'
 import { Doughnut, Bar, Line } from 'react-chartjs-2'
+import { palettes, type PaletteId } from '@dimitrisafendras/liquid-glass/tokens'
 import { useAppStore } from '../store'
 import { useT } from '../i18n'
 
@@ -33,23 +34,25 @@ ChartJS.register(
 ChartJS.defaults.font.family = "'Comfortaa Variable', ui-rounded, system-ui, sans-serif"
 
 /**
- * Palette + theme aware chart colors. `primary` tracks the active accent palette
- * (blue "Boy" / red "Girl") and lightens for dark theme; `primarySoft` is the
- * lighter ramp step used for secondary segments. Values mirror the ramps in
- * @dimitrisafendras/liquid-glass/tokens. Neutrals come from the DS neutral ramp.
+ * Palette + theme aware chart colors, read straight off the design system's
+ * ramps rather than copied out of them — chart.js needs literal colors, not
+ * `var(--primary)`, and a hand-copied hex table is exactly how the charts once
+ * ended up drawing the old crimson beside an already-retuned pink badge.
+ *
+ * The step choice is the design decision worth keeping here: charts sit on the
+ * page background, not on a tinted surface, so `primary` takes the ramp step
+ * that reads as the accent at that size (600 in light, 400 in dark) and
+ * `primarySoft` the neighbouring step used for secondary segments.
  */
-const paletteHex = {
-  blue: {
-    primary: { light: '#2172c6', dark: '#5da3ed' }, // 600 / 400
-    soft: { light: '#97c6f9', dark: '#3a89da' }, //     300 / 500
-  },
-  red: {
-    // Orchid (violet-pink), hue band 338–342 — matches the retuned `red`
-    // palette in index.css. Charts were the last surface still drawing the old
-    // crimson, so a doughnut sat beside a pink "Active" badge in two families.
-    primary: { light: '#b24393', dark: '#de89c1' }, // 600 / 400
-    soft: { light: '#edb2da', dark: '#c963ab' }, //     300 / 500
-  },
+const rampStep = (palette: PaletteId, step: string) => {
+  const found = palettes[palette].ramp.find((s) => s.name === step)
+  if (!found) throw new Error(`Liquid Glass ramp ${palette} has no step ${step}`)
+  return found.hex
+}
+
+const CHART_STEPS = {
+  primary: { light: '600', dark: '400' },
+  soft: { light: '300', dark: '500' },
 } as const
 
 function useChartColors() {
@@ -61,8 +64,8 @@ function useChartColors() {
     grid: dark ? 'rgba(148, 163, 184, 0.15)' : 'rgba(100, 116, 139, 0.15)',
     neutral: dark ? '#64748b' : '#cbd5e1',
     surface: dark ? '#262626' : '#ffffff',
-    primary: paletteHex[palette].primary[mode],
-    primarySoft: paletteHex[palette].soft[mode],
+    primary: rampStep(palette, CHART_STEPS.primary[mode]),
+    primarySoft: rampStep(palette, CHART_STEPS.soft[mode]),
   }
 }
 

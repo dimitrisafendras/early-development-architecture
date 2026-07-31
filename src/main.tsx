@@ -6,6 +6,9 @@ import './index.css'
 // The Liquid Glass material, imported once for the whole app — the components
 // that use it are no longer local, so no component pulls its own stylesheet in.
 import '@dimitrisafendras/liquid-glass/styles.css'
+// The accent palettes (blue/red x light/dark). Last, so its [data-palette]
+// blocks land after index.css's neutral base.
+import '@dimitrisafendras/liquid-glass/palettes.css'
 import { seedTestData, clearTestData } from './lib/devSeed'
 
 // Dev-only test-data helpers. Visit `?seed` to load a backlog of tummy/feed

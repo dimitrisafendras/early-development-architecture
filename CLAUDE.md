@@ -51,24 +51,32 @@ Shared daily logic is hook-first: `useDailyChecklist` (checklist + streak + sync
 The glass material lives in its own public repo — **[dimitrisafendras/liquid-glass](https://github.com/dimitrisafendras/liquid-glass)** — and is consumed here as a git dependency pinned to a tag:
 
 ```json
-"@dimitrisafendras/liquid-glass": "git+https://github.com/dimitrisafendras/liquid-glass.git#v0.1.0"
+"@dimitrisafendras/liquid-glass": "github:dimitrisafendras/liquid-glass#v0.2.0"
 ```
 
 It ships TypeScript source and builds itself on `npm install` (a `prepare` script), so there is no committed `dist` to go stale — and no `--ignore-scripts` anywhere in CI, or the package arrives unbuilt.
 
+**Nothing the package owns is duplicated here.** If you find yourself writing a glass component, a `cn`, or a palette value in this repo, it already exists over there:
+
+| The app has | Because |
+|---|---|
+| `src/lib/utils.ts` | A one-line re-export of the package's `cn`. The path must stay — `components.json` names it as the `utils` alias, so every primitive `npx shadcn add` generates imports from it |
+| No `[data-palette]` blocks | They come from `palettes.css` (below). `src/index.css` keeps only the neutral base |
+| No chart hex table | `charts.tsx` reads the ramps off `palettes` in the package's tokens; chart.js needs literal colors, so it looks up a ramp *step*, never a copied hex |
+
 - **Import from the package**, never from a local path: `import { GlassSurface, GlassNav, GlassButton, GlassToggleGroup, GlassScrollArea } from '@dimitrisafendras/liquid-glass'`. Design tokens are on the `/tokens` subpath.
-- **The stylesheet is imported once**, in `src/main.tsx`. Never re-import it per component.
+- **Two stylesheets, imported once each in `src/main.tsx`** — `styles.css` (the material) and `palettes.css` (the accent roles per theme × palette). Never re-import either per component.
 - **Tailwind must be told the package exists.** `src/index.css` carries `@source "../node_modules/@dimitrisafendras/liquid-glass/dist"`. Tailwind v4 skips git-ignored directories when it scans for sources, so without that line the package's utility classes are silently never generated and the whole nav layer renders unstyled. Don't remove it.
-- **The package expects semantic custom properties** — `--primary`, `--foreground`, `--popover`, `--border`, `--ring`, … — which `src/index.css` already declares per theme × palette. The palette values there mirror `palettes` in the package's `tokens`; changing one means changing both.
-- **To change a glass component, change it in the other repo**, tag a release, and bump the `#v…` ref here. Editing anything under `node_modules/` is not a fix.
+- **The neutral base is still this app's** — `--background`, `--foreground`, `--card`, `--popover`, `--border`, `--muted`, `--destructive`, `--success`, `--warning` live in `src/index.css`. `palettes.css` deliberately overrides only the five accent roles, so the two compose rather than fight.
+- **To change a glass component or a palette value, change it in the other repo**, tag a release, and bump the `#v…` ref here. Editing anything under `node_modules/` is not a fix.
 
 ## Theming
 
 Theming is a **dual axis**: theme (light/dark) × palette (soft blue "boy" / soft red "girl").
 
 - `App.tsx` has an effect that reads the store and sets `data-theme`, the `.dark` class, and `data-palette` on `<html>`
-- shadcn CSS variables live in `src/index.css`
-- `[data-palette='blue']` / `[data-palette='red']` blocks in `src/index.css` override `--primary`, `--accent`, `--ring` per palette, each with light and dark values
+- the neutral shadcn CSS variables live in `src/index.css`
+- the `[data-palette='blue']` / `[data-palette='red']` blocks that override `--primary`, `--accent`, `--ring` (each with light and dark values) come from `@dimitrisafendras/liquid-glass/palettes.css` — **not** from `src/index.css`. Change a palette in that repo and release it
 - Tailwind's `dark:` variant is a custom variant (defined in `src/index.css`) that matches both `.dark` and `[data-theme='dark']`
 
 When adding UI, always test both palettes × both themes (4 combinations).
