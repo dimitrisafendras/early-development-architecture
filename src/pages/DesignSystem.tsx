@@ -3,28 +3,33 @@ import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { PageFrame } from '@/components/PageFrame'
 import { GlassSurface, GlassButton } from '@dimitrisafendras/liquid-glass'
-import { PrinciplesSection } from '@/design-system/docs/PrinciplesSection'
-import { MaterialsSection } from '@/design-system/docs/MaterialsSection'
 import { ColorSection } from '@/design-system/docs/ColorSection'
-import { TypographySection } from '@/design-system/docs/TypographySection'
-import { SpacingRadiusSection } from '@/design-system/docs/SpacingRadiusSection'
 import { ComponentsSection } from '@/design-system/docs/ComponentsSection'
 import { ShellSection } from '@/design-system/docs/ShellSection'
 import { ConventionsSection } from '@/design-system/docs/ConventionsSection'
 import { PatternsSection } from '@/design-system/docs/PatternsSection'
-import { AccessibilitySection } from '@/design-system/docs/AccessibilitySection'
 
+/** The published material docs — the canonical home of everything this page
+ *  used to restate. */
+const MATERIAL_DOCS = 'https://dimitrisafendras.github.io/liquid-glass/'
+
+/**
+ * Only what this app owns.
+ *
+ * Principles, Materials, Type, Spacing and A11y described the *material*, which
+ * now ships as a package and documents itself at MATERIAL_DOCS. Keeping second
+ * copies here meant two sets of prose about one thing, and they had already
+ * begun to disagree — this page was still calling the typeface Geist and still
+ * telling readers to hand-roll a scrim the material had since absorbed. What is
+ * left is the half no package can document: this app's shell, its control
+ * scale, its conventions, its one page archetype, and the colour it owns.
+ */
 const SECTIONS: { href: string; label: string }[] = [
-  { href: '#principles', label: 'Principles' },
-  { href: '#materials', label: 'Materials' },
   { href: '#color', label: 'Color' },
-  { href: '#typography', label: 'Type' },
-  { href: '#spacing', label: 'Spacing' },
   { href: '#components', label: 'Components' },
   { href: '#shell', label: 'Shell' },
   { href: '#conventions', label: 'Conventions' },
   { href: '#patterns', label: 'Patterns' },
-  { href: '#accessibility', label: 'A11y' },
 ]
 
 /** Tracks which section is in view for nav highlighting. */
@@ -105,15 +110,20 @@ function Hero() {
           Design System
         </span>
         <p className="mt-5 max-w-xl text-base leading-relaxed text-white/85 drop-shadow sm:text-lg">
-          A translucent material for the control layer — highlight, shadow and illumination, lensing the
-          content behind it. Built on shadcn/ui, adaptive across light, dark and two soft accent palettes.
+          How this app applies the Liquid Glass material: its shell, its control scale, its conventions and
+          the one page archetype built from them. The material itself — principles, variants, colour ramps,
+          type and accessibility — is a package, and documents itself.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <GlassButton tone="primary" size="sm" render={<a href="#principles" />}>
-            Explore principles
+          <GlassButton
+            tone="primary"
+            size="sm"
+            render={<a href={MATERIAL_DOCS} target="_blank" rel="noreferrer" />}
+          >
+            Material documentation
           </GlassButton>
-          <GlassButton size="sm" render={<a href="#materials" />}>
-            See the material
+          <GlassButton size="sm" render={<a href="#shell" />}>
+            This app's shell
           </GlassButton>
           <GlassButton
             size="sm"
@@ -150,11 +160,7 @@ export default function DesignSystem() {
       <Hero />
 
       <div>
-        <PrinciplesSection />
-        <MaterialsSection />
         <ColorSection />
-        <TypographySection />
-        <SpacingRadiusSection />
         <ComponentsSection />
         {/* Shell → Conventions → Patterns reads outside-in: the frame every route
             sits in, then the numbers that fill it, then the one page archetype
@@ -162,7 +168,6 @@ export default function DesignSystem() {
         <ShellSection />
         <ConventionsSection />
         <PatternsSection />
-        <AccessibilitySection />
       </div>
 
       <p className="border-t border-border pt-6 text-sm text-muted-foreground">
@@ -174,8 +179,17 @@ export default function DesignSystem() {
           className="font-medium text-foreground hover:text-primary"
         >
           @dimitrisafendras/liquid-glass
+        </a>{' '}
+        and is documented at{' '}
+        <a
+          href={MATERIAL_DOCS}
+          target="_blank"
+          rel="noreferrer"
+          className="font-medium text-foreground hover:text-primary"
+        >
+          its own site
         </a>
-        ; the shell, conventions and patterns above are this app's.
+        . Everything above is this app's own.
       </p>
     </PageFrame>
   )

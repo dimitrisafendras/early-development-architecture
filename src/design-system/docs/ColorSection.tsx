@@ -1,13 +1,9 @@
 import { useAppStore } from '@/store'
-import { Badge } from '@/components/ui/badge'
-import {
-  palettes,
-  semanticTokens,
-  contrastReport,
-  type Palette,
-  type PaletteId,
-} from '@dimitrisafendras/liquid-glass/tokens'
+import { semanticTokens, type PaletteId } from '@dimitrisafendras/liquid-glass/tokens'
 import { DocSection, DocBlock, Panel, useCssVar } from './primitives'
+
+/** The published material docs, where the two ramps and their contrast report live. */
+const MATERIAL_COLOR_DOCS = 'https://dimitrisafendras.github.io/liquid-glass/#color'
 
 /**
  * This app's names for the two palettes.
@@ -19,35 +15,6 @@ import { DocSection, DocBlock, Panel, useCssVar } from './primitives'
  * framing back into the package.
  */
 const APP_PALETTE_LABEL: Record<PaletteId, string> = { blue: 'Boy', red: 'Girl' }
-
-function Ramp({ palette, active }: { palette: Palette; active: boolean }) {
-  return (
-    <Panel>
-      <div className="mb-4 flex items-center gap-2">
-        <h4 className="font-heading text-base font-semibold">
-          {APP_PALETTE_LABEL[palette.id]}{' '}
-          <span className="text-muted-foreground">· {palette.audience}</span>
-        </h4>
-        {active && <Badge>Active</Badge>}
-      </div>
-      <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
-        {palette.ramp.map((step) => (
-          <div key={step.name} className="min-w-0">
-            <div
-              className="h-14 w-full rounded-lg ring-1 ring-black/5 dark:ring-white/10"
-              style={{ backgroundColor: step.oklch }}
-              title={`${step.oklch}`}
-            />
-            <div className="mt-1.5 text-center">
-              <div className="text-[0.7rem] font-semibold tabular-nums">{step.name}</div>
-              <div className="text-[0.62rem] text-muted-foreground uppercase">{step.hex}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </Panel>
-  )
-}
 
 function SemanticSwatch({ cssVar, name, description }: { cssVar: string; name: string; description: string }) {
   const value = useCssVar(cssVar)
@@ -185,43 +152,52 @@ export function ColorSection() {
     <DocSection
       id="color"
       eyebrow="Color"
-      title="Two palettes, one accent at a time"
-      intro="Every surface is neutral; a single accent palette tints the primary, accent and ring roles. Soft blue for boys, soft orchid for girls — a violet-pink rather than a rose, so the accent never reads as the destructive red. Both ramps are documented; only the active one drives the running UI."
+      title="The colour this app owns"
+      intro="The two accent ramps and their contrast report belong to the material and are published with it. What is documented here is the half the package deliberately does not ship: this app's neutral base, the three state colours, and which palette it calls what."
     >
-      <DocBlock title="Palette ramps" description="Perceptual oklch ramps, 50 → 900. Values are theme-independent.">
-        <div className="space-y-4">
-          <Ramp palette={palettes.blue} active={palette === 'blue'} />
-          <Ramp palette={palettes.red} active={palette === 'red'} />
-        </div>
+      <DocBlock
+        title="Palette naming"
+        description="The package names its palettes after the colour; this app names them after the axis it is built around."
+      >
+        <Panel contentClassName="flex flex-wrap items-center justify-between gap-4">
+          <dl className="grid grid-cols-[auto_auto] items-center gap-x-4 gap-y-2 text-sm">
+            {(['blue', 'red'] as PaletteId[]).map((id) => (
+              <div key={id} className="contents">
+                <dt className="flex items-center gap-2 font-medium">
+                  <span
+                    aria-hidden
+                    className="size-4 rounded-full ring-1 ring-black/10 dark:ring-white/15"
+                    style={{ backgroundColor: id === palette ? 'var(--primary)' : undefined }}
+                  />
+                  {APP_PALETTE_LABEL[id]}
+                </dt>
+                <dd className="text-muted-foreground">
+                  <code>{id}</code> — the package calls this{' '}
+                  {id === 'blue' ? '“Blue”' : '“Orchid”'}
+                </dd>
+              </div>
+            ))}
+          </dl>
+          <a
+            href={MATERIAL_COLOR_DOCS}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm font-medium text-foreground hover:text-primary"
+          >
+            See both ramps →
+          </a>
+        </Panel>
       </DocBlock>
 
       <DocBlock
         title="Semantic tokens (live)"
-        description={`Reading the running values for the ${palette === 'blue' ? 'Boy' : 'Girl'} palette in ${dark ? 'dark' : 'light'} mode. Toggle in the nav to watch them update.`}
+        description={`Reading this app's running values for the ${APP_PALETTE_LABEL[palette]} palette in ${dark ? 'dark' : 'light'} mode. The accent roles come from the package; the neutrals are this app's own. Toggle in the nav to watch them update.`}
       >
         <div className="grid gap-3 sm:grid-cols-2">
           {semanticTokens.map((t) => (
             <SemanticSwatch key={t.cssVar} cssVar={t.cssVar} name={t.name} description={t.description} />
           ))}
         </div>
-      </DocBlock>
-
-      <DocBlock title="Contrast of primary-foreground on primary" description="All pairs meet WCAG AA (4.5:1) for normal text.">
-        <Panel>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {contrastReport.map((r) => (
-              <div key={`${r.palette}-${r.theme}`} className="rounded-xl border border-border p-4">
-                <div className="text-sm font-medium capitalize">
-                  {APP_PALETTE_LABEL[r.palette]} · {r.theme}
-                </div>
-                <div className="mt-1 font-heading text-2xl font-semibold tabular-nums">{r.ratio.toFixed(2)}:1</div>
-                <Badge variant="secondary" className="mt-2">
-                  {r.level}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </Panel>
       </DocBlock>
 
       <DocBlock
@@ -242,8 +218,9 @@ export function ColorSection() {
             <code className="text-foreground">--destructive</code>,{' '}
             <code className="text-foreground">--success</code> and{' '}
             <code className="text-foreground">--warning</code> are deliberately absent from the{' '}
-            <code className="text-foreground">[data-palette]</code> blocks in{' '}
-            <code className="text-foreground">src/index.css</code>. A state describes what happened,
+            <code className="text-foreground">[data-palette]</code> blocks the design system ships in{' '}
+            <code className="text-foreground">palettes.css</code>, and live here instead. A state
+            describes what happened,
             not whose app it is — &ldquo;target reached&rdquo; has to be the same green whether the
             blue or the orchid palette is active, or the colour stops meaning anything. Only the
             three brand roles (<code className="text-foreground">primary</code>,{' '}
