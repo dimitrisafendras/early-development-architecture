@@ -131,14 +131,31 @@ export function DoDont({ dos, donts }: { dos: string[]; donts: string[] }) {
   )
 }
 
-/** Reads a live CSS custom property value from :root for display. */
-export function useCssVar(cssVar: string, deps: React.DependencyList = []) {
+/**
+ * Reads a live CSS custom property value off `:root` for display.
+ *
+ * It watches `<html>` for the attribute changes that can alter the value rather
+ * than taking a caller-supplied dependency list. A dep list looked like it
+ * worked and didn't: `App` applies `.dark` / `data-theme` / `data-palette` in
+ * its own effect, and React runs child effects before parent ones, so a
+ * theme-keyed dep re-ran this read *before* the class it was keyed to had been
+ * applied — every card showed the previous theme's value until the next
+ * unrelated render. Observing the attribute means the read happens after the
+ * change lands, whatever caused it. `getComputedStyle` forces a style recalc,
+ * so the value is current by the time it is read.
+ */
+export function useCssVar(cssVar: string) {
   const [value, setValue] = React.useState('')
   React.useEffect(() => {
-    const read = () =>
-      setValue(getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim())
+    const root = document.documentElement
+    const read = () => setValue(getComputedStyle(root).getPropertyValue(cssVar).trim())
     read()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps)
+    const observer = new MutationObserver(read)
+    observer.observe(root, {
+      attributes: true,
+      attributeFilter: ['class', 'data-theme', 'data-palette'],
+    })
+    return () => observer.disconnect()
+  }, [cssVar])
   return value
 }

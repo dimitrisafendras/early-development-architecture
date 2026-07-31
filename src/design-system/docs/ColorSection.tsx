@@ -31,8 +31,8 @@ function Ramp({ palette, active }: { palette: Palette; active: boolean }) {
   )
 }
 
-function SemanticSwatch({ cssVar, name, description, dep }: { cssVar: string; name: string; description: string; dep: string }) {
-  const value = useCssVar(cssVar, [dep])
+function SemanticSwatch({ cssVar, name, description }: { cssVar: string; name: string; description: string }) {
+  const value = useCssVar(cssVar)
   return (
     <div className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card p-3">
       <span
@@ -95,9 +95,9 @@ const stateTokens = [
   },
 ] as const
 
-function StateTokenCard({ token, dep }: { token: (typeof stateTokens)[number]; dep: string }) {
-  const live = useCssVar(token.cssVar, [dep])
-  const liveFg = useCssVar(token.fgVar ?? '--foreground', [dep])
+function StateTokenCard({ token }: { token: (typeof stateTokens)[number] }) {
+  const live = useCssVar(token.cssVar)
+  const liveFg = useCssVar(token.fgVar ?? '--foreground')
   return (
     <div className="min-w-0 rounded-xl border border-border bg-card p-4">
       <div className="flex items-center gap-3">
@@ -162,7 +162,6 @@ function StateTokenCard({ token, dep }: { token: (typeof stateTokens)[number]; d
 export function ColorSection() {
   const dark = useAppStore((s) => s.dark)
   const palette = useAppStore((s) => s.palette)
-  const dep = `${dark ? 'dark' : 'light'}-${palette}`
 
   return (
     <DocSection
@@ -184,7 +183,7 @@ export function ColorSection() {
       >
         <div className="grid gap-3 sm:grid-cols-2">
           {semanticTokens.map((t) => (
-            <SemanticSwatch key={t.cssVar} cssVar={t.cssVar} name={t.name} description={t.description} dep={dep} />
+            <SemanticSwatch key={t.cssVar} cssVar={t.cssVar} name={t.name} description={t.description} />
           ))}
         </div>
       </DocBlock>
@@ -213,7 +212,7 @@ export function ColorSection() {
       >
         <div className="mb-4 grid gap-3 lg:grid-cols-3">
           {stateTokens.map((t) => (
-            <StateTokenCard key={t.name} token={t} dep={dep} />
+            <StateTokenCard key={t.name} token={t} />
           ))}
         </div>
 

@@ -19,7 +19,12 @@ function GlassDemoCard({ variant }: { variant: 'regular' | 'clear' }) {
       variant={variant}
       interactive
       radius={24}
-      className="relative w-full p-6 text-white"
+      className="relative w-full text-white"
+      // The padding rides on the content layer, not the root: the scrim below is
+      // a child, so it is positioned against the content box. With the padding on
+      // the root, `inset-0` stopped 24px short on every side and the scrim read
+      // as a second, smaller card nested inside the glass.
+      contentClassName="p-6"
     >
       {/* Clear glass is intentionally very transparent; over the vivid aurora it
           needs a dimming scrim (as the material guidance states) for its white
@@ -73,9 +78,16 @@ export function MaterialsSection() {
       >
         <div className="ds-photo dark relative overflow-hidden rounded-3xl p-6 sm:p-10">
           <div className="relative z-10 mx-auto max-w-md">
-            <GlassSurface variant="clear" radius={24} className="relative p-6 text-white">
+            <GlassSurface
+              variant="clear"
+              radius={24}
+              className="relative text-white"
+              contentClassName="p-6"
+            >
               {/* Clear glass over bright media: a scrim is required (per guidance)
-                  so the white label/body text clears AA over the brightest pixels. */}
+                  so the white label/body text clears AA over the brightest pixels.
+                  Padding is on the content layer so this covers the whole surface —
+                  see the note in GlassDemoCard. */}
               <span aria-hidden className="pointer-events-none absolute inset-0 z-0 rounded-[inherit] bg-black/35" />
               <p className="relative z-10 font-heading text-xl font-semibold drop-shadow">Now Playing</p>
               <p className="relative z-10 mt-1 text-sm text-white/85 drop-shadow-sm">
