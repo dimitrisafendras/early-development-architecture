@@ -7,6 +7,7 @@ import {
   findOpenSession,
   openSession,
   closeSession,
+  insertClosedSession,
   updateSession,
   deleteSession,
   type TummySession,
@@ -87,12 +88,21 @@ export function useTummyTracker(babyId: string | null, householdId: string | nul
           setActiveStart(start)
         }
       } else if (signedIn) {
-        // A session opened on another device counts as active here too.
+        // A session opened on another device counts as active here too — but it
+        // gets the same staleness check as a local one. It used to be adopted
+        // unconditionally, so a row left open by a sign-out (stop takes the
+        // local branch and never closes the remote row) would be picked up days
+        // later and shown as a session running for four thousand minutes.
         const open = await findOpenSession().catch(() => null)
         if (open && !cancelled) {
-          setActiveStart(new Date(open.started_at))
-          localStorage.setItem(ACTIVE_START, open.started_at)
-          localStorage.setItem(ACTIVE_REMOTE_ID, open.id)
+          const started = new Date(open.started_at)
+          if (Date.now() - started.getTime() > STALE_MS) {
+            await deleteSession(open.id).catch(() => {})
+          } else {
+            setActiveStart(started)
+            localStorage.setItem(ACTIVE_START, open.started_at)
+            localStorage.setItem(ACTIVE_REMOTE_ID, open.id)
+          }
         }
       }
       await refreshSessions().catch(() => {})
@@ -125,8 +135,20 @@ export function useTummyTracker(babyId: string | null, householdId: string | nul
     if (!activeStart) return
     const endedAt = new Date().toISOString()
     const startedAt = activeStart.toISOString()
+    // A mis-tap — Start then Stop — used to bank a zero-minute session that
+    // every reading then believed: history showed "0 min", the session count
+    // included it, and it became the "last session" the pacing line reported.
+    // Below half a minute there is nothing to record.
+    const tooShort = new Date(endedAt).getTime() - activeStart.getTime() < 30_000
     setActiveStart(null)
     localStorage.removeItem(ACTIVE_START)
+    if (tooShort) {
+      const rid = localStorage.getItem(ACTIVE_REMOTE_ID)
+      localStorage.removeItem(ACTIVE_REMOTE_ID)
+      if (signedIn && rid) await deleteSession(rid).catch(() => {})
+      await refreshSessions().catch(() => {})
+      return
+    }
     const rid = localStorage.getItem(ACTIVE_REMOTE_ID)
     localStorage.removeItem(ACTIVE_REMOTE_ID)
     if (signedIn && rid) {
@@ -138,6 +160,27 @@ export function useTummyTracker(babyId: string | null, householdId: string | nul
     }
     await refreshSessions().catch(() => {})
   }, [activeStart, signedIn, refreshSessions])
+
+  /**
+   * Log a session that has already happened — the one you forgot to time.
+   *
+   * Same two paths as `stop`, so a hand-logged session is indistinguishable
+   * from a timed one everywhere downstream: same table, same local list, same
+   * `household_id`, so the rest of the household sees it too.
+   */
+  const addManual = useCallback(
+    async (startedAt: string, endedAt: string) => {
+      if (signedIn) {
+        await insertClosedSession(babyId, startedAt, endedAt, householdId).catch(() => {})
+      } else {
+        const local = loadLocal()
+        local.push({ id: crypto.randomUUID(), started_at: startedAt, ended_at: endedAt })
+        saveLocal(local)
+      }
+      await refreshSessions().catch(() => {})
+    },
+    [signedIn, babyId, householdId, refreshSessions],
+  )
 
   const update = useCallback(
     async (id: string, patch: { started_at?: string; ended_at?: string }) => {
@@ -179,12 +222,20 @@ export function useTummyTracker(babyId: string | null, householdId: string | nul
   return {
     signedIn,
     isRunning: Boolean(activeStart),
+    /** When the running session started, so a hand-logged one can refuse to
+     *  overlap it — those minutes get banked again on stop. */
+    activeStart,
     elapsedSeconds,
     sessions,
     todaySessions,
-    completedMinutes: Math.round(completedMinutes),
+    /** Exact, deliberately unrounded: rounding here made two displays of one
+     *  fact disagree — the readout could show "5 / 5 min" off 4:35 of real
+     *  time, and `remaining` could round to 0 while the target was not met.
+     *  Callers round at the last moment. */
+    completedMinutes,
     start,
     stop,
+    addManual,
     update,
     remove,
     refreshSessions,

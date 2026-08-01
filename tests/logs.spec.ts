@@ -77,11 +77,11 @@ test.describe('tummy sessions', () => {
 
     // One date field, two time fields — a session is one sitting, so start and
     // stop cannot drift onto different days.
-    await expect(page.locator('#s-date-s1')).toBeVisible()
-    await expect(page.locator('#s-start-s1')).toBeVisible()
-    await expect(page.locator('#s-end-s1')).toBeVisible()
+    await expect(page.locator('#s-s1-date')).toBeVisible()
+    await expect(page.locator('#s-s1-start')).toBeVisible()
+    await expect(page.locator('#s-s1-end')).toBeVisible()
 
-    await page.locator('#s-date-s1').click()
+    await page.locator('#s-s1-date').click()
     await page.getByRole('button', { name: 'Yesterday' }).click()
     await page.getByRole('button', { name: 'Save' }).click()
 
@@ -98,14 +98,44 @@ test.describe('tummy sessions', () => {
     await hideOverlays(page)
     await page.getByLabel('Edit').first().click()
 
-    await page.locator('#s-end-s1').click()
+    await page.locator('#s-s1-end').click()
     // Pick an hour well before the 10:00 start.
     // The hour column's cells carry more than their number in the accessible
     // name, so match the visible label inside the open picker.
     await page.locator('[data-slot="popover-content"] button').filter({ hasText: /^02$/ }).first().click()
 
-    await expect(page.locator('#s-end-s1')).toHaveAttribute('aria-invalid', 'true')
+    await expect(page.locator('#s-s1-end')).toHaveAttribute('aria-invalid', 'true')
     await expect(page.getByRole('button', { name: 'Save' })).toBeDisabled()
     await expect(page.getByText(/stop time has to come after/i)).toBeVisible()
   })
+})
+
+test('a past tummy session can be logged by hand', async ({ page }) => {
+  // The timer is still how you record a session; this is how you record the one
+  // you forgot to time. It lives in History, beside the list it lands in.
+  await page.goto('tracker')
+  await hideOverlays(page)
+
+  const before = await page.locator('#tummy-history li').count()
+  await page.getByRole('button', { name: /Log a past session/ }).click()
+  await expect(page.locator('#s-new-date')).toBeVisible()
+  // The default draft is the last ten minutes, so it saves without edits.
+  await page.getByRole('button', { name: 'Save' }).click()
+
+  await expect(page.locator('#tummy-history li')).toHaveCount(before + 1)
+  const stored = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem('eda-tummy-local') ?? '[]'),
+  )
+  expect(stored.length).toBe(before + 1)
+})
+
+test('a hand-logged session cannot end in the future', async ({ page }) => {
+  await page.goto('tracker')
+  await hideOverlays(page)
+  await page.getByRole('button', { name: /Log a past session/ }).click()
+
+  // Push the stop time to 23:59, which is ahead of the frozen test clock.
+  await page.locator('#s-new-end').click()
+  await page.locator('[data-slot="popover-content"] button').filter({ hasText: /^23$/ }).first().click()
+  await expect(page.getByText(/cannot end in the future/i)).toBeVisible()
 })

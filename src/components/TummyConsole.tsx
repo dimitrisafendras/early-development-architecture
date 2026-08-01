@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { LiveBadge } from '@/components/ui/live-badge'
 import { Eyebrow } from './Eyebrow'
-import { SessionBar, plannedLengthAt } from './SessionBar'
+import { SessionBar, blockAt, filledBlocks } from './SessionBar'
 import { useSchedule } from '../lib/useSchedule'
 import { useDateLocale } from '../lib/dates'
 import type { useTummyTracker } from '../lib/useTummyTracker'
@@ -75,18 +75,29 @@ export function TummyConsole({
         .map((slot) => slot.mins),
     [daySchedule, movement],
   )
-  const plannedMinutes = planned.reduce((sum, mins) => sum + mins, 0)
 
   const runningMin = tracker.isRunning ? tracker.elapsedSeconds / 60 : 0
   const totalWithRunning = tracker.completedMinutes + runningMin
-  const remaining = Math.max(0, Math.round(target - totalWithRunning))
+  // `ceil`, not `round`: with 4.6 of 5 minutes banked, rounding gave "0 min to
+  // go" beside a target that was not met — two readings of one fact
+  // disagreeing. Ceil says "1 min to go" until it genuinely is met.
+  const remaining = Math.max(0, Math.ceil(target - totalWithRunning))
   const metTarget = totalWithRunning >= target
 
-  // How long the sitting now being timed is meant to run, from the plan — so
-  // the clock can read "01:12 / 05:00" instead of an elapsed time with nothing
-  // to measure itself against.
+  /**
+   * The session now being timed: how long the plan says it should run, and how
+   * much of it was already done before this sitting.
+   *
+   * The clock counts from `into`, not from zero. Stopping at one minute and
+   * pressing Start again used to reset the readout to 00:00 while the bar
+   * carried on from a fifth full — the two describing the same session and
+   * disagreeing by exactly the minutes already banked.
+   */
   const blocks = planned.length ? planned : [target]
-  const thisSessionMins = plannedLengthAt(blocks, tracker.completedMinutes)
+  const block = blockAt(blocks, tracker.completedMinutes)
+  // Planned sessions actually completed — not sittings. See `filledBlocks`.
+  const doneSessions = filledBlocks(blocks, tracker.completedMinutes)
+  const sessionSeconds = Math.round(block.into * 60) + tracker.elapsedSeconds
 
   // The most recent completed session today — the pacing fact neither the tiles
   // nor the bar carry: not how much, but when you last did one.
@@ -107,8 +118,8 @@ export function TummyConsole({
                 compact ? 'text-3xl' : 'text-5xl sm:text-6xl',
               )}
             >
-              {fmtClock(tracker.elapsedSeconds)}
-              {thisSessionMins > 0 && (
+              {fmtClock(sessionSeconds)}
+              {block.length > 0 && (
                 <span
                   className={cn(
                     'font-medium text-muted-foreground',
@@ -116,7 +127,7 @@ export function TummyConsole({
                   )}
                 >
                   {' / '}
-                  {fmtClock(Math.round(thisSessionMins * 60))}
+                  {fmtClock(Math.round(block.length * 60))}
                 </span>
               )}
             </div>
@@ -183,7 +194,7 @@ export function TummyConsole({
             <Timer aria-hidden className="size-3.5 shrink-0 text-primary/70" />
             <span className="tabular-nums">
               <span className="font-semibold text-foreground">
-                {tracker.todaySessions.length}
+                {planned.length > 0 ? doneSessions : tracker.todaySessions.length}
               </span>{' '}
               {planned.length > 0
                 ? t.tracker.ofPlanned.replace('{n}', String(planned.length))
@@ -192,27 +203,25 @@ export function TummyConsole({
             {lastToday && !compact && (
               <>
                 <span aria-hidden>·</span>
+                {/* Collapsed when both ends land in the same minute: a
+                    twenty-second sitting rendered as "01:00–01:00", which reads
+                    as a broken range rather than as a very short session. */}
                 <span className="tabular-nums">
-                  {fmtTime(lastToday.started_at, locale)}–{fmtTime(lastToday.ended_at, locale)}
+                  {fmtTime(lastToday.started_at, locale) === fmtTime(lastToday.ended_at, locale)
+                    ? fmtTime(lastToday.started_at, locale)
+                    : `${fmtTime(lastToday.started_at, locale)}–${fmtTime(lastToday.ended_at, locale)}`}
                 </span>
               </>
             )}
           </span>
-          {/* The plan's total and the age target, stated together. When the plan
-              falls short of the target that is a real thing to know, and it was
-              invisible while the two lived on separate pages. On the dashboard
-              there is no room for both, and the target is the one the number
-              above is already measured against. */}
-          <span className="flex flex-wrap items-center gap-x-1.5 tabular-nums">
-            {!compact && planned.length > 0 && (
-              <>
-                <span>{t.tracker.planned.replace('{mins}', String(plannedMinutes))}</span>
-                <span aria-hidden>·</span>
-              </>
-            )}
-            <span>
-              {t.tracker.targetLabel}: {target} {t.tracker.minutesShort}
-            </span>
+          {/* Just the target. "Day plans 15 min" used to sit here too, and it
+              was a passenger: the bar's geometry *is* the plan — three blocks,
+              sized by their minutes — so the words restated what the reader was
+              already looking at, and putting the two totals side by side turned
+              every glance into "plans 15 · target 5, so which am I doing?".
+              The plan belongs where it is authored, on `/schedule`. */}
+          <span className="tabular-nums">
+            {t.tracker.targetLabel}: {target} {t.tracker.minutesShort}
           </span>
         </div>
       </div>

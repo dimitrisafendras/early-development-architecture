@@ -116,7 +116,10 @@ well as the age-derived target those two can disagree with. `/tracker` and the
 `/daily` dashboard must render the *same* console — they had drifted into two
 different instruments once already. And minutes pour across the planned blocks
 in order rather than one block per session, which is asserted off the
-`data-solid` attributes because fill widths are invisible to a text-based test.
+`data-solid` attributes because fill widths are invisible to a text-based test. Two in `logs.spec.ts` cover hand-logged sessions:
+one lands in History, and a stop time in the future is refused — the date picker
+only ever capped the *day*, so "today 45 / 60 min" could describe the next two
+hours.
 
 ### `i18n.spec.ts` — Greek is first-class
 `Messages = typeof en` makes the two structurally identical at compile time, so

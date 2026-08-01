@@ -2,7 +2,6 @@ import { useState } from 'react'
 import {
   Trash2,
   Pencil,
-  Check,
   Timer,
   CalendarDays,
   Flame,
@@ -10,14 +9,13 @@ import {
   Target,
   Cloud,
   Smartphone,
+  Plus,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { DatePicker } from '@/components/ui/date-picker'
-import { TimePicker } from '@/components/ui/time-picker'
-import { Label } from '@/components/ui/label'
 import { GlassScrollArea } from '@dimitrisafendras/liquid-glass'
 import { TummyConsole } from '../components/TummyConsole'
+import { SessionFields, draftFromSession, newSessionDraft } from '../components/SessionFields'
 import { StatTile } from '../components/StatTile'
 import { TummyWeekChart } from '../components/charts'
 import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
@@ -26,13 +24,8 @@ import { useTummyTracker, useWeeklyMinutes, type TrackerSession } from '../lib/u
 import { activityTargetForAge, ageInMonths, todayKey } from '../lib/schedule'
 import {
   formatDateKey,
-  isoFromDateTimeKey,
-  joinDateTimeKey,
-  timeKeyFromISO,
-  toDateKey,
   useDateLocale,
 } from '../lib/dates'
-import { useFieldLabels } from '../lib/useFieldLabels'
 import { useT } from '../i18n'
 
 /** Uses the app's locale, not the browser's, so times read the same everywhere. */
@@ -70,6 +63,13 @@ export default function Tracker() {
    * `useSchedule` resolves the program in effect for this child's age, which is
    * the same one `/daily` runs the day from.
    */
+  // The moment the running session began, so neither form can be saved onto it.
+  const runningSince = tracker.activeStart
+
+  // The "log a past session" form in the History card — open, and its draft.
+  const [adding, setAdding] = useState(false)
+  const [draft, setDraft] = useState(newSessionDraft)
+
   const runningMin = tracker.isRunning ? tracker.elapsedSeconds / 60 : 0
   const totalWithRunning = tracker.completedMinutes + runningMin
 
@@ -205,16 +205,57 @@ export default function Tracker() {
             footer={
               <>
                 <span className="text-muted-foreground">{t.tracker.cumulativeToday}: </span>
-                <span className="font-bold text-primary">{tracker.completedMinutes}</span>
+                {/* Rounded here, at the display. The hook keeps the exact value
+                    so two readings of one total cannot disagree — but exact
+                    means 2.2159, which is not a thing to show anyone. */}
+                <span className="font-bold text-primary">
+                  {Math.round(tracker.completedMinutes)}
+                </span>
                 <span className="text-muted-foreground"> / {target} {t.tracker.minutesShort}</span>
               </>
             }
           >
+            {/* Logging one by hand belongs here, beside the list it lands in —
+                not in the input tier, where it would compete with Start for the
+                page's one primary action. The timer is still the way you record
+                a session; this is the way you record the one you forgot to
+                time. */}
+            {adding ? (
+              <div className="mb-3 rounded-xl bg-muted p-3">
+                <SessionFields
+                  idPrefix="s-new"
+                  draft={draft}
+                  onChange={setDraft}
+                  // "Save", not "Log a past session" again: the opener already
+                  // said that, and repeating it makes the two buttons
+                  // indistinguishable to anyone reading by label alone.
+                  submitLabel={t.common.save}
+                  runningSince={runningSince}
+                  onCancel={() => setAdding(false)}
+                  onSubmit={async (started_at, ended_at) => {
+                    await tracker.addManual(started_at, ended_at)
+                    setAdding(false)
+                  }}
+                />
+              </div>
+            ) : (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="mb-3"
+                onClick={() => {
+                  setDraft(newSessionDraft())
+                  setAdding(true)
+                }}
+              >
+                <Plus className="mr-1.5 size-4" /> {t.tracker.addManual}
+              </Button>
+            )}
             {tracker.sessions.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t.tracker.noHistory}</p>
             ) : (
               <GlassScrollArea className="max-h-[10.5rem]">
-                <div className="space-y-4 pr-1">
+                <div id="tummy-history" className="space-y-4 pr-1">
                   {historyDays.map(([key, list]) => (
                     <div key={key}>
                       <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
@@ -226,6 +267,7 @@ export default function Tracker() {
                             key={s.id}
                             session={s}
                             locale={locale}
+                            runningSince={runningSince}
                             onSave={(patch) => tracker.update(s.id, patch)}
                             onRemove={() => tracker.remove(s.id)}
                           />
@@ -268,131 +310,77 @@ export default function Tracker() {
 function SessionRow({
   session,
   locale,
+  runningSince,
   onSave,
   onRemove,
 }: {
   session: TrackerSession
   locale: string
+  /** Editing a past session must not move it onto the running one either. */
+  runningSince: Date | null
   onSave: (patch: { started_at: string; ended_at: string }) => Promise<void>
   onRemove: () => void
 }) {
   const t = useT()
-  const fields = useFieldLabels()
   const [editing, setEditing] = useState(false)
-  const [date, setDate] = useState(toDateKey(new Date(session.started_at)))
-  const [start, setStart] = useState(timeKeyFromISO(session.started_at))
-  const [end, setEnd] = useState(timeKeyFromISO(session.ended_at))
-  const [busy, setBusy] = useState(false)
+  const [draft, setDraft] = useState(() => draftFromSession(session))
   const mins = minutesBetween(session.started_at, session.ended_at)
-  // `HH:MM` is zero-padded and fixed-width, so it orders correctly as a string.
-  // A stop at or before the start yields a zero or negative duration, which
-  // every reading downstream — the day's total, the weekly chart, the streak —
-  // would take at face value. Cheaper to refuse the save than to sanitise it in
-  // each of them.
-  const ordered = end > start
 
-  async function save() {
-    if (!ordered) return
-    setBusy(true)
-    try {
-      await onSave({
-        started_at: isoFromDateTimeKey(joinDateTimeKey(date, start)),
-        ended_at: isoFromDateTimeKey(joinDateTimeKey(date, end)),
-      })
-      setEditing(false)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  if (!editing) {
+  if (editing) {
     return (
-      <li className="flex items-center justify-between py-2.5 text-sm">
-        <span className="text-muted-foreground">
-          {fmtTime(session.started_at, locale)} – {fmtTime(session.ended_at, locale)}
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="mr-1.5 font-semibold text-foreground">
-            {mins} {t.tracker.minutesShort}
-          </span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={t.common.edit}
-            onClick={() => setEditing(true)}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <Pencil className="size-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={t.tracker.delete}
-            onClick={onRemove}
-            className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-          >
-            <Trash2 className="size-4" />
-          </Button>
-        </span>
+      <li className="py-3">
+        {/* The same three fields the "log a past session" form uses — they ask
+            the same questions and enforce the same rule, so they are one
+            component rather than two that drift. */}
+        <SessionFields
+          idPrefix={`s-${session.id}`}
+          draft={draft}
+          onChange={setDraft}
+          submitLabel={t.common.save}
+          runningSince={runningSince}
+          onCancel={() => setEditing(false)}
+          onSubmit={async (started_at, ended_at) => {
+            await onSave({ started_at, ended_at })
+            setEditing(false)
+          }}
+        />
       </li>
     )
   }
 
   return (
-    <li className="flex flex-col gap-2 py-3">
-      <div className="flex flex-wrap items-end gap-3">
-        {/* Date first: it scopes the two times that follow, and reading the row
-            in the other order asks "09:15 on which day?". */}
-        <div className="space-y-1.5">
-          <Label htmlFor={`s-date-${session.id}`}>{t.common.date}</Label>
-          <DatePicker
-            id={`s-date-${session.id}`}
-            value={date}
-            onValueChange={setDate}
-            max={todayKey()}
-            className="w-40"
-            {...fields.datePicker}
-          />
-        </div>
-        {/* The DS pickers, not `<input type="time">`: the native control's
-            appearance is the browser's, so it ignored the app's 24-hour clock
-            and both themes. `invalid` marks the stop field rather than the start
-            one — stop is the value that has to move. */}
-        <div className="space-y-1.5">
-          <Label htmlFor={`s-start-${session.id}`}>{t.tracker.start}</Label>
-          <TimePicker
-            id={`s-start-${session.id}`}
-            value={start}
-            onValueChange={setStart}
-            className="w-32"
-            {...fields.timePicker}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor={`s-end-${session.id}`}>{t.tracker.stop}</Label>
-          <TimePicker
-            id={`s-end-${session.id}`}
-            value={end}
-            onValueChange={setEnd}
-            invalid={!ordered}
-            className="w-32"
-            {...fields.timePicker}
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Button type="button" onClick={save} disabled={busy || !ordered}>
-            <Check className="mr-1.5 size-4" /> {t.common.save}
-          </Button>
-          <Button type="button" variant="ghost" onClick={() => setEditing(false)}>
-            {t.common.cancel}
-          </Button>
-        </div>
-      </div>
-      {/* Says why Save is dead. A disabled button with no reason beside it is
-          the row failing silently. */}
-      {!ordered && <p className="text-xs text-destructive">{t.tracker.endBeforeStart}</p>}
+    <li className="flex items-center justify-between py-2.5 text-sm">
+      <span className="text-muted-foreground">
+        {fmtTime(session.started_at, locale)} – {fmtTime(session.ended_at, locale)}
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span className="mr-1.5 font-semibold text-foreground">
+          {mins} {t.tracker.minutesShort}
+        </span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={t.common.edit}
+          onClick={() => {
+            setDraft(draftFromSession(session))
+            setEditing(true)
+          }}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <Pencil className="size-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          aria-label={t.tracker.delete}
+          onClick={onRemove}
+          className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+        >
+          <Trash2 className="size-4" />
+        </Button>
+      </span>
     </li>
   )
 }

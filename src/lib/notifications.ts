@@ -198,7 +198,12 @@ export function buildNotifications(ctx: NotificationContext): AppNotification[] 
       to: '/tracker',
       Icon: Timer,
       title: target.kind === 'movement' ? n.movementTitle : n.tummyTitle,
-      body: n.tummyBody.replace('{mins}', String(target.mins - ctx.tummyMinutes)),
+      // Rounded up at the point of display: the tracker keeps exact minutes, and
+      // "3.7 minutes to go" is not a sentence to push to someone's phone.
+      body: n.tummyBody.replace(
+        '{mins}',
+        String(Math.max(1, Math.ceil(target.mins - ctx.tummyMinutes))),
+      ),
       push: true,
     })
   }

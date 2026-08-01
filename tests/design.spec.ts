@@ -194,9 +194,12 @@ test('the tracker console draws the sessions the day program plans', async ({ pa
   await hideOverlays(page)
 
   const card = page.locator('[data-slot="card"]', { hasText: /Start session|Stop session/ }).first()
-  // Counted in sessions, because the bar is: one section per planned session.
+  // Counted in sessions, because the bar is: one block per planned session.
+  // The plan's *total* is deliberately not stated here — the bar's geometry is
+  // the plan, so the words restated the picture and invited "plans 15 · target
+  // 5, so which am I doing?" on every glance.
   await expect(card).toContainText(/of \d+ sessions planned/)
-  await expect(card).toContainText(/Day plans \d+ min/)
+  await expect(card).not.toContainText(/Day plans/)
   await expect(card).toContainText(/Daily target: \d+ min/)
 })
 

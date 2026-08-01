@@ -193,11 +193,20 @@ export async function insertClosedSession(
   babyId: string | null,
   startedAt: string,
   endedAt: string,
+  householdId: string | null = null,
 ): Promise<TummySession> {
   const owner = await currentUserId()
   const { data, error } = await client()
     .from('tummy_sessions')
-    .insert({ owner, baby_id: babyId, started_at: startedAt, ended_at: endedAt })
+    .insert({
+      owner,
+      baby_id: babyId,
+      started_at: startedAt,
+      ended_at: endedAt,
+      // Carried like `openSession` does. Without it a hand-logged session was
+      // the one kind the rest of the household could not see.
+      household_id: householdId,
+    })
     .select()
     .single()
   if (error) throw error

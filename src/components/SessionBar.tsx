@@ -158,27 +158,54 @@ export function SessionBar({
 }
 
 /**
- * How long the session currently being filled is *meant* to be, in minutes.
+ * Where `minutes` lands in the planned blocks: which block, how long that block
+ * is, and how far into it we already are.
  *
- * The same walk the bar draws: pour `minutes` into the blocks in order and
- * report the length of the block the edge lands in. The running clock uses it to
- * read "01:12 / 05:00" rather than a bare elapsed time — the plan already says
- * how long this sitting should be, and the timer had no reason to keep it a
- * secret.
+ * The same walk the bar draws, which is the point — the readout and the bar have
+ * to agree about which session is being timed and how much of it is already
+ * done. The clock uses `into` so that stopping and starting again *resumes*:
+ * before this it restarted at 00:00 on every press while the bar carried on from
+ * where it left off, so the two disagreed by exactly the minutes already banked.
  *
- * Past the end of the plan it returns the plan's typical length, which is the
- * same length the bar gives its overflow blocks, so the two never disagree.
+ * Past the end of the plan it reports the plan's typical length — the same
+ * length the bar gives its overflow blocks.
  */
-export function plannedLengthAt(planned: number[], minutes: number): number {
+export function blockAt(
+  planned: number[],
+  minutes: number,
+): { length: number; into: number } {
   const base = planned.filter((mins) => mins > 0)
-  if (!base.length) return 0
+  if (!base.length) return { length: 0, into: 0 }
   const typical = base.reduce((a, b) => a + b, 0) / base.length
   let left = Math.max(0, minutes)
   for (const length of base) {
-    // `<` not `<=`: landing exactly on a boundary means the block just finished,
-    // so the session being timed is the next one.
-    if (left < length) return length
+    // `<` not `<=`: landing exactly on a boundary means that block just filled,
+    // so the session being timed is the next one, at zero.
+    if (left < length) return { length, into: left }
     left -= length
   }
-  return typical
+  return { length: typical, into: left % typical }
+}
+
+/**
+ * How many of the planned sessions the banked minutes have actually completed.
+ *
+ * Counting *sittings* instead produced "5 of 3 sessions planned": press Start
+ * and Stop five times and you have five sittings, but the plan still says three
+ * sessions and the bar still shows how full they are. The two readings measured
+ * different things — one the button, one the day — and only the second is what
+ * the caption claims to be about.
+ *
+ * Stops at the plan's length: minutes beyond it are drawn as extra blocks on the
+ * bar, and "4 of 3" would be the same category error in the other direction.
+ */
+export function filledBlocks(planned: number[], minutes: number): number {
+  let left = Math.max(0, minutes)
+  let filled = 0
+  for (const length of planned.filter((mins) => mins > 0)) {
+    if (left < length) break
+    left -= length
+    filled += 1
+  }
+  return filled
 }

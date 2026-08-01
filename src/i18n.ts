@@ -504,6 +504,7 @@ const en = {
     yesterdayLabel: 'Yesterday',
     noSessions: 'No tummy sessions logged today yet.',
     noHistory: 'No tummy sessions logged yet.',
+    addManual: 'Log a past session',
     delete: 'Delete',
     weekTitle: 'Last 7 days',
     localOnly: 'Saved on this device. Sign in to sync across devices.',
@@ -522,6 +523,8 @@ const en = {
     targetForNoBaby: 'Add a baby to tailor the target to their age.',
     targetForBaby: 'Target tuned to {name} ({age} mo).',
     endBeforeStart: 'The stop time has to come after the start time.',
+    endInFuture: 'A session cannot end in the future.',
+    overlapsRunning: 'That overlaps the session running now — those minutes are already being counted.',
   },
   baby: {
     title: 'Baby Profile & Growth',
@@ -1906,6 +1909,7 @@ const el: Messages = {
     yesterdayLabel: 'Χθες',
     noSessions: 'Δεν έχει καταγραφεί συνεδρία μπρούμυτα σήμερα.',
     noHistory: 'Δεν έχει καταγραφεί συνεδρία μπρούμυτα ακόμη.',
+    addManual: 'Καταγραφή παλιάς συνεδρίας',
     delete: 'Διαγραφή',
     weekTitle: 'Τελευταίες 7 ημέρες',
     localOnly: 'Αποθηκεύτηκε σε αυτή τη συσκευή. Συνδεθείτε για συγχρονισμό.',
@@ -1924,6 +1928,8 @@ const el: Messages = {
     targetForNoBaby: 'Προσθέστε μωρό για στόχο βάσει ηλικίας.',
     targetForBaby: 'Στόχος προσαρμοσμένος στον/στην {name} ({age} μην.).',
     endBeforeStart: 'Η ώρα λήξης πρέπει να είναι μετά την ώρα έναρξης.',
+    endInFuture: 'Μια συνεδρία δεν μπορεί να τελειώνει στο μέλλον.',
+    overlapsRunning: 'Επικαλύπτεται με τη συνεδρία που τρέχει τώρα — αυτά τα λεπτά μετρώνται ήδη.',
   },
   baby: {
     title: 'Προφίλ Μωρού & Ανάπτυξη',
