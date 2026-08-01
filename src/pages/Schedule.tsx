@@ -8,6 +8,7 @@ import { ActivityField } from '../components/ActivityField'
 import { SlotPresets } from '../components/SlotPresets'
 import { DayBlueprints } from '../components/DayBlueprints'
 import { ScheduleBands } from '../components/ScheduleBands'
+import type { ProgramSource } from '../components/NewProgramForm'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { NumberInput } from '@/components/ui/number-input'
@@ -147,23 +148,26 @@ export default function Schedule() {
   }
 
   /**
-   * A new band starts where the child is now and is seeded with the built-in
-   * day for that age — an empty band would make "add" feel like a delete.
+   * Create a program at a chosen age, from a chosen starting point.
+   *
+   * Both are the caller's — `NewProgramForm` asks for them. The previous version
+   * claimed whatever age the child happened to be, bumped by a month if that was
+   * taken, and always seeded from the built-in day; two decisions made silently
+   * and one of them guessed.
    */
-  const addBand = () => {
-    const from = months ?? 0
-    const taken = new Set(customSchedules.map((b) => b.fromMonths))
-    let fromMonths = from
-    while (taken.has(fromMonths)) fromMonths += 1
-    const band: AgeSchedule = {
-      id: newBandId(),
-      fromMonths,
-      slots: buildDefaultSchedule(t, fromMonths),
-    }
-    const next = sortSchedules([...customSchedules, band])
-    setCustomSchedules(next)
+  const createBand = (fromMonths: number, source: ProgramSource) => {
+    const slots =
+      source === 'empty'
+        ? []
+        : source === 'copy'
+          ? // Deep enough: a slot is flat, so a shallow copy per row keeps the
+            // new program from sharing objects with the one it was copied from.
+            (customSchedules.find((b) => b.id === activeId)?.slots ?? []).map((slot) => ({ ...slot }))
+          : buildDefaultSchedule(t, fromMonths)
+    const band: AgeSchedule = { id: newBandId(), fromMonths, slots }
+    setCustomSchedules(sortSchedules([...customSchedules, band]))
     setActiveId(band.id)
-    setRows(band.slots)
+    setRows(slots)
     setSaved(true)
   }
 
@@ -233,7 +237,7 @@ export default function Schedule() {
         activeId={activeId}
         babyMonths={months}
         onSelect={selectBand}
-        onAdd={addBand}
+        onCreate={createBand}
         onSeedAll={seedAllBands}
         onRemove={removeBand}
         onChangeFrom={changeBandFrom}

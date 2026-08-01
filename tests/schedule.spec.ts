@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { hideOverlays, readStore, seedStore } from './helpers'
+import { hideOverlays, readStore, seedStore, setNumberInput } from './helpers'
 
 /** The day editor: the combined What field, presets, blueprints, drag, bands. */
 
@@ -238,4 +238,77 @@ test('a schedule saved before bands existed is migrated, not lost', async ({ pag
   expect(bands).toHaveLength(1)
   expect(bands[0].fromMonths).toBe(0)
   expect(bands[0].slots[0].title).toBe('Legacy first feed')
+})
+
+test.describe('creating a program', () => {
+  test('asks for the age and the starting point instead of guessing', async ({ page }) => {
+    // The first version claimed whatever age the child happened to be, bumped
+    // by a month if taken, and always seeded from the built-in day — two
+    // decisions made silently and one of them guessed.
+    await page.goto('schedule')
+    await hideOverlays(page)
+    await page.getByRole('button', { name: /Create all five/ }).click()
+    await page.getByRole('button', { name: /New program/ }).click()
+
+    await expect(page.locator('#new-program-from')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Suggested day' })).toBeVisible()
+    await expect(page.getByRole('button', { name: /Copy of/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Empty', exact: true })).toBeVisible()
+  })
+
+  test('refuses an age another program already starts at', async ({ page }) => {
+    await page.goto('schedule')
+    await hideOverlays(page)
+    await page.getByRole('button', { name: /Create all five/ }).click()
+    await page.getByRole('button', { name: /New program/ }).click()
+
+    await setNumberInput(page, 'new-program-from', 12)
+    await expect(page.getByText(/already starts at/)).toBeVisible()
+    await expect(page.getByRole('button', { name: /Create program/ })).toBeDisabled()
+
+    // …and lets go once the clash does.
+    await setNumberInput(page, 'new-program-from', 18)
+    await expect(page.getByRole('button', { name: /Create program/ })).toBeEnabled()
+  })
+
+  test('"empty" really is empty, so a day can be built from scratch', async ({ page }) => {
+    await page.goto('schedule')
+    await hideOverlays(page)
+    await page.getByRole('button', { name: /Create all five/ }).click()
+    await page.getByRole('button', { name: /New program/ }).click()
+
+    await setNumberInput(page, 'new-program-from', 30)
+    await page.getByRole('button', { name: 'Empty', exact: true }).click()
+    await page.getByRole('button', { name: /Create program/ }).click()
+
+    const store = await readStore(page)
+    const bands = store.customSchedules as { fromMonths: number; slots: unknown[] }[]
+    expect(bands.find((b) => b.fromMonths === 30)!.slots).toEqual([])
+  })
+
+  test('"copy" duplicates the open program without sharing its moments', async ({ page }) => {
+    await page.goto('schedule')
+    await hideOverlays(page)
+    await page.getByRole('button', { name: /Create all five/ }).click()
+    await page.getByRole('button', { name: /0–3 mo/ }).click()
+
+    await page.getByRole('button', { name: /New program/ }).click()
+    await setNumberInput(page, 'new-program-from', 9)
+    await page.getByRole('button', { name: /Copy of/ }).click()
+    await page.getByRole('button', { name: /Create program/ }).click()
+
+    let store = await readStore(page)
+    let bands = store.customSchedules as { fromMonths: number; slots: { title: string }[] }[]
+    const source = bands.find((b) => b.fromMonths === 0)!
+    const copy = bands.find((b) => b.fromMonths === 9)!
+    expect(copy.slots.map((s) => s.title)).toEqual(source.slots.map((s) => s.title))
+
+    // Editing the copy must not reach back into the program it came from.
+    await page.locator('input[id^="slot-what"]').first().fill('Changed in the copy')
+    await page.getByRole('button', { name: /Save schedule/ }).click()
+    store = await readStore(page)
+    bands = store.customSchedules as { fromMonths: number; slots: { title: string }[] }[]
+    expect(bands.find((b) => b.fromMonths === 9)!.slots[0].title).toBe('Changed in the copy')
+    expect(bands.find((b) => b.fromMonths === 0)!.slots[0].title).not.toBe('Changed in the copy')
+  })
 })

@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
 
 /**
  * Shared fixtures for driving the app's persisted state.
@@ -113,4 +113,22 @@ export async function openSettings(page: Page) {
     await page.getByLabel('Open menu').locator('visible=true').first().click()
   }
   await visibleTrigger.first().click()
+}
+
+/**
+ * Set a `NumberInput` the way a person does.
+ *
+ * `locator.fill()` does not drive it: Base UI's `NumberField` keeps the typed
+ * string in its own state and re-renders the input from that, so a value poked
+ * straight into the DOM node is overwritten on the next render and
+ * `onValueChange` never fires. Select-all-and-type, then blur to commit —
+ * which is also exactly the interaction being claimed to work.
+ */
+export async function setNumberInput(page: Page, id: string, value: number) {
+  const field = page.locator(`#${id}`)
+  await field.click()
+  await page.keyboard.press('ControlOrMeta+a')
+  await page.keyboard.type(String(value))
+  await page.keyboard.press('Tab')
+  await expect(field).toHaveValue(String(value))
 }
