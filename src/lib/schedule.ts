@@ -37,6 +37,70 @@ export function formatDuration(mins: number, h: string, m: string): string {
   return mn === 0 ? `${hr}${h}` : `${hr}${h} ${mn}${m}`
 }
 
+/**
+ * Where the day is cut, in minutes since midnight.
+ *
+ * A day schedule is a 24-hour cycle that starts at the morning wake, not at
+ * midnight — so sorting the moments by raw clock time would file the 02:00 night
+ * feed at the *top* of the list, above the 07:00 wake, when it plainly belongs at
+ * the bottom of the night that began the evening before.
+ *
+ * 06:00 is the cut because every sample day in the app wakes at 07:00 and the
+ * latest night moment is a 05:30 return to sleep. A family whose child genuinely
+ * wakes before 06:00 will see that moment file to the end of the list; the
+ * alternative — deriving the cut from the largest gap between moments — picks
+ * the evening for a newborn day whose longest gap is the first stretch of night.
+ */
+const DAY_ANCHOR_MIN = 6 * 60
+
+/** A time's position within the day-cycle that starts at {@link DAY_ANCHOR_MIN}. */
+export function clockRank(time: string): number {
+  return (minutesOfDay(time) - DAY_ANCHOR_MIN + DAY) % DAY
+}
+
+/**
+ * The moments in the order they happen, starting from the morning.
+ *
+ * Clock time is the single source of order on /schedule. The editor used to keep
+ * a hand-maintained list position *as well as* a time, which is why it needed
+ * drag handles and up/down buttons, why a preset always landed at the bottom
+ * whatever time it carried, and why the two could disagree. Sorting here makes
+ * "move this moment" the same action as "change its time".
+ *
+ * Stable: two moments at the same minute keep the order they were given in.
+ *
+ * Returns the **same array** when it is already in order. The caller re-sorts on
+ * a timer after every time edit, and a fresh array each time would look like a
+ * change to everything downstream — re-running the autosave and re-rendering the
+ * whole list for a sort that moved nothing.
+ */
+export function sortByClock<T extends { time: string }>(slots: T[]): T[] {
+  const sorted = slots
+    .map((slot, i) => ({ slot, i }))
+    .sort((a, b) => clockRank(a.slot.time) - clockRank(b.slot.time) || a.i - b.i)
+  return sorted.every((entry, i) => entry.i === i) ? slots : sorted.map((entry) => entry.slot)
+}
+
+/**
+ * How far a moment runs past the start of the one after it, in whole minutes.
+ *
+ * Measured along the day cycle rather than the raw clock, so a night sleep that
+ * crosses midnight is compared against the small-hours feed that follows it and
+ * not against the next morning. Zero when they do not overlap.
+ */
+export function overlapMinutes(
+  slot: { time: string; mins: number },
+  next: { time: string },
+): number {
+  const start = clockRank(slot.time)
+  const nextStart = clockRank(next.time)
+  // The next moment is later in the cycle by construction (the list is sorted);
+  // if it reads as earlier, it has wrapped past the anchor, so push it a day on.
+  const end = start + Math.max(0, slot.mins)
+  const boundary = nextStart >= start ? nextStart : nextStart + DAY
+  return Math.max(0, end - boundary)
+}
+
 export interface BlockWindow {
   index: number
   startMin: number

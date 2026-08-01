@@ -5,17 +5,17 @@ import { useBabyAge } from '../components/AgeBadge'
 import { useT, type Messages } from '../i18n'
 
 /** One age band's sample day resolved with localized text (time + type +
- *  duration from data.ts, title/detail from i18n at the matching index). Used as
- *  the default and as the starting point when the editor first opens. */
+ *  duration from data.ts, title/detail looked up by the slot's `moment` key).
+ *  Used as the default and as the starting point when the editor first opens.
+ *
+ *  The lookup is by name, not by array index: the two lists used to be paired
+ *  positionally, so inserting a slot in `data.ts` silently re-labelled every
+ *  moment after it and a length mismatch threw at render. */
 export function buildScheduleFromTemplate(t: Messages, template: DayTemplate): ScheduleSlot[] {
-  const text = t.fullDay.days[template.id]
-  return template.slots.map((s, i) => ({
-    time: s.time,
-    type: s.type,
-    mins: s.mins,
-    title: text[i].title,
-    detail: text[i].detail,
-  }))
+  return template.slots.map((s) => {
+    const text = t.fullDay.moments[s.moment]
+    return { time: s.time, type: s.type, mins: s.mins, title: text.title, detail: text.detail }
+  })
 }
 
 /** The built-in schedule for a baby of `months` (null → the 3–6 month day). */

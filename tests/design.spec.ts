@@ -83,9 +83,11 @@ test('controls in a row share one height', async ({ page }) => {
   await hideOverlays(page)
 
   const heights = await page.locator('ol > li').first().evaluate((row) => {
-    const ids = ['slot-time-0', 'slot-mins-0', 'slot-what-0']
-    return ids
-      .map((id) => row.ownerDocument.getElementById(id))
+    // Ids carry a per-row uid, not the index — the list re-sorts itself, so an
+    // index-keyed id would follow the wrong moment.
+    const sel = ['slot-time-', 'slot-mins-', 'slot-what-']
+    return sel
+      .map((prefix) => row.querySelector(`[id^="${prefix}"]`))
       .filter(Boolean)
       // The stepper's id is on its inner <input>; the control is the shell
       // around it, which is what has to match the row.

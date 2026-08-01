@@ -65,6 +65,22 @@ interface AppState {
    *  page gets the width; expanded state persists across sessions. */
   navCollapsed: boolean
   toggleNav: () => void
+  /**
+   * Which folding sections on /schedule are open, by key.
+   *
+   * Persisted because the folding exists to let a caregiver shape that page to
+   * the job they keep coming back for — re-folding the preset palette on every
+   * visit would make the feature cost more than it saves. Absent keys fall back
+   * to the page's own default, so a new section can ship open without a
+   * migration.
+   *
+   * The setter takes the new value rather than toggling: with a section that
+   * defaults to *open*, its key is absent until first use, and a toggle reading
+   * `!undefined` would resolve to `true` — clicking to close it would leave it
+   * open. The caller already knows the resolved state, so it passes it.
+   */
+  openSections: Record<string, boolean>
+  setSectionOpen: (key: string, open: boolean) => void
   /** Notification ids already opened/marked read. Ids are day-scoped, so the
    *  list is pruned to today on every write and the bell re-lights tomorrow. */
   notifSeen: string[]
@@ -153,6 +169,9 @@ export const useAppStore = create<AppState>()(
       setCustomSchedules: (list) => set({ customSchedules: sortSchedules(list) }),
       navCollapsed: true,
       toggleNav: () => set((state) => ({ navCollapsed: !state.navCollapsed })),
+      openSections: {},
+      setSectionOpen: (key, open) =>
+        set((state) => ({ openSections: { ...state.openSections, [key]: open } })),
       notifSeen: [],
       markNotificationsSeen: (ids) =>
         set((state) => {
@@ -211,6 +230,7 @@ export const useAppStore = create<AppState>()(
         cardOrder: state.cardOrder,
         customSchedules: state.customSchedules,
         navCollapsed: state.navCollapsed,
+        openSections: state.openSections,
         notifSeen: state.notifSeen,
         notifDismissed: state.notifDismissed,
         notifPush: state.notifPush,

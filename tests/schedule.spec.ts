@@ -3,6 +3,11 @@ import { hideOverlays, readStore, seedStore, setNumberInput } from './helpers'
 
 /** The day editor: the combined What field, presets, blueprints, drag, bands. */
 
+/** Autosave is debounced, so a test waits for the write rather than a click. */
+async function expectSaved(page: import('@playwright/test').Page) {
+  await expect(page.getByText('Saved', { exact: true })).toBeVisible()
+}
+
 test.beforeEach(async ({ page }) => {
   await seedStore(page, {})
 })
@@ -12,7 +17,7 @@ test.describe('the What field', () => {
     await page.goto('schedule')
     await hideOverlays(page)
 
-    const row = page.locator('main > ol > li').first()
+    const row = page.locator('#day-moments > li').first()
     await expect(row.getByText('What', { exact: true })).toBeVisible()
     // The old row asked twice: a "Type" pill group and a separate "Title" box.
     await expect(row.getByText('Type', { exact: true })).toHaveCount(0)
@@ -43,7 +48,7 @@ test.describe('the What field', () => {
   test('changing the activity renames a title the app wrote', async ({ page }) => {
     await page.goto('schedule')
     await hideOverlays(page)
-    const row = page.locator('main > ol > li').nth(2)
+    const row = page.locator('#day-moments > li').nth(2)
 
     await row.locator('[aria-label="Type"]').click()
     await page.getByRole('button', { name: 'Sleep / nap', exact: true }).click()
@@ -53,7 +58,7 @@ test.describe('the What field', () => {
   test('a hand-typed title is never overwritten', async ({ page }) => {
     await page.goto('schedule')
     await hideOverlays(page)
-    const row = page.locator('main > ol > li').nth(2)
+    const row = page.locator('#day-moments > li').nth(2)
     const field = row.locator('input[id^="slot-what"]')
 
     await field.fill("Dad's turn")
@@ -65,7 +70,7 @@ test.describe('the What field', () => {
   test('a moment links to the tool that logs it, and only when one exists', async ({ page }) => {
     await page.goto('schedule')
     await hideOverlays(page)
-    const row = page.locator('main > ol > li').first()
+    const row = page.locator('#day-moments > li').first()
 
     await row.locator('[aria-label="Type"]').click()
     await page.getByRole('button', { name: 'Milk feed', exact: true }).click()
@@ -85,16 +90,22 @@ test.describe('the What field', () => {
 test('a preset adds a fully-formed moment in one tap', async ({ page }) => {
   await page.goto('schedule')
   await hideOverlays(page)
-  const before = await page.locator('main > ol > li').count()
+  const before = await page.locator('#day-moments > li').count()
 
   await page.getByRole('button', { name: /Add from your day/ }).click()
-  const card = page.locator('section ul li button').first()
+  const card = page.locator('section ul li button').filter({ hasText: /\d\d:\d\d/ }).first()
   const label = (await card.textContent())!.trim()
   await card.click()
 
-  await expect(page.locator('main > ol > li')).toHaveCount(before + 1)
-  const last = page.locator('input[id^="slot-what"]').last()
-  expect(label).toContain(await last.inputValue())
+  await expect(page.locator('#day-moments > li')).toHaveCount(before + 1)
+
+  // It files itself by the time it carries rather than landing at the bottom of
+  // the list — that was the whole point of making clock time the ordering.
+  const titles = await page
+    .locator('input[id^="slot-what"]')
+    .evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value))
+  const added = titles.filter((v) => label.includes(v))
+  expect(added.length).toBeGreaterThan(0)
 })
 
 test('a blueprint replaces the day', async ({ page }) => {
@@ -104,46 +115,105 @@ test('a blueprint replaces the day', async ({ page }) => {
 
   await page.getByRole('button', { name: /Day blueprints/ }).click()
   const cards = page.locator('section li').filter({ has: page.locator('ol') })
-  await expect(cards).toHaveCount(5)
+  await expect(cards).toHaveCount(9)
   // The band matching the child is marked, not filtered to.
   await expect(page.getByText('Matches your baby')).toHaveCount(1)
 
   await cards.last().getByRole('button', { name: 'Load this day' }).click()
-  await expect(page.locator('main > ol > li')).toHaveCount(14)
+  await expect(page.locator('#day-moments > li')).toHaveCount(15)
 })
 
-test('dragging a moment reorders the day', async ({ page }) => {
+test('clock time is the only ordering — drag and the arrows are gone', async ({ page }) => {
+  // The editor used to keep a list position *as well as* a time, which is why it
+  // needed a drag handle and up/down buttons, and why the two could disagree: a
+  // preset landed at the bottom whatever time it carried. Moving a moment is now
+  // the same action as saying when it happens, so a day given out of order comes
+  // back in order and there is nothing left to drag.
+  await seedStore(page, {
+    customSchedules: [
+      {
+        id: 'a',
+        fromMonths: 0,
+        slots: [
+          { time: '19:30', type: 'sleep', mins: 60, title: 'Bedtime', detail: '' },
+          { time: '07:00', type: 'feed', mins: 20, title: 'Morning', detail: '' },
+          { time: '12:00', type: 'meal', mins: 30, title: 'Lunch', detail: '' },
+        ],
+      },
+    ],
+  })
   await page.goto('schedule')
   await hideOverlays(page)
 
-  const titles = () => page.locator('input[id^="slot-what"]').evaluateAll((els) =>
-    els.slice(0, 3).map((e) => (e as HTMLInputElement).value),
-  )
-  const before = await titles()
+  const titles = await page
+    .locator('input[id^="slot-what"]')
+    .evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value))
+  expect(titles).toEqual(['Morning', 'Lunch', 'Bedtime'])
 
-  const grip = page.locator('main > ol > li').first().getByTitle('Drag to reorder')
-  const from = (await grip.boundingBox())!
-  const to = (await page.locator('main > ol > li').nth(2).boundingBox())!
-  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2)
-  await page.mouse.down()
-  await page.mouse.move(from.x + from.width / 2, to.y + to.height * 0.75, { steps: 14 })
-  await page.mouse.up()
-
-  const after = await titles()
-  expect(after).not.toEqual(before)
-  expect(after[2]).toBe(before[0])
+  await expect(page.getByTitle('Drag to reorder')).toHaveCount(0)
+  await expect(page.getByLabel('Move earlier')).toHaveCount(0)
+  await expect(page.getByLabel('Move later')).toHaveCount(0)
 })
 
-test('the arrow buttons stay as the keyboard-reachable path', async ({ page }) => {
-  // Drag is unreachable by keyboard, so removing these would make reordering
-  // mouse-only. They are not a leftover.
+test('the small hours sort to the end of the day, not the start', async ({ page }) => {
+  // A day is a cycle that begins at the morning wake, so a 02:00 night feed
+  // belongs at the bottom of the night that started the evening before — sorting
+  // on the raw clock would file it above the 07:00 wake.
+  await seedStore(page, {
+    customSchedules: [
+      {
+        id: 'a',
+        fromMonths: 0,
+        slots: [
+          { time: '07:00', type: 'feed', mins: 20, title: 'Morning', detail: '' },
+          { time: '02:00', type: 'feed', mins: 20, title: 'Night feed', detail: '' },
+          { time: '19:30', type: 'sleep', mins: 200, title: 'Bedtime', detail: '' },
+        ],
+      },
+    ],
+  })
   await page.goto('schedule')
   await hideOverlays(page)
-  const row = page.locator('main > ol > li').nth(1)
-  const first = await page.locator('input[id^="slot-what"]').first().inputValue()
 
-  await row.getByLabel('Move earlier').click()
-  await expect(page.locator('input[id^="slot-what"]').first()).not.toHaveValue(first)
+  const titles = await page
+    .locator('input[id^="slot-what"]')
+    .evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value))
+  expect(titles).toEqual(['Morning', 'Bedtime', 'Night feed'])
+})
+
+test('a moment that runs into the next one is flagged, not blocked', async ({ page }) => {
+  await seedStore(page, {
+    customSchedules: [
+      {
+        id: 'a',
+        fromMonths: 0,
+        slots: [
+          { time: '07:00', type: 'sleep', mins: 120, title: 'Long nap', detail: '' },
+          { time: '08:00', type: 'feed', mins: 20, title: 'Feed', detail: '' },
+        ],
+      },
+    ],
+  })
+  await page.goto('schedule')
+  await hideOverlays(page)
+
+  await expect(page.getByText(/Runs 60 min into the next moment/)).toBeVisible()
+})
+
+test('edits save themselves, and survive switching programs', async ({ page }) => {
+  // Switching programs used to replace the rows outright, throwing away any
+  // unsaved edit with no warning and no undo.
+  await page.goto('schedule')
+  await hideOverlays(page)
+  await page.getByRole('button', { name: /Create all nine/ }).click()
+
+  await page.locator('input[id^="slot-what"]').first().fill('Dad\'s turn')
+  await expectSaved(page)
+
+  await page.getByRole('button', { name: /2–4 mo/ }).click()
+  await page.getByRole('button', { name: /0–2 mo/ }).click()
+
+  await expect(page.locator('input[id^="slot-what"]').first()).toHaveValue("Dad's turn")
 })
 
 test.describe('age bands', () => {
@@ -151,29 +221,29 @@ test.describe('age bands', () => {
     await page.goto('schedule')
     await hideOverlays(page)
 
-    await page.getByRole('button', { name: /Create all five/ }).click()
+    await page.getByRole('button', { name: /Create all nine/ }).click()
     const store = await readStore(page)
     const bands = store.customSchedules as { fromMonths: number; slots: unknown[] }[]
-    expect(bands.map((b) => b.fromMonths)).toEqual([0, 3, 6, 12, 24])
+    expect(bands.map((b) => b.fromMonths)).toEqual([0, 2, 4, 6, 9, 12, 18, 24, 36])
     expect(bands.every((b) => b.slots.length > 0)).toBe(true)
     // Programs state their range outright rather than only a start month.
-    await expect(page.getByRole('button', { name: /0–3 mo/ })).toBeVisible()
-    await expect(page.getByRole('button', { name: /2 y\+/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /0–2 mo/ })).toBeVisible()
+    await expect(page.getByRole('button', { name: /3 y\+/ })).toBeVisible()
   })
 
   test('any band can be opened and edited', async ({ page }) => {
     await page.goto('schedule')
     await hideOverlays(page)
-    await page.getByRole('button', { name: /Create all five/ }).click()
+    await page.getByRole('button', { name: /Create all nine/ }).click()
 
-    await page.getByRole('button', { name: /2 y\+/ }).click()
+    await page.getByRole('button', { name: /3 y\+/ }).click()
     const field = page.locator('input[id^="slot-what"]').first()
     await field.fill('Toddler wake-up')
-    await page.getByRole('button', { name: /Save schedule/ }).click()
+    await expectSaved(page)
 
     const store = await readStore(page)
     const bands = store.customSchedules as { fromMonths: number; slots: { title: string }[] }[]
-    expect(bands.find((b) => b.fromMonths === 24)!.slots[0].title).toBe('Toddler wake-up')
+    expect(bands.find((b) => b.fromMonths === 36)!.slots[0].title).toBe('Toddler wake-up')
     // Editing one band must not touch another.
     expect(bands.find((b) => b.fromMonths === 0)!.slots[0].title).not.toBe('Toddler wake-up')
   })
@@ -204,14 +274,17 @@ test.describe('age bands', () => {
   test('deleting a band falls back rather than emptying the editor', async ({ page }) => {
     await page.goto('schedule')
     await hideOverlays(page)
-    await page.getByRole('button', { name: /Create all five/ }).click()
+    // Deleting a program is confirmed: with autosave there is no undo, and it
+    // erases a hand-built day.
+    page.on('dialog', (d) => d.accept())
+    await page.getByRole('button', { name: /Create all nine/ }).click()
 
-    await page.getByRole('button', { name: /0–3 mo/ }).click()
+    await page.getByRole('button', { name: /0–2 mo/ }).click()
     await page.getByRole('button', { name: /Delete this program/ }).click()
 
     const store = await readStore(page)
-    expect((store.customSchedules as unknown[]).length).toBe(4)
-    await expect(page.locator('main > ol > li').first()).toBeVisible()
+    expect((store.customSchedules as unknown[]).length).toBe(8)
+    await expect(page.locator('#day-moments > li').first()).toBeVisible()
   })
 })
 
@@ -247,7 +320,7 @@ test.describe('creating a program', () => {
     // decisions made silently and one of them guessed.
     await page.goto('schedule')
     await hideOverlays(page)
-    await page.getByRole('button', { name: /Create all five/ }).click()
+    await page.getByRole('button', { name: /Create all nine/ }).click()
     await page.getByRole('button', { name: /New program/ }).click()
 
     await expect(page.locator('#new-program-from')).toBeVisible()
@@ -259,7 +332,7 @@ test.describe('creating a program', () => {
   test('refuses an age another program already starts at', async ({ page }) => {
     await page.goto('schedule')
     await hideOverlays(page)
-    await page.getByRole('button', { name: /Create all five/ }).click()
+    await page.getByRole('button', { name: /Create all nine/ }).click()
     await page.getByRole('button', { name: /New program/ }).click()
 
     await setNumberInput(page, 'new-program-from', 12)
@@ -267,14 +340,14 @@ test.describe('creating a program', () => {
     await expect(page.getByRole('button', { name: /Create program/ })).toBeDisabled()
 
     // …and lets go once the clash does.
-    await setNumberInput(page, 'new-program-from', 18)
+    await setNumberInput(page, 'new-program-from', 15)
     await expect(page.getByRole('button', { name: /Create program/ })).toBeEnabled()
   })
 
   test('"empty" really is empty, so a day can be built from scratch', async ({ page }) => {
     await page.goto('schedule')
     await hideOverlays(page)
-    await page.getByRole('button', { name: /Create all five/ }).click()
+    await page.getByRole('button', { name: /Create all nine/ }).click()
     await page.getByRole('button', { name: /New program/ }).click()
 
     await setNumberInput(page, 'new-program-from', 30)
@@ -289,26 +362,92 @@ test.describe('creating a program', () => {
   test('"copy" duplicates the open program without sharing its moments', async ({ page }) => {
     await page.goto('schedule')
     await hideOverlays(page)
-    await page.getByRole('button', { name: /Create all five/ }).click()
-    await page.getByRole('button', { name: /0–3 mo/ }).click()
+    await page.getByRole('button', { name: /Create all nine/ }).click()
+    await page.getByRole('button', { name: /0–2 mo/ }).click()
 
     await page.getByRole('button', { name: /New program/ }).click()
-    await setNumberInput(page, 'new-program-from', 9)
+    await setNumberInput(page, 'new-program-from', 21)
     await page.getByRole('button', { name: /Copy of/ }).click()
     await page.getByRole('button', { name: /Create program/ }).click()
 
     let store = await readStore(page)
     let bands = store.customSchedules as { fromMonths: number; slots: { title: string }[] }[]
     const source = bands.find((b) => b.fromMonths === 0)!
-    const copy = bands.find((b) => b.fromMonths === 9)!
+    const copy = bands.find((b) => b.fromMonths === 21)!
     expect(copy.slots.map((s) => s.title)).toEqual(source.slots.map((s) => s.title))
 
     // Editing the copy must not reach back into the program it came from.
     await page.locator('input[id^="slot-what"]').first().fill('Changed in the copy')
-    await page.getByRole('button', { name: /Save schedule/ }).click()
+    await expectSaved(page)
     store = await readStore(page)
     bands = store.customSchedules as { fromMonths: number; slots: { title: string }[] }[]
-    expect(bands.find((b) => b.fromMonths === 9)!.slots[0].title).toBe('Changed in the copy')
+    expect(bands.find((b) => b.fromMonths === 21)!.slots[0].title).toBe('Changed in the copy')
     expect(bands.find((b) => b.fromMonths === 0)!.slots[0].title).not.toBe('Changed in the copy')
   })
+})
+
+test('nine programs never widen the page on a phone', async ({ page }) => {
+  // Nine segments at the 44px touch minimum need ~480px, which is wider than the
+  // phone. The axis has to absorb that itself: the shell must never scroll
+  // sideways (see CLAUDE.md), and a page that does is unusable one-handed.
+  await page.goto('schedule')
+  await hideOverlays(page)
+  await page.getByRole('button', { name: /Create all nine/ }).click()
+  await expect(page.getByRole('button', { name: /0–2 mo/ })).toBeVisible()
+
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+  )
+  expect(overflow).toBeLessThanOrEqual(1)
+})
+
+test('an edit is not lost by closing the tab inside the autosave window', async ({ page }) => {
+  // The debounced write is the only thing standing between a keystroke and the
+  // store, and a tab that goes away runs no React cleanup at all — so the last
+  // 400ms of work used to vanish on reload, close, or a phone backgrounding the
+  // page. `pagehide` is what makes that survive.
+  await page.goto('schedule')
+  await hideOverlays(page)
+  await page.getByRole('button', { name: /Create all nine/ }).click()
+  // Seeding loads rows into the editor; typing before that commit lands is
+  // overwritten by it.
+  await expect(page.getByRole('button', { name: /0–2 mo/ })).toBeVisible()
+
+  const field = page.locator('input[id^="slot-what"]').first()
+  await field.fill('Vanishing edit')
+  await expect(field).toHaveValue('Vanishing edit')
+
+  // Fire the event the browser fires when a tab is closed, reloaded or frozen
+  // — still well inside the debounce, and with no React unmount to fall back on.
+  await page.evaluate(() => window.dispatchEvent(new Event('pagehide')))
+
+  const store = await readStore(page)
+  const bands = store.customSchedules as { fromMonths: number; slots: { title: string }[] }[]
+  expect(bands.find((b) => b.fromMonths === 0)!.slots[0].title).toBe('Vanishing edit')
+})
+
+test('moving a program onto another program’s start age is refused', async ({ page }) => {
+  // `customSchedules` must stay in age order and hold no duplicate starts — the
+  // resolver walks it in order and each span is derived from its neighbour, so a
+  // duplicate or an out-of-order entry makes the axis draw ranges that lie.
+  await page.goto('schedule')
+  await hideOverlays(page)
+  await page.getByRole('button', { name: /Create all nine/ }).click()
+  await expect(page.getByRole('button', { name: /0–2 mo/ })).toBeVisible()
+  await page.getByRole('button', { name: /2–4 mo/ }).click()
+  await expect(page.locator('#band-from')).toBeVisible()
+
+  // 4 mo is the next program's start; stepping onto it must not take, and the
+  // field snaps back to the value that is still true.
+  const from = page.locator('#band-from')
+  await from.click()
+  await page.keyboard.press('ControlOrMeta+a')
+  await page.keyboard.type('4')
+  await page.keyboard.press('Tab')
+  await expect(from).toHaveValue('2')
+
+  const store = await readStore(page)
+  const starts = (store.customSchedules as { fromMonths: number }[]).map((b) => b.fromMonths)
+  expect(starts).toEqual([...starts].sort((a, b) => a - b))
+  expect(new Set(starts).size).toBe(starts.length)
 })

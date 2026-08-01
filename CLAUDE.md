@@ -19,6 +19,15 @@ Guidance for Claude Code sessions working in this repo.
 
 The Learn topics are defined once in `src/sections/registry.tsx` (slug, module, `group`, icon, i18n label/blurb getters, section component). That registry drives the hub grid (grouped by theme via `group` / `groupOrder`), the routes, the nav links, and the pager. Topic content/data lives in `src/data.ts` + `src/i18n.ts` (en + el must stay in sync — `Messages = typeof en`).
 
+### Day programs (`/schedule`)
+
+A **program** is a saved day that applies from a start age in months until the next program begins, so the effective day follows the child as they grow (`scheduleForAge`). The nine built-in sample days live in `dayTemplates` (`src/data.ts`), one per age band birth to three years and beyond; their boundaries are the ages at which the day actually changes shape (a nap is dropped, solids start, a wake window crosses into the next published range), and each is built to the AASM/AAP sleep totals, the age's wake-window range and the WHO movement targets.
+
+Two invariants that are easy to break:
+
+- **Slot text is keyed, not positional.** A template slot carries a `moment: MomentKey`, resolved against `fullDay.moments` in i18n. It used to be an array paired by index, so inserting one slot silently re-labelled every moment after it. Add a moment by adding a key, never by lining up two arrays.
+- **Clock time is the only ordering.** `/schedule` sorts by `sortByClock`, whose day cycle starts at the 06:00 anchor in `src/lib/schedule.ts` — so a 02:00 night feed files at the *end* of the day, not above the morning wake. There is deliberately no drag handle and no ↑↓: a second, hand-maintained order is what let the list and the times disagree. Moving a moment means changing its time. Edits autosave.
+
 Shared daily logic is hook-first: `useDailyChecklist` (checklist + streak + sync), `useTummyTracker`, `useBabies`, `useHousehold`, `useBabyAge` (age-band highlighting). Both the `/daily` widgets and the standalone sections/pages reuse these — don't duplicate the state.
 
 ## Stack

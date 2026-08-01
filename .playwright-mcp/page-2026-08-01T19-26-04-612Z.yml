@@ -1,0 +1,880 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - link "Early Development" [ref=e8] [cursor=pointer]:
+          - /url: /early-development-architecture/
+          - generic [ref=e9]: 🧠
+        - button "Collapse sidebar" [expanded] [ref=e11]
+      - navigation "Sections" [ref=e15]:
+        - list [ref=e16]:
+          - listitem [ref=e17]:
+            - link "Today" [ref=e18] [cursor=pointer]:
+              - /url: /early-development-architecture/
+          - listitem [ref=e23]:
+            - link "Tracker" [ref=e24] [cursor=pointer]:
+              - /url: /early-development-architecture/tracker
+          - listitem [ref=e29]:
+            - link "Feed log" [ref=e30] [cursor=pointer]:
+              - /url: /early-development-architecture/feed
+          - listitem [ref=e35]:
+            - link "Baby" [ref=e36] [cursor=pointer]:
+              - /url: /early-development-architecture/baby
+          - listitem [ref=e41]:
+            - link "Family" [ref=e42] [cursor=pointer]:
+              - /url: /early-development-architecture/family
+          - listitem [ref=e49]:
+            - link "Day programs" [ref=e50] [cursor=pointer]:
+              - /url: /early-development-architecture/schedule
+          - listitem [ref=e54]:
+            - link "Wiki" [ref=e55] [cursor=pointer]:
+              - /url: /early-development-architecture/wiki
+          - listitem [ref=e59]:
+            - link "Export" [ref=e60] [cursor=pointer]:
+              - /url: /early-development-architecture/export
+      - generic [ref=e66]:
+        - button "Notifications — 4 unread" [ref=e67]:
+          - generic [ref=e71]: Notifications
+          - generic: "4"
+        - button "Settings" [ref=e72]
+        - link "Sign in" [ref=e75] [cursor=pointer]:
+          - /url: /early-development-architecture/signin?next=%2Fschedule
+          - generic [ref=e79]: …
+  - main [ref=e82]:
+    - generic [ref=e84]:
+      - heading "Edit your day" [level=1] [ref=e86]
+      - generic [ref=e88]:
+        - generic [ref=e90]:
+          - generic [ref=e91]: Today
+          - generic [ref=e92]: Sat 1 Aug
+        - generic [ref=e95]:
+          - generic [ref=e96]: Now
+          - generic [ref=e97]: 22:26
+    - generic [ref=e99]:
+      - button "Your day programs 5 Each program covers an age range. The app switches to the right one on its own as your baby grows." [expanded] [ref=e101]:
+        - generic [ref=e104]:
+          - generic [ref=e105]:
+            - generic [ref=e106]: Your day programs
+            - generic [ref=e107]: "5"
+          - generic [ref=e108]: Each program covers an age range. The app switches to the right one on its own as your baby grows.
+      - generic [ref=e110]:
+        - list "Your programs across the first three years" [ref=e112]:
+          - listitem [ref=e113]:
+            - button "0–3 mo" [pressed] [ref=e114]:
+              - generic [ref=e115]: 0 mo
+              - list [ref=e116]:
+                - listitem [ref=e117]
+                - listitem [ref=e120]
+                - listitem [ref=e123]
+                - listitem [ref=e126]
+                - listitem [ref=e129]
+                - listitem [ref=e132]
+                - listitem [ref=e135]
+                - listitem [ref=e138]
+                - listitem [ref=e141]
+                - listitem [ref=e144]
+                - listitem [ref=e147]
+                - listitem [ref=e150]
+                - listitem [ref=e153]
+                - listitem [ref=e156]
+                - listitem [ref=e159]
+                - listitem [ref=e162]
+                - listitem [ref=e165]
+                - listitem [ref=e168]
+                - listitem [ref=e171]
+                - listitem [ref=e174]
+                - listitem [ref=e177]
+                - listitem [ref=e180]
+                - listitem [ref=e183]
+          - listitem [ref=e186]:
+            - button "3–6 mo" [ref=e187]:
+              - generic [ref=e188]: 3 mo
+              - list [ref=e189]:
+                - listitem [ref=e190]
+                - listitem [ref=e193]
+                - listitem [ref=e196]
+                - listitem [ref=e199]
+                - listitem [ref=e202]
+                - listitem [ref=e205]
+                - listitem [ref=e208]
+                - listitem [ref=e211]
+                - listitem [ref=e214]
+                - listitem [ref=e217]
+                - listitem [ref=e220]
+                - listitem [ref=e223]
+                - listitem [ref=e226]
+                - listitem [ref=e229]
+                - listitem [ref=e232]
+                - listitem [ref=e235]
+                - listitem [ref=e238]
+                - listitem [ref=e241]
+                - listitem [ref=e244]
+                - listitem [ref=e247]
+                - listitem [ref=e250]
+          - listitem [ref=e253]:
+            - button "6 mo–1 y" [ref=e254]:
+              - generic [ref=e255]: 6 mo
+              - list [ref=e256]:
+                - listitem [ref=e257]
+                - listitem [ref=e260]
+                - listitem [ref=e263]
+                - listitem [ref=e266]
+                - listitem [ref=e269]
+                - listitem [ref=e272]
+                - listitem [ref=e275]
+                - listitem [ref=e278]
+                - listitem [ref=e281]
+                - listitem [ref=e284]
+                - listitem [ref=e287]
+                - listitem [ref=e290]
+                - listitem [ref=e293]
+                - listitem [ref=e296]
+                - listitem [ref=e299]
+                - listitem [ref=e302]
+                - listitem [ref=e305]
+                - listitem [ref=e308]
+                - listitem [ref=e311]
+                - listitem [ref=e314]
+          - listitem [ref=e317]:
+            - button "1–2 y" [ref=e318]:
+              - generic [ref=e319]: 1 y
+              - list [ref=e320]:
+                - listitem [ref=e321]
+                - listitem [ref=e324]
+                - listitem [ref=e327]
+                - listitem [ref=e330]
+                - listitem [ref=e333]
+                - listitem [ref=e336]
+                - listitem [ref=e339]
+                - listitem [ref=e342]
+                - listitem [ref=e345]
+                - listitem [ref=e348]
+                - listitem [ref=e351]
+                - listitem [ref=e354]
+                - listitem [ref=e357]
+                - listitem [ref=e360]
+          - listitem [ref=e363]:
+            - button "2 y+" [ref=e364]:
+              - generic [ref=e365]: 2 y
+              - list [ref=e366]:
+                - listitem [ref=e367]
+                - listitem [ref=e370]
+                - listitem [ref=e373]
+                - listitem [ref=e376]
+                - listitem [ref=e379]
+                - listitem [ref=e382]
+                - listitem [ref=e385]
+                - listitem [ref=e388]
+                - listitem [ref=e391]
+                - listitem [ref=e394]
+                - listitem [ref=e397]
+                - listitem [ref=e400]
+                - listitem [ref=e403]
+                - listitem [ref=e406]
+          - listitem [ref=e409]:
+            - button "New program" [ref=e410]
+        - generic [ref=e412]:
+          - generic [ref=e413]:
+            - generic [ref=e414]: 0–3 mo
+            - generic [ref=e416]: 23 moments
+          - list [ref=e417]:
+            - listitem [ref=e418]
+            - listitem [ref=e421]
+            - listitem [ref=e424]
+            - listitem [ref=e427]
+            - listitem [ref=e430]
+            - listitem [ref=e433]
+            - listitem [ref=e436]
+            - listitem [ref=e439]
+            - listitem [ref=e442]
+            - listitem [ref=e445]
+            - listitem [ref=e448]
+            - listitem [ref=e451]
+            - listitem [ref=e454]
+            - listitem [ref=e457]
+            - listitem [ref=e460]
+            - listitem [ref=e463]
+            - listitem [ref=e466]
+            - listitem [ref=e469]
+            - listitem [ref=e472]
+            - listitem [ref=e475]
+            - listitem [ref=e478]
+            - listitem [ref=e481]
+            - listitem [ref=e484]
+          - generic [ref=e487]: 9× Milk feed · 5× Sleep / nap · 4× Play & connect · 2× Tummy & floor time · 2× Care · 1× Wind-down
+          - paragraph [ref=e488]:
+            - generic [ref=e489]: "Next change at 3 mo:"
+            - text: Milk feed 9 → 7 · Sleep / nap 5 → 4 · Tummy & floor time 2 → 3
+          - generic [ref=e490]:
+            - generic [ref=e491]:
+              - generic [ref=e492]: Starts at
+              - generic [ref=e493]:
+                - group [ref=e495]:
+                  - button "Decrease" [ref=e496]
+                  - generic [ref=e499]:
+                    - textbox "Starts at" [ref=e500]: "0"
+                    - generic [ref=e501]: mo
+                  - button "Increase" [ref=e502]
+                - spinbutton [ref=e505]: "0"
+            - button "Delete this program" [ref=e506]
+    - list [ref=e509]:
+      - listitem [ref=e510]:
+        - generic [ref=e513]:
+          - generic [ref=e514]:
+            - generic [ref=e515]: What
+            - generic [ref=e516]:
+              - button "Type" [ref=e517]
+              - textbox "What" [ref=e523]:
+                - /placeholder: e.g. Morning feed
+                - text: Wake & feed
+          - generic [ref=e524]:
+            - generic [ref=e525]: Time
+            - button "Time" [ref=e526]:
+              - generic [ref=e527]: 07:00
+          - generic [ref=e531]:
+            - generic [ref=e532]: How long
+            - generic [ref=e533]:
+              - group [ref=e535]:
+                - button "Decrease" [ref=e536]
+                - generic [ref=e539]:
+                  - textbox "How long" [ref=e540]: "30"
+                  - generic [ref=e541]: min
+                - button "Increase" [ref=e542]
+              - spinbutton [ref=e545]: "30"
+          - generic [ref=e546]:
+            - generic [ref=e547]: ends 07:30
+            - link "Logs in Feed log" [ref=e548] [cursor=pointer]:
+              - /url: /early-development-architecture/feed
+            - button "Remove" [ref=e552]
+        - button "Add a moment here" [ref=e553]
+      - listitem [ref=e555]:
+        - generic [ref=e558]:
+          - generic [ref=e559]:
+            - generic [ref=e560]: What
+            - generic [ref=e561]:
+              - button "Type" [ref=e562]
+              - textbox "What" [ref=e568]:
+                - /placeholder: e.g. Morning feed
+                - text: Nappy & dress
+          - generic [ref=e569]:
+            - generic [ref=e570]: Time
+            - button "Time" [ref=e571]:
+              - generic [ref=e572]: 07:35
+          - generic [ref=e576]:
+            - generic [ref=e577]: How long
+            - generic [ref=e578]:
+              - group [ref=e580]:
+                - button "Decrease" [ref=e581]
+                - generic [ref=e584]:
+                  - textbox "How long" [ref=e585]: "15"
+                  - generic [ref=e586]: min
+                - button "Increase" [ref=e587]
+              - spinbutton [ref=e590]: "15"
+          - generic [ref=e591]:
+            - generic [ref=e592]: ends 07:50
+            - button "Remove" [ref=e593]
+        - button "Add a moment here" [ref=e594]
+      - listitem [ref=e596]:
+        - generic [ref=e599]:
+          - generic [ref=e600]:
+            - generic [ref=e601]: What
+            - generic [ref=e602]:
+              - button "Type" [ref=e603]
+              - textbox "What" [ref=e610]:
+                - /placeholder: e.g. Morning feed
+                - text: Face-to-face
+          - generic [ref=e611]:
+            - generic [ref=e612]: Time
+            - button "Time" [ref=e613]:
+              - generic [ref=e614]: 07:55
+          - generic [ref=e618]:
+            - generic [ref=e619]: How long
+            - generic [ref=e620]:
+              - group [ref=e622]:
+                - button "Decrease" [ref=e623]
+                - generic [ref=e626]:
+                  - textbox "How long" [ref=e627]: "15"
+                  - generic [ref=e628]: min
+                - button "Increase" [ref=e629]
+              - spinbutton [ref=e632]: "15"
+          - generic [ref=e633]:
+            - generic [ref=e634]: ends 08:10
+            - button "Remove" [ref=e635]
+        - button "Add a moment here" [ref=e636]
+      - listitem [ref=e638]:
+        - generic [ref=e641]:
+          - generic [ref=e642]:
+            - generic [ref=e643]: What
+            - generic [ref=e644]:
+              - button "Type" [ref=e645]
+              - textbox "What" [ref=e651]:
+                - /placeholder: e.g. Morning feed
+                - text: Tummy time
+          - generic [ref=e652]:
+            - generic [ref=e653]: Time
+            - button "Time" [ref=e654]:
+              - generic [ref=e655]: 08:10
+          - generic [ref=e659]:
+            - generic [ref=e660]: How long
+            - generic [ref=e661]:
+              - group [ref=e663]:
+                - button "Decrease" [ref=e664]
+                - generic [ref=e667]:
+                  - textbox "How long" [ref=e668]: "3"
+                  - generic [ref=e669]: min
+                - button "Increase" [ref=e670]
+              - spinbutton [ref=e673]: "3"
+          - generic [ref=e674]:
+            - generic [ref=e675]: ends 08:13
+            - link "Logs in Tracker" [ref=e676] [cursor=pointer]:
+              - /url: /early-development-architecture/tracker
+            - button "Remove" [ref=e680]
+        - button "Add a moment here" [ref=e681]
+      - listitem [ref=e683]:
+        - generic [ref=e686]:
+          - generic [ref=e687]:
+            - generic [ref=e688]: What
+            - generic [ref=e689]:
+              - button "Type" [ref=e690]
+              - textbox "What" [ref=e695]:
+                - /placeholder: e.g. Morning feed
+                - text: Morning sleep
+          - generic [ref=e696]:
+            - generic [ref=e697]: Time
+            - button "Time" [ref=e698]:
+              - generic [ref=e699]: 08:20
+          - generic [ref=e703]:
+            - generic [ref=e704]: How long
+            - generic [ref=e705]:
+              - group [ref=e707]:
+                - button "Decrease" [ref=e708]
+                - generic [ref=e711]:
+                  - textbox "How long" [ref=e712]: "90"
+                  - generic [ref=e713]: min
+                - button "Increase" [ref=e714]
+              - spinbutton [ref=e717]: "90"
+          - generic [ref=e718]:
+            - generic [ref=e719]: ends 09:50
+            - button "Remove" [ref=e720]
+        - button "Add a moment here" [ref=e721]
+      - listitem [ref=e723]:
+        - generic [ref=e726]:
+          - generic [ref=e727]:
+            - generic [ref=e728]: What
+            - generic [ref=e729]:
+              - button "Type" [ref=e730]
+              - textbox "What" [ref=e736]:
+                - /placeholder: e.g. Morning feed
+                - text: Feed
+          - generic [ref=e737]:
+            - generic [ref=e738]: Time
+            - button "Time" [ref=e739]:
+              - generic [ref=e740]: 09:50
+          - generic [ref=e744]:
+            - generic [ref=e745]: How long
+            - generic [ref=e746]:
+              - group [ref=e748]:
+                - button "Decrease" [ref=e749]
+                - generic [ref=e752]:
+                  - textbox "How long" [ref=e753]: "30"
+                  - generic [ref=e754]: min
+                - button "Increase" [ref=e755]
+              - spinbutton [ref=e758]: "30"
+          - generic [ref=e759]:
+            - generic [ref=e760]: ends 10:20
+            - link "Logs in Feed log" [ref=e761] [cursor=pointer]:
+              - /url: /early-development-architecture/feed
+            - button "Remove" [ref=e765]
+        - button "Add a moment here" [ref=e766]
+      - listitem [ref=e768]:
+        - generic [ref=e771]:
+          - generic [ref=e772]:
+            - generic [ref=e773]: What
+            - generic [ref=e774]:
+              - button "Type" [ref=e775]
+              - textbox "What" [ref=e782]:
+                - /placeholder: e.g. Morning feed
+                - text: Quiet play
+          - generic [ref=e783]:
+            - generic [ref=e784]: Time
+            - button "Time" [ref=e785]:
+              - generic [ref=e786]: 10:25
+          - generic [ref=e790]:
+            - generic [ref=e791]: How long
+            - generic [ref=e792]:
+              - group [ref=e794]:
+                - button "Decrease" [ref=e795]
+                - generic [ref=e798]:
+                  - textbox "How long" [ref=e799]: "20"
+                  - generic [ref=e800]: min
+                - button "Increase" [ref=e801]
+              - spinbutton [ref=e804]: "20"
+          - generic [ref=e805]:
+            - generic [ref=e806]: ends 10:45
+            - button "Remove" [ref=e807]
+        - button "Add a moment here" [ref=e808]
+      - listitem [ref=e810]:
+        - generic [ref=e813]:
+          - generic [ref=e814]:
+            - generic [ref=e815]: What
+            - generic [ref=e816]:
+              - button "Type" [ref=e817]
+              - textbox "What" [ref=e822]:
+                - /placeholder: e.g. Morning feed
+                - text: Sleep
+          - generic [ref=e823]:
+            - generic [ref=e824]: Time
+            - button "Time" [ref=e825]:
+              - generic [ref=e826]: 10:50
+          - generic [ref=e830]:
+            - generic [ref=e831]: How long
+            - generic [ref=e832]:
+              - group [ref=e834]:
+                - button "Decrease" [ref=e835]
+                - generic [ref=e838]:
+                  - textbox "How long" [ref=e839]: "90"
+                  - generic [ref=e840]: min
+                - button "Increase" [ref=e841]
+              - spinbutton [ref=e844]: "90"
+          - generic [ref=e845]:
+            - generic [ref=e846]: ends 12:20
+            - button "Remove" [ref=e847]
+        - button "Add a moment here" [ref=e848]
+      - listitem [ref=e850]:
+        - generic [ref=e853]:
+          - generic [ref=e854]:
+            - generic [ref=e855]: What
+            - generic [ref=e856]:
+              - button "Type" [ref=e857]
+              - textbox "What" [ref=e863]:
+                - /placeholder: e.g. Morning feed
+                - text: Feed
+          - generic [ref=e864]:
+            - generic [ref=e865]: Time
+            - button "Time" [ref=e866]:
+              - generic [ref=e867]: 12:20
+          - generic [ref=e871]:
+            - generic [ref=e872]: How long
+            - generic [ref=e873]:
+              - group [ref=e875]:
+                - button "Decrease" [ref=e876]
+                - generic [ref=e879]:
+                  - textbox "How long" [ref=e880]: "30"
+                  - generic [ref=e881]: min
+                - button "Increase" [ref=e882]
+              - spinbutton [ref=e885]: "30"
+          - generic [ref=e886]:
+            - generic [ref=e887]: ends 12:50
+            - link "Logs in Feed log" [ref=e888] [cursor=pointer]:
+              - /url: /early-development-architecture/feed
+            - button "Remove" [ref=e892]
+        - button "Add a moment here" [ref=e893]
+      - listitem [ref=e895]:
+        - generic [ref=e898]:
+          - generic [ref=e899]:
+            - generic [ref=e900]: What
+            - generic [ref=e901]:
+              - button "Type" [ref=e902]
+              - textbox "What" [ref=e908]:
+                - /placeholder: e.g. Morning feed
+                - text: Tummy time
+          - generic [ref=e909]:
+            - generic [ref=e910]: Time
+            - button "Time" [ref=e911]:
+              - generic [ref=e912]: 12:55
+          - generic [ref=e916]:
+            - generic [ref=e917]: How long
+            - generic [ref=e918]:
+              - group [ref=e920]:
+                - button "Decrease" [ref=e921]
+                - generic [ref=e924]:
+                  - textbox "How long" [ref=e925]: "3"
+                  - generic [ref=e926]: min
+                - button "Increase" [ref=e927]
+              - spinbutton [ref=e930]: "3"
+          - generic [ref=e931]:
+            - generic [ref=e932]: ends 12:58
+            - link "Logs in Tracker" [ref=e933] [cursor=pointer]:
+              - /url: /early-development-architecture/tracker
+            - button "Remove" [ref=e937]
+        - button "Add a moment here" [ref=e938]
+      - listitem [ref=e940]:
+        - generic [ref=e943]:
+          - generic [ref=e944]:
+            - generic [ref=e945]: What
+            - generic [ref=e946]:
+              - button "Type" [ref=e947]
+              - textbox "What" [ref=e954]:
+                - /placeholder: e.g. Morning feed
+                - text: Cuddle & chat
+          - generic [ref=e955]:
+            - generic [ref=e956]: Time
+            - button "Time" [ref=e957]:
+              - generic [ref=e958]: 13:05
+          - generic [ref=e962]:
+            - generic [ref=e963]: How long
+            - generic [ref=e964]:
+              - group [ref=e966]:
+                - button "Decrease" [ref=e967]
+                - generic [ref=e970]:
+                  - textbox "How long" [ref=e971]: "15"
+                  - generic [ref=e972]: min
+                - button "Increase" [ref=e973]
+              - spinbutton [ref=e976]: "15"
+          - generic [ref=e977]:
+            - generic [ref=e978]: ends 13:20
+            - button "Remove" [ref=e979]
+        - button "Add a moment here" [ref=e980]
+      - listitem [ref=e982]:
+        - generic [ref=e985]:
+          - generic [ref=e986]:
+            - generic [ref=e987]: What
+            - generic [ref=e988]:
+              - button "Type" [ref=e989]
+              - textbox "What" [ref=e994]:
+                - /placeholder: e.g. Morning feed
+                - text: Long day sleep
+          - generic [ref=e995]:
+            - generic [ref=e996]: Time
+            - button "Time" [ref=e997]:
+              - generic [ref=e998]: 13:25
+          - generic [ref=e1002]:
+            - generic [ref=e1003]: How long
+            - generic [ref=e1004]:
+              - group [ref=e1006]:
+                - button "Decrease" [ref=e1007]
+                - generic [ref=e1010]:
+                  - textbox "How long" [ref=e1011]: "100"
+                  - generic [ref=e1012]: min
+                - button "Increase" [ref=e1013]
+              - spinbutton [ref=e1016]: "100"
+          - generic [ref=e1017]:
+            - generic [ref=e1018]: ends 15:05
+            - button "Remove" [ref=e1019]
+        - button "Add a moment here" [ref=e1020]
+      - listitem [ref=e1022]:
+        - generic [ref=e1025]:
+          - generic [ref=e1026]:
+            - generic [ref=e1027]: What
+            - generic [ref=e1028]:
+              - button "Type" [ref=e1029]
+              - textbox "What" [ref=e1035]:
+                - /placeholder: e.g. Morning feed
+                - text: Feed
+          - generic [ref=e1036]:
+            - generic [ref=e1037]: Time
+            - button "Time" [ref=e1038]:
+              - generic [ref=e1039]: 15:05
+          - generic [ref=e1043]:
+            - generic [ref=e1044]: How long
+            - generic [ref=e1045]:
+              - group [ref=e1047]:
+                - button "Decrease" [ref=e1048]
+                - generic [ref=e1051]:
+                  - textbox "How long" [ref=e1052]: "30"
+                  - generic [ref=e1053]: min
+                - button "Increase" [ref=e1054]
+              - spinbutton [ref=e1057]: "30"
+          - generic [ref=e1058]:
+            - generic [ref=e1059]: ends 15:35
+            - link "Logs in Feed log" [ref=e1060] [cursor=pointer]:
+              - /url: /early-development-architecture/feed
+            - button "Remove" [ref=e1064]
+        - button "Add a moment here" [ref=e1065]
+      - listitem [ref=e1067]:
+        - generic [ref=e1070]:
+          - generic [ref=e1071]:
+            - generic [ref=e1072]: What
+            - generic [ref=e1073]:
+              - button "Type" [ref=e1074]
+              - textbox "What" [ref=e1081]:
+                - /placeholder: e.g. Morning feed
+                - text: Awake & held
+          - generic [ref=e1082]:
+            - generic [ref=e1083]: Time
+            - button "Time" [ref=e1084]:
+              - generic [ref=e1085]: 15:40
+          - generic [ref=e1089]:
+            - generic [ref=e1090]: How long
+            - generic [ref=e1091]:
+              - group [ref=e1093]:
+                - button "Decrease" [ref=e1094]
+                - generic [ref=e1097]:
+                  - textbox "How long" [ref=e1098]: "20"
+                  - generic [ref=e1099]: min
+                - button "Increase" [ref=e1100]
+              - spinbutton [ref=e1103]: "20"
+          - generic [ref=e1104]:
+            - generic [ref=e1105]: ends 16:00
+            - button "Remove" [ref=e1106]
+        - button "Add a moment here" [ref=e1107]
+      - listitem [ref=e1109]:
+        - generic [ref=e1112]:
+          - generic [ref=e1113]:
+            - generic [ref=e1114]: What
+            - generic [ref=e1115]:
+              - button "Type" [ref=e1116]
+              - textbox "What" [ref=e1121]:
+                - /placeholder: e.g. Morning feed
+                - text: Catnap
+          - generic [ref=e1122]:
+            - generic [ref=e1123]: Time
+            - button "Time" [ref=e1124]:
+              - generic [ref=e1125]: 16:05
+          - generic [ref=e1129]:
+            - generic [ref=e1130]: How long
+            - generic [ref=e1131]:
+              - group [ref=e1133]:
+                - button "Decrease" [ref=e1134]
+                - generic [ref=e1137]:
+                  - textbox "How long" [ref=e1138]: "75"
+                  - generic [ref=e1139]: min
+                - button "Increase" [ref=e1140]
+              - spinbutton [ref=e1143]: "75"
+          - generic [ref=e1144]:
+            - generic [ref=e1145]: ends 17:20
+            - button "Remove" [ref=e1146]
+        - button "Add a moment here" [ref=e1147]
+      - listitem [ref=e1149]:
+        - generic [ref=e1152]:
+          - generic [ref=e1153]:
+            - generic [ref=e1154]: What
+            - generic [ref=e1155]:
+              - button "Type" [ref=e1156]
+              - textbox "What" [ref=e1162]:
+                - /placeholder: e.g. Morning feed
+                - text: Feed
+          - generic [ref=e1163]:
+            - generic [ref=e1164]: Time
+            - button "Time" [ref=e1165]:
+              - generic [ref=e1166]: 17:20
+          - generic [ref=e1170]:
+            - generic [ref=e1171]: How long
+            - generic [ref=e1172]:
+              - group [ref=e1174]:
+                - button "Decrease" [ref=e1175]
+                - generic [ref=e1178]:
+                  - textbox "How long" [ref=e1179]: "30"
+                  - generic [ref=e1180]: min
+                - button "Increase" [ref=e1181]
+              - spinbutton [ref=e1184]: "30"
+          - generic [ref=e1185]:
+            - generic [ref=e1186]: ends 17:50
+            - link "Logs in Feed log" [ref=e1187] [cursor=pointer]:
+              - /url: /early-development-architecture/feed
+            - button "Remove" [ref=e1191]
+        - button "Add a moment here" [ref=e1192]
+      - listitem [ref=e1194]:
+        - generic [ref=e1197]:
+          - generic [ref=e1198]:
+            - generic [ref=e1199]: What
+            - generic [ref=e1200]:
+              - button "Type" [ref=e1201]
+              - textbox "What" [ref=e1207]:
+                - /placeholder: e.g. Morning feed
+                - text: Bath or top-and-tail
+          - generic [ref=e1208]:
+            - generic [ref=e1209]: Time
+            - button "Time" [ref=e1210]:
+              - generic [ref=e1211]: 17:55
+          - generic [ref=e1215]:
+            - generic [ref=e1216]: How long
+            - generic [ref=e1217]:
+              - group [ref=e1219]:
+                - button "Decrease" [ref=e1220]
+                - generic [ref=e1223]:
+                  - textbox "How long" [ref=e1224]: "20"
+                  - generic [ref=e1225]: min
+                - button "Increase" [ref=e1226]
+              - spinbutton [ref=e1229]: "20"
+          - generic [ref=e1230]:
+            - generic [ref=e1231]: ends 18:15
+            - button "Remove" [ref=e1232]
+        - button "Add a moment here" [ref=e1233]
+      - listitem [ref=e1235]:
+        - generic [ref=e1238]:
+          - generic [ref=e1239]:
+            - generic [ref=e1240]: What
+            - generic [ref=e1241]:
+              - button "Type" [ref=e1242]
+              - textbox "What" [ref=e1248]:
+                - /placeholder: e.g. Morning feed
+                - text: Wind-down
+          - generic [ref=e1249]:
+            - generic [ref=e1250]: Time
+            - button "Time" [ref=e1251]:
+              - generic [ref=e1252]: 18:20
+          - generic [ref=e1256]:
+            - generic [ref=e1257]: How long
+            - generic [ref=e1258]:
+              - group [ref=e1260]:
+                - button "Decrease" [ref=e1261]
+                - generic [ref=e1264]:
+                  - textbox "How long" [ref=e1265]: "20"
+                  - generic [ref=e1266]: min
+                - button "Increase" [ref=e1267]
+              - spinbutton [ref=e1270]: "20"
+          - generic [ref=e1271]:
+            - generic [ref=e1272]: ends 18:40
+            - button "Remove" [ref=e1273]
+        - button "Add a moment here" [ref=e1274]
+      - listitem [ref=e1276]:
+        - generic [ref=e1279]:
+          - generic [ref=e1280]:
+            - generic [ref=e1281]: What
+            - generic [ref=e1282]:
+              - button "Type" [ref=e1283]
+              - textbox "What" [ref=e1289]:
+                - /placeholder: e.g. Morning feed
+                - text: Bedtime feed
+          - generic [ref=e1290]:
+            - generic [ref=e1291]: Time
+            - button "Time" [ref=e1292]:
+              - generic [ref=e1293]: 18:45
+          - generic [ref=e1297]:
+            - generic [ref=e1298]: How long
+            - generic [ref=e1299]:
+              - group [ref=e1301]:
+                - button "Decrease" [ref=e1302]
+                - generic [ref=e1305]:
+                  - textbox "How long" [ref=e1306]: "30"
+                  - generic [ref=e1307]: min
+                - button "Increase" [ref=e1308]
+              - spinbutton [ref=e1311]: "30"
+          - generic [ref=e1312]:
+            - generic [ref=e1313]: ends 19:15
+            - link "Logs in Feed log" [ref=e1314] [cursor=pointer]:
+              - /url: /early-development-architecture/feed
+            - button "Remove" [ref=e1318]
+        - button "Add a moment here" [ref=e1319]
+      - listitem [ref=e1321]:
+        - generic [ref=e1324]:
+          - generic [ref=e1325]:
+            - generic [ref=e1326]: What
+            - generic [ref=e1327]:
+              - button "Type" [ref=e1328]
+              - textbox "What" [ref=e1333]:
+                - /placeholder: e.g. Morning feed
+                - text: Night sleep begins
+          - generic [ref=e1334]:
+            - generic [ref=e1335]: Time
+            - button "Time" [ref=e1336]:
+              - generic [ref=e1337]: 19:20
+          - generic [ref=e1341]:
+            - generic [ref=e1342]: How long
+            - generic [ref=e1343]:
+              - group [ref=e1345]:
+                - button "Decrease" [ref=e1346]
+                - generic [ref=e1349]:
+                  - textbox "How long" [ref=e1350]: "180"
+                  - generic [ref=e1351]: min
+                - button "Increase" [ref=e1352]
+              - spinbutton [ref=e1355]: "180"
+          - generic [ref=e1356]:
+            - generic [ref=e1357]: ends 22:20
+            - button "Remove" [ref=e1358]
+        - button "Add a moment here" [ref=e1359]
+      - listitem [ref=e1361]:
+        - generic [ref=e1364]:
+          - generic [ref=e1365]:
+            - generic [ref=e1366]: What
+            - generic [ref=e1367]:
+              - button "Type" [ref=e1368]
+              - textbox "What" [ref=e1374]:
+                - /placeholder: e.g. Morning feed
+                - text: Night feed
+          - generic [ref=e1375]:
+            - generic [ref=e1376]: Time
+            - button "Time" [ref=e1377]:
+              - generic [ref=e1378]: 22:30
+          - generic [ref=e1382]:
+            - generic [ref=e1383]: How long
+            - generic [ref=e1384]:
+              - group [ref=e1386]:
+                - button "Decrease" [ref=e1387]
+                - generic [ref=e1390]:
+                  - textbox "How long" [ref=e1391]: "25"
+                  - generic [ref=e1392]: min
+                - button "Increase" [ref=e1393]
+              - spinbutton [ref=e1396]: "25"
+          - generic [ref=e1397]:
+            - generic [ref=e1398]: ends 22:55
+            - link "Logs in Feed log" [ref=e1399] [cursor=pointer]:
+              - /url: /early-development-architecture/feed
+            - button "Remove" [ref=e1403]
+        - button "Add a moment here" [ref=e1404]
+      - listitem [ref=e1406]:
+        - generic [ref=e1409]:
+          - generic [ref=e1410]:
+            - generic [ref=e1411]: What
+            - generic [ref=e1412]:
+              - button "Type" [ref=e1413]
+              - textbox "What" [ref=e1419]:
+                - /placeholder: e.g. Morning feed
+                - text: Night feed
+          - generic [ref=e1420]:
+            - generic [ref=e1421]: Time
+            - button "Time" [ref=e1422]:
+              - generic [ref=e1423]: 01:30
+          - generic [ref=e1427]:
+            - generic [ref=e1428]: How long
+            - generic [ref=e1429]:
+              - group [ref=e1431]:
+                - button "Decrease" [ref=e1432]
+                - generic [ref=e1435]:
+                  - textbox "How long" [ref=e1436]: "25"
+                  - generic [ref=e1437]: min
+                - button "Increase" [ref=e1438]
+              - spinbutton [ref=e1441]: "25"
+          - generic [ref=e1442]:
+            - generic [ref=e1443]: ends 01:55
+            - link "Logs in Feed log" [ref=e1444] [cursor=pointer]:
+              - /url: /early-development-architecture/feed
+            - button "Remove" [ref=e1448]
+        - button "Add a moment here" [ref=e1449]
+      - listitem [ref=e1451]:
+        - generic [ref=e1454]:
+          - generic [ref=e1455]:
+            - generic [ref=e1456]: What
+            - generic [ref=e1457]:
+              - button "Type" [ref=e1458]
+              - textbox "What" [ref=e1464]:
+                - /placeholder: e.g. Morning feed
+                - text: Early-hours feed
+          - generic [ref=e1465]:
+            - generic [ref=e1466]: Time
+            - button "Time" [ref=e1467]:
+              - generic [ref=e1468]: 04:30
+          - generic [ref=e1472]:
+            - generic [ref=e1473]: How long
+            - generic [ref=e1474]:
+              - group [ref=e1476]:
+                - button "Decrease" [ref=e1477]
+                - generic [ref=e1480]:
+                  - textbox "How long" [ref=e1481]: "25"
+                  - generic [ref=e1482]: min
+                - button "Increase" [ref=e1483]
+              - spinbutton [ref=e1486]: "25"
+          - generic [ref=e1487]:
+            - generic [ref=e1488]: ends 04:55
+            - link "Logs in Feed log" [ref=e1489] [cursor=pointer]:
+              - /url: /early-development-architecture/feed
+            - button "Remove" [ref=e1493]
+        - button "Add a moment here" [ref=e1494]
+    - generic [ref=e1496]:
+      - button "Add a moment" [ref=e1497]
+      - generic [ref=e1498]: Saved automatically
+      - button "Reset to default" [ref=e1499]
+    - generic [ref=e1500]:
+      - paragraph [ref=e1501]: Moments keep themselves in clock order — to move one, change its time.
+      - paragraph [ref=e1502]: "Typical lengths, whichever program is open: a milk feed 20–30 min (shorter at night on purpose), a meal 15–35 min, a nap 30 min–2 h, tummy time 5–15 min a session while your baby is not yet mobile, and active play in blocks of 45–120 min once they are. Awake stretches grow with age — roughly 45–60 min for a newborn, 2–3 h by six months, and 5–6 h on one nap — so match each moment to the program you are editing, not to a single number."
+    - button "Add from your day Ready-made moments for this age — tap to add one." [ref=e1505]:
+      - generic [ref=e1508]:
+        - generic [ref=e1509]: Add from your day
+        - generic [ref=e1511]: Ready-made moments for this age — tap to add one.
+    - button "Day blueprints 9 The nine sample days, birth to three. Load one to start from it." [ref=e1514]:
+      - generic [ref=e1517]:
+        - generic [ref=e1518]:
+          - generic [ref=e1519]: Day blueprints
+          - generic [ref=e1520]: "9"
+        - generic [ref=e1521]: The nine sample days, birth to three. Load one to start from it.

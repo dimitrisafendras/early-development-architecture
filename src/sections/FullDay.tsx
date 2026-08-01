@@ -21,15 +21,15 @@ export function FullDay() {
     return () => clearInterval(id)
   }, [])
 
-  // Five sample days now live here — one per age band, birth to three years. The
-  // band matching the child on file opens first, and the "now" highlight only
-  // means anything on that band, since the others are somebody else's clock.
+  // Nine sample days now live here — one per age band, birth to three years and
+  // beyond. The band matching the child on file opens first, and the "now"
+  // highlight only means anything on that band, since the others are somebody
+  // else's clock.
   const ownBand = dayTemplateForAge(baby?.months ?? null).id
   const [band, setBand] = useState<DayTemplateId>(ownBand)
   useEffect(() => setBand(ownBand), [ownBand])
   const template = dayTemplates.find((d) => d.id === band) ?? dayTemplates[1]
   const slots = template.slots
-  const text = tf.days[template.id]
   const isOwnBand = band === ownBand && baby != null
   const activeSlot = activeTimeIndex(slots.map((s) => s.time), now)
 
@@ -95,6 +95,7 @@ export function FullDay() {
             {slots.map((slot, i) => {
               const a = activity[slot.type]
               const Icon = a.icon
+              const moment = tf.moments[slot.moment]
               const last = i === slots.length - 1
               const isNow = isOwnBand && i === activeSlot
               return (
@@ -140,7 +141,7 @@ export function FullDay() {
                         {slot.time} – {slotEndTime(slot.time, slot.mins)}
                       </span>
                       <span className="text-[15px] font-semibold text-foreground">
-                        {text[i].title}
+                        {moment.title}
                       </span>
                       <Eyebrow as="span" size="sm" tone="inherit" className={a.text}>
                         {tf.types[slot.type]}
@@ -162,7 +163,7 @@ export function FullDay() {
                       )}
                     </div>
                     <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-                      {text[i].detail}
+                      {moment.detail}
                     </p>
                   </div>
                 </li>

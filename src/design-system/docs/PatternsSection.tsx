@@ -126,6 +126,55 @@ export function PatternsSection() {
       </DocBlock>
 
       <DocBlock
+        title="Folding sections"
+        description="CollapsibleSection — a titled block on a long page that folds away. Open/closed is the caller's state because the store persists it, so a section a caregiver works with folded stays folded next visit. The whole header is the control, not just the chevron, and folded content is unmounted rather than hidden."
+      >
+        <Panel>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            Used on <code className="rounded bg-muted px-1.5 py-0.5 text-xs">/schedule</code>, which
+            grew four stacked sections open at once. Resolve the default with{' '}
+            <code className="rounded bg-muted px-1.5 py-0.5 text-xs">useSectionOpen(key, defaultOpen)</code>{' '}
+            rather than seeding the store — a section can change its default later without a
+            migration, and without overriding anyone who has already chosen. The setter takes the new
+            value rather than toggling, because a section that defaults to <em>open</em> has no key
+            until first use and <code className="rounded bg-muted px-1.5 py-0.5 text-xs">!undefined</code>{' '}
+            would resolve to <code className="rounded bg-muted px-1.5 py-0.5 text-xs">true</code>.
+          </p>
+        </Panel>
+      </DocBlock>
+
+      <DocBlock
+        title="Day shape: stripe + counts"
+        description="DayShapeBar draws a day as one pill per moment in its activity's colour; DayShapeSummary states the same day as counts. They ship as a pair on purpose."
+      >
+        <Panel>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            The stripe is an impression — where the sleeps fall, how the feeds thin out — and each
+            pill names itself on hover. Hover is a mouse affordance, so the bar stays{' '}
+            <code className="rounded bg-muted px-1.5 py-0.5 text-xs">aria-hidden</code> and the
+            summary carries the same information as text. Never ship the stripe alone, and never
+            draw it twice for the same day on one screen.
+          </p>
+        </Panel>
+      </DocBlock>
+
+      <DocBlock
+        title="Age axis (day programs)"
+        description="Contiguous, non-overlapping spans over the first three years are drawn as one proportional bar, not a grid of cards."
+      >
+        <Panel>
+          <p className="text-sm leading-relaxed text-muted-foreground">
+            A card grid made the reader rebuild the timeline from nine start ages. Segments grow by
+            the months they cover, uncovered stretches are drawn dashed (a gap in cover is
+            information — the app falls back to the built-in day there), and a marker sits on the
+            line at the child's own age. The axis scrolls inside itself below{' '}
+            <code className="rounded bg-muted px-1.5 py-0.5 text-xs">lg</code>; the shell must never
+            scroll sideways.
+          </p>
+        </Panel>
+      </DocBlock>
+
+      <DocBlock
         title="How the app applies it"
         description="The three widget pages, tier by tier. / (the Day dashboard) and /schedule are not widget pages — they are a dashboard and an editor, and they use PageFrame directly."
       >

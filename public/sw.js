@@ -22,13 +22,18 @@ const BASE = '/early-development-architecture/'
  * nothing. The worker still registers and can be tested here; it just stops
  * answering from cache.
  *
- * Scoped to the *dev port*, not merely to localhost, so `npm run preview` (4173)
- * still caches — otherwise the offline behaviour this file exists for would be
- * impossible to check anywhere but production.
+ * Scoped to the *preview port* by exclusion rather than to one dev port by
+ * inclusion. Pinning "dev" to 5173 looked tighter but was wrong in the one case
+ * that matters: Vite takes the next free port when 5173 is busy, so a second
+ * checkout — or a leftover server — puts the dev app on 5174, where the worker
+ * then decided it was production and served the cached shell. The symptom is
+ * exactly the bug this bypass exists to prevent, and it is worse for being
+ * intermittent. Any localhost port is dev except `npm run preview`'s, which
+ * serves a real build and is the one place the caching needs to be testable.
  */
 const DEV_HOSTS = ['localhost', '127.0.0.1', '[::1]']
-const DEV_PORT = '5173' // Vite's dev server; `npm run preview` uses 4173.
-const isDev = DEV_HOSTS.includes(self.location.hostname) && self.location.port === DEV_PORT
+const PREVIEW_PORT = '4173' // `npm run preview` — a real build, so it must cache.
+const isDev = DEV_HOSTS.includes(self.location.hostname) && self.location.port !== PREVIEW_PORT
 const SHELL = BASE + 'index.html'
 const PRECACHE = [
   BASE,

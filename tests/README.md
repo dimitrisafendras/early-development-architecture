@@ -65,13 +65,32 @@ Empty-state and signed-out growth messaging are covered too.
 The combined What field (one control, not the old Type-pills-plus-Title pair);
 all eight activities offered; changing the activity renames a title the app
 wrote but never a hand-typed one; a moment links to the tool that logs it and
-only when one exists. Presets add a fully-formed moment in one tap; a blueprint
-replaces the day; dragging reorders it; the ↑↓ buttons remain (drag is
-unreachable by keyboard, so they are the accessible path, not a leftover).
-Age bands: all five can be created, any band can be opened and edited **without
-touching another**, the effective day resolves by age, deleting a band falls
-back rather than emptying the editor, and a schedule saved before bands existed
-is migrated rather than lost.
+only when one exists. Presets add a fully-formed moment in one tap, filing
+themselves by the time they carry; a blueprint replaces the day.
+
+**Clock time is the only ordering.** A day given out of order comes back in
+order, the small hours sort to the *end* of the day rather than above the
+morning wake (the cycle starts at the 06:00 anchor, not at midnight), a moment
+that runs into the next one is flagged but never blocked, and the drag handle
+and ↑↓ buttons are asserted **absent** — they were the second, disagreeing copy
+of the ordering. Driving the `TimePicker` popover itself is deliberately not
+covered here: it is a button plus a portal, `fill()` does not reach it, and the
+guarantee under test is the ordering, not the picker.
+
+Edits **save themselves** and survive switching programs — the old explicit Save
+meant switching discarded unsaved rows silently — and a `pagehide` flush keeps
+the last 400 ms of typing when the tab is closed, reloaded or frozen, where no
+React cleanup runs at all. That test fires `pagehide` directly rather than
+calling `page.reload()`: `seedStore` uses `addInitScript`, which **re-runs on
+every load**, so a reload re-seeds the store and any assertion about surviving
+one is really measuring the harness. (Checked separately with a seed-once
+script: a real reload does preserve the edit.)
+
+Age programs: all nine can be created, any one can be opened and edited
+**without touching another**, the effective day resolves by age, deleting one
+falls back rather than emptying the editor, a schedule saved before programs
+existed is migrated rather than lost, and nine segments **never widen the page
+on a phone** (the axis scrolls inside itself; the shell must not).
 
 ### `design.spec.ts` — design-system invariants
 The eight activity hues are distinct and no two are closer than 25° in OKLCH

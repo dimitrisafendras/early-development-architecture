@@ -397,7 +397,7 @@ export const feedingUppers = [1, 2, 4, 6, 9, 12, 24, 999]
 /* ------------------------------------------------------------- full day */
 
 /** Activity kinds on the hour-by-hour full-day schedule. Drives colour + icon
- *  + the legend; the slot text is localized in i18n (`fullDay.days`).
+ *  + the legend; the slot text is localized in i18n (`fullDay.moments`).
  *  `feed` is milk (breast/bottle/cup) and `meal` is solid food — one kind could
  *  not carry both once the app covered 6 months to 3 years, where a day holds
  *  three meals *and* a milk drink. */
@@ -413,7 +413,9 @@ export type DayActivity =
    *  movement from the first birthday. Distinct from `play` (serve-and-return,
    *  quiet connection) and from `tummy` (floor time for a pre-mobile baby), and
    *  it is what the tracker logs against once tummy time stops being the thing
-   *  being built. Only appears in the one-nap and toddler day templates. */
+   *  being built. Appears from the 9–12 month day onward, where crawling and
+   *  cruising start — not from the first birthday, which is when the WHO target
+   *  applies but well after the movement itself begins. */
   | 'active'
 
 /** A fully-resolved schedule slot (when it starts, how long it takes, and its
@@ -448,161 +450,387 @@ export const defaultSlotMins: Record<DayActivity, number> = {
   active: 45,
 }
 
-/** The age bands the sample days are written for. `id` keys the localized text
- *  in `fullDay.days` / `fullDay.dayLabels`; `upperMonths` is the exclusive upper
- *  bound (the last band is open-ended). */
-export type DayTemplateId = 'newborn' | 'infant' | 'older' | 'oneNap' | 'toddler'
+/** The age bands the sample days are written for. `id` keys the localized label
+ *  in `fullDay.dayLabels`; `upperMonths` is the exclusive upper bound (the last
+ *  band is open-ended).
+ *
+ *  Nine bands, not five. The old set lumped a 3-month-old (four naps, no solids)
+ *  with a 5-month-old, and a 6-month-old with an 11-month-old who has dropped to
+ *  two naps and eats three meals — so the "sample day for your age" was wrong for
+ *  half of each band it covered. The boundaries below are the ages at which the
+ *  day actually changes shape: a nap is dropped, solids start, or the wake window
+ *  crosses into the next published range. */
+export type DayTemplateId =
+  | 'newborn'
+  | 'settling'
+  | 'threeNaps'
+  | 'solids'
+  | 'twoNaps'
+  | 'napTransition'
+  | 'oneNap'
+  | 'toddler'
+  | 'preschool'
+
+/**
+ * A named moment in a sample day. The key resolves to `{ title, detail }` in
+ * i18n under `fullDay.moments`.
+ *
+ * Text used to be an array in i18n paired with the slot array in this file **by
+ * index** — so inserting one slot here silently shifted every title below it
+ * onto the wrong moment, and a length mismatch threw at render. Naming the
+ * moment makes the pairing checkable by the compiler (`Record<MomentKey, …>`)
+ * and lets nine days share one vocabulary instead of restating "Nappy & dress"
+ * nine times in two locales.
+ */
+export type MomentKey =
+  // Milk feeds
+  | 'feedWake'
+  | 'feedOnWaking'
+  | 'feedMidday'
+  | 'feedAfternoon'
+  | 'feedEvening'
+  | 'feedBedtime'
+  | 'feedNight'
+  | 'feedEarlyHours'
+  // Solid meals
+  | 'breakfast'
+  | 'lunch'
+  | 'dinner'
+  | 'snackMorning'
+  | 'snackAfternoon'
+  // Sleep
+  | 'napFirst'
+  | 'napSecond'
+  | 'napThird'
+  | 'napCatnap'
+  | 'napLong'
+  | 'napShortMorning'
+  | 'napOne'
+  | 'napQuiet'
+  | 'nightSleep'
+  | 'nightSleepAgain'
+  // Play, tummy time and gross-motor play
+  | 'faceToFace'
+  | 'quietPlay'
+  | 'cuddleChat'
+  | 'heldAwake'
+  | 'floorPlay'
+  | 'booksSinging'
+  | 'outing'
+  | 'calmPlay'
+  | 'tummyFirst'
+  | 'tummySecond'
+  | 'tummyThird'
+  | 'activeMorning'
+  | 'activeMidMorning'
+  | 'activeAfternoon'
+  // Care and wind-down
+  | 'nappyDress'
+  | 'bathTopTail'
+  | 'bath'
+  | 'teethPyjamas'
+  | 'windDownNap'
+  | 'windDownNight'
 
 export interface DayTemplate {
   id: DayTemplateId
   /** Exclusive upper age bound in months; `999` = open-ended. */
   upperMonths: number
-  slots: { time: string; type: DayActivity; mins: number }[]
+  slots: { time: string; type: DayActivity; mins: number; moment: MomentKey }[]
 }
 
 /**
- * One realistic sample day per age band, birth to three years, each in order.
- * Times are locale-independent; every slot's title/detail live in i18n under
- * `fullDay.days[id]` at the same index.
+ * One realistic sample day per age band, birth to three years and beyond, each
+ * in clock order. Times and durations are locale-independent; each slot's text
+ * is looked up by its `moment` key in i18n under `fullDay.moments`.
  *
  * Durations are the typical middles of the published ranges for the band, never
  * targets (see `fullDay.sourcesLabel`). The invariants each day is built to:
  * - **total sleep** inside the AASM/AAP band for the age — 14–17 h at 0–3 mo,
- *   12–16 h at 4–12 mo, 11–14 h at 1–2 y, 10–13 h at 3 y;
- * - **wake windows** inside the age's tolerance — 45–60 min for a newborn,
- *   75–120 min at 3–4 mo, 2.5–3.5 h at 6–12 mo, 4–6 h on one nap, 5–6 h at 2–3 y;
- * - **feeds** 8–12 milk feeds a day at 0–1 mo thinning to ~4 by a year, then
- *   3 meals + 2 snacks with ~470–710 ml of milk a day through 1–3 y;
- * - **movement** tummy time 5–10 min a session while pre-mobile, then floor and
- *   active play adding up to the WHO 180 min a day from the first birthday.
+ *   12–16 h at 4–12 mo, 11–14 h at 1–2 y, 10–13 h at 3–5 y;
+ * - **wake windows** inside the age's published tolerance — 45–60 min for a
+ *   newborn, 75–120 min at 2–4 mo, 2–2.5 h at 4–6 mo, 2.5–3 h at 6–9 mo,
+ *   3–3.5 h at 9–12 mo, 3.5–4.5 h through the 2-to-1 transition, 5–5.5 h on one
+ *   nap and 5.5–6 h from two years;
+ * - **feeds** 8–12 milk feeds a day at 0–2 mo thinning to ~4 by a year, solids
+ *   from ~6 mo building to 3 meals + 2 snacks, with ~500–600 ml of milk a day
+ *   alongside them;
+ * - **movement** tummy time in short sessions building toward the WHO's 30 min a
+ *   day while the baby is not yet mobile, then floor and active play adding up
+ *   to the WHO's 180 min a day from the first birthday.
+ *
+ * The nap counts follow the transitions the literature actually describes: 4–5
+ * naps as a newborn, 4 by two months, 3 from four months, 3→2 across 6–9 months,
+ * 2 through 9–12 months, 2→1 between 12 and 18 months, and one nap that shortens
+ * through the third year until roughly a third of children swap it for quiet
+ * time.
  */
 export const dayTemplates: DayTemplate[] = [
   {
+    // 0–2 mo. Wake windows 45–60 min, 8–12 feeds a day, no fixed clock yet: this
+    // is a shape to recognise, not a timetable to hit.
     id: 'newborn',
-    upperMonths: 3,
+    upperMonths: 2,
     slots: [
-      { time: '07:00', type: 'feed', mins: 30 },
-      { time: '07:35', type: 'care', mins: 15 },
-      { time: '07:55', type: 'play', mins: 15 },
-      { time: '08:10', type: 'tummy', mins: 3 },
-      { time: '08:20', type: 'sleep', mins: 90 },
-      { time: '09:50', type: 'feed', mins: 30 },
-      { time: '10:25', type: 'play', mins: 20 },
-      { time: '10:50', type: 'sleep', mins: 90 },
-      { time: '12:20', type: 'feed', mins: 30 },
-      { time: '12:55', type: 'tummy', mins: 3 },
-      { time: '13:05', type: 'play', mins: 15 },
-      { time: '13:25', type: 'sleep', mins: 100 },
-      { time: '15:05', type: 'feed', mins: 30 },
-      { time: '15:40', type: 'play', mins: 20 },
-      { time: '16:05', type: 'sleep', mins: 75 },
-      { time: '17:20', type: 'feed', mins: 30 },
-      { time: '17:55', type: 'care', mins: 20 },
-      { time: '18:20', type: 'wind', mins: 20 },
-      { time: '18:45', type: 'feed', mins: 30 },
-      { time: '19:20', type: 'sleep', mins: 180 },
-      { time: '22:30', type: 'feed', mins: 25 },
-      { time: '01:30', type: 'feed', mins: 25 },
-      { time: '04:30', type: 'feed', mins: 25 },
+      { time: '07:00', type: 'feed', mins: 30, moment: 'feedWake' },
+      { time: '07:35', type: 'care', mins: 15, moment: 'nappyDress' },
+      { time: '07:52', type: 'tummy', mins: 5, moment: 'tummyFirst' },
+      { time: '08:00', type: 'sleep', mins: 90, moment: 'napFirst' },
+      { time: '09:30', type: 'feed', mins: 30, moment: 'feedOnWaking' },
+      { time: '10:05', type: 'play', mins: 15, moment: 'faceToFace' },
+      { time: '10:25', type: 'sleep', mins: 90, moment: 'napSecond' },
+      { time: '11:55', type: 'feed', mins: 30, moment: 'feedMidday' },
+      { time: '12:30', type: 'tummy', mins: 5, moment: 'tummySecond' },
+      { time: '12:40', type: 'play', mins: 10, moment: 'quietPlay' },
+      { time: '12:55', type: 'sleep', mins: 100, moment: 'napLong' },
+      { time: '14:35', type: 'feed', mins: 30, moment: 'feedAfternoon' },
+      { time: '15:10', type: 'play', mins: 15, moment: 'cuddleChat' },
+      { time: '15:27', type: 'tummy', mins: 5, moment: 'tummyThird' },
+      { time: '15:35', type: 'sleep', mins: 75, moment: 'napThird' },
+      { time: '16:50', type: 'feed', mins: 30, moment: 'feedEvening' },
+      { time: '17:25', type: 'play', mins: 15, moment: 'heldAwake' },
+      { time: '17:45', type: 'sleep', mins: 45, moment: 'napCatnap' },
+      { time: '18:30', type: 'care', mins: 20, moment: 'bathTopTail' },
+      { time: '18:55', type: 'wind', mins: 15, moment: 'windDownNight' },
+      { time: '19:15', type: 'feed', mins: 30, moment: 'feedBedtime' },
+      { time: '19:50', type: 'sleep', mins: 190, moment: 'nightSleep' },
+      { time: '23:00', type: 'feed', mins: 25, moment: 'feedNight' },
+      { time: '23:30', type: 'sleep', mins: 150, moment: 'nightSleepAgain' },
+      { time: '02:00', type: 'feed', mins: 25, moment: 'feedNight' },
+      { time: '02:30', type: 'sleep', mins: 150, moment: 'nightSleepAgain' },
+      { time: '05:00', type: 'feed', mins: 25, moment: 'feedEarlyHours' },
+      { time: '05:30', type: 'sleep', mins: 90, moment: 'nightSleepAgain' },
     ],
   },
   {
-    id: 'infant',
+    // 2–4 mo. Wake windows stretch to 75–105 min and a four-nap day appears —
+    // the first version of this schedule a parent can actually plan around.
+    id: 'settling',
+    upperMonths: 4,
+    slots: [
+      { time: '07:00', type: 'feed', mins: 25, moment: 'feedWake' },
+      { time: '07:35', type: 'care', mins: 15, moment: 'nappyDress' },
+      { time: '07:55', type: 'play', mins: 20, moment: 'faceToFace' },
+      { time: '08:20', type: 'tummy', mins: 10, moment: 'tummyFirst' },
+      { time: '08:30', type: 'sleep', mins: 60, moment: 'napFirst' },
+      { time: '09:45', type: 'feed', mins: 25, moment: 'feedOnWaking' },
+      { time: '10:15', type: 'play', mins: 25, moment: 'booksSinging' },
+      { time: '10:45', type: 'tummy', mins: 10, moment: 'tummySecond' },
+      { time: '11:00', type: 'sleep', mins: 75, moment: 'napSecond' },
+      { time: '12:30', type: 'feed', mins: 25, moment: 'feedMidday' },
+      { time: '13:00', type: 'play', mins: 30, moment: 'floorPlay' },
+      { time: '13:35', type: 'tummy', mins: 10, moment: 'tummyThird' },
+      { time: '13:50', type: 'sleep', mins: 90, moment: 'napLong' },
+      { time: '15:30', type: 'feed', mins: 25, moment: 'feedAfternoon' },
+      { time: '16:00', type: 'play', mins: 30, moment: 'outing' },
+      { time: '16:40', type: 'sleep', mins: 55, moment: 'napCatnap' },
+      { time: '17:40', type: 'play', mins: 20, moment: 'calmPlay' },
+      { time: '18:00', type: 'care', mins: 25, moment: 'bath' },
+      { time: '18:30', type: 'wind', mins: 15, moment: 'windDownNight' },
+      { time: '18:50', type: 'feed', mins: 25, moment: 'feedBedtime' },
+      { time: '19:20', type: 'sleep', mins: 220, moment: 'nightSleep' },
+      { time: '23:00', type: 'feed', mins: 20, moment: 'feedNight' },
+      { time: '23:25', type: 'sleep', mins: 245, moment: 'nightSleepAgain' },
+      { time: '03:30', type: 'feed', mins: 20, moment: 'feedEarlyHours' },
+      { time: '03:55', type: 'sleep', mins: 185, moment: 'nightSleepAgain' },
+    ],
+  },
+  {
+    // 4–6 mo. Three naps, wake windows 2–2.5 h. Still milk only: solids wait for
+    // the readiness signs at around six months.
+    id: 'threeNaps',
     upperMonths: 6,
     slots: [
-      { time: '07:00', type: 'feed', mins: 25 },
-      { time: '07:40', type: 'care', mins: 20 },
-      { time: '08:00', type: 'play', mins: 30 },
-      { time: '08:30', type: 'tummy', mins: 10 },
-      { time: '09:00', type: 'sleep', mins: 75 },
-      { time: '10:15', type: 'feed', mins: 25 },
-      { time: '10:45', type: 'play', mins: 35 },
-      { time: '11:30', type: 'tummy', mins: 10 },
-      { time: '12:00', type: 'sleep', mins: 90 },
-      { time: '13:30', type: 'feed', mins: 25 },
-      { time: '14:00', type: 'play', mins: 60 },
-      { time: '15:15', type: 'sleep', mins: 45 },
-      { time: '16:15', type: 'feed', mins: 25 },
-      { time: '16:45', type: 'play', mins: 40 },
-      { time: '17:30', type: 'tummy', mins: 5 },
-      { time: '18:00', type: 'care', mins: 30 },
-      { time: '18:45', type: 'wind', mins: 15 },
-      { time: '19:00', type: 'feed', mins: 25 },
-      { time: '19:30', type: 'sleep', mins: 210 },
-      { time: '23:00', type: 'feed', mins: 20 },
-      { time: '03:00', type: 'feed', mins: 15 },
+      { time: '07:00', type: 'feed', mins: 25, moment: 'feedWake' },
+      { time: '07:35', type: 'care', mins: 20, moment: 'nappyDress' },
+      { time: '08:00', type: 'play', mins: 35, moment: 'floorPlay' },
+      { time: '08:40', type: 'tummy', mins: 10, moment: 'tummyFirst' },
+      { time: '09:00', type: 'sleep', mins: 75, moment: 'napFirst' },
+      { time: '10:15', type: 'feed', mins: 25, moment: 'feedOnWaking' },
+      { time: '10:50', type: 'play', mins: 45, moment: 'booksSinging' },
+      { time: '11:40', type: 'tummy', mins: 10, moment: 'tummySecond' },
+      { time: '12:30', type: 'sleep', mins: 90, moment: 'napLong' },
+      { time: '14:00', type: 'feed', mins: 25, moment: 'feedMidday' },
+      { time: '14:35', type: 'play', mins: 60, moment: 'outing' },
+      { time: '15:45', type: 'tummy', mins: 10, moment: 'tummyThird' },
+      { time: '16:30', type: 'sleep', mins: 45, moment: 'napCatnap' },
+      { time: '17:15', type: 'feed', mins: 25, moment: 'feedAfternoon' },
+      { time: '17:50', type: 'play', mins: 30, moment: 'calmPlay' },
+      { time: '18:25', type: 'care', mins: 30, moment: 'bath' },
+      { time: '19:00', type: 'wind', mins: 15, moment: 'windDownNight' },
+      { time: '19:15', type: 'feed', mins: 25, moment: 'feedBedtime' },
+      { time: '19:45', type: 'sleep', mins: 210, moment: 'nightSleep' },
+      { time: '23:15', type: 'feed', mins: 20, moment: 'feedNight' },
+      { time: '23:40', type: 'sleep', mins: 230, moment: 'nightSleepAgain' },
+      { time: '03:30', type: 'feed', mins: 15, moment: 'feedEarlyHours' },
+      { time: '03:50', type: 'sleep', mins: 190, moment: 'nightSleepAgain' },
     ],
   },
   {
-    id: 'older',
+    // 6–9 mo. Solids start alongside milk, and the third nap starts to go: this
+    // day still has the catnap, and the detail says when to drop it.
+    id: 'solids',
+    upperMonths: 9,
+    slots: [
+      { time: '07:00', type: 'feed', mins: 20, moment: 'feedWake' },
+      { time: '07:30', type: 'meal', mins: 25, moment: 'breakfast' },
+      { time: '08:05', type: 'care', mins: 15, moment: 'nappyDress' },
+      { time: '08:25', type: 'play', mins: 40, moment: 'floorPlay' },
+      { time: '09:10', type: 'tummy', mins: 15, moment: 'tummyFirst' },
+      { time: '09:40', type: 'sleep', mins: 60, moment: 'napFirst' },
+      { time: '10:40', type: 'feed', mins: 20, moment: 'feedOnWaking' },
+      { time: '11:10', type: 'play', mins: 45, moment: 'booksSinging' },
+      { time: '12:00', type: 'meal', mins: 30, moment: 'lunch' },
+      { time: '13:00', type: 'sleep', mins: 90, moment: 'napLong' },
+      { time: '14:30', type: 'feed', mins: 20, moment: 'feedMidday' },
+      { time: '15:00', type: 'play', mins: 60, moment: 'outing' },
+      { time: '16:10', type: 'tummy', mins: 15, moment: 'tummySecond' },
+      { time: '16:45', type: 'sleep', mins: 30, moment: 'napCatnap' },
+      { time: '17:15', type: 'meal', mins: 30, moment: 'dinner' },
+      { time: '17:55', type: 'care', mins: 25, moment: 'bath' },
+      { time: '18:25', type: 'play', mins: 20, moment: 'calmPlay' },
+      { time: '18:50', type: 'wind', mins: 15, moment: 'windDownNight' },
+      { time: '19:05', type: 'feed', mins: 20, moment: 'feedBedtime' },
+      { time: '19:30', type: 'sleep', mins: 420, moment: 'nightSleep' },
+      { time: '02:30', type: 'feed', mins: 15, moment: 'feedNight' },
+      { time: '02:45', type: 'sleep', mins: 255, moment: 'nightSleepAgain' },
+    ],
+  },
+  {
+    // 9–12 mo. Two naps, wake windows 2.5–3.5 h, three meals plus a snack, and
+    // gross-motor play takes over from tummy time as the child gets mobile.
+    id: 'twoNaps',
     upperMonths: 12,
     slots: [
-      { time: '07:00', type: 'feed', mins: 20 },
-      { time: '07:30', type: 'meal', mins: 25 },
-      { time: '08:00', type: 'care', mins: 15 },
-      { time: '08:20', type: 'play', mins: 40 },
-      { time: '09:00', type: 'tummy', mins: 15 },
-      { time: '09:30', type: 'sleep', mins: 60 },
-      { time: '10:30', type: 'feed', mins: 20 },
-      { time: '11:00', type: 'play', mins: 45 },
-      { time: '11:45', type: 'meal', mins: 30 },
-      { time: '12:30', type: 'sleep', mins: 90 },
-      { time: '14:00', type: 'feed', mins: 20 },
-      { time: '14:30', type: 'play', mins: 60 },
-      { time: '15:45', type: 'sleep', mins: 30 },
-      { time: '16:15', type: 'meal', mins: 20 },
-      { time: '16:45', type: 'play', mins: 45 },
-      { time: '17:30', type: 'meal', mins: 30 },
-      { time: '18:05', type: 'care', mins: 25 },
-      { time: '18:35', type: 'wind', mins: 15 },
-      { time: '18:50', type: 'feed', mins: 20 },
-      { time: '19:15', type: 'sleep', mins: 660 },
+      { time: '07:00', type: 'feed', mins: 20, moment: 'feedWake' },
+      { time: '07:30', type: 'meal', mins: 25, moment: 'breakfast' },
+      { time: '08:05', type: 'care', mins: 15, moment: 'nappyDress' },
+      { time: '08:25', type: 'active', mins: 45, moment: 'activeMorning' },
+      { time: '09:15', type: 'tummy', mins: 15, moment: 'tummyFirst' },
+      { time: '09:45', type: 'sleep', mins: 60, moment: 'napFirst' },
+      { time: '10:45', type: 'feed', mins: 20, moment: 'feedOnWaking' },
+      { time: '11:15', type: 'active', mins: 50, moment: 'activeMidMorning' },
+      { time: '12:15', type: 'meal', mins: 30, moment: 'lunch' },
+      { time: '12:55', type: 'play', mins: 30, moment: 'booksSinging' },
+      { time: '13:45', type: 'sleep', mins: 90, moment: 'napSecond' },
+      { time: '15:15', type: 'feed', mins: 20, moment: 'feedAfternoon' },
+      { time: '15:45', type: 'meal', mins: 15, moment: 'snackAfternoon' },
+      { time: '16:05', type: 'active', mins: 60, moment: 'activeAfternoon' },
+      { time: '17:15', type: 'meal', mins: 30, moment: 'dinner' },
+      { time: '17:55', type: 'care', mins: 25, moment: 'bath' },
+      { time: '18:25', type: 'play', mins: 20, moment: 'calmPlay' },
+      { time: '18:50', type: 'wind', mins: 15, moment: 'windDownNight' },
+      { time: '19:05', type: 'feed', mins: 20, moment: 'feedBedtime' },
+      { time: '19:30', type: 'sleep', mins: 690, moment: 'nightSleep' },
     ],
   },
   {
+    // 12–18 mo. The 2-to-1 nap transition, written as it is actually lived: a
+    // short morning nap that is on its way out, and a long midday one taking
+    // over. The morning nap's own text says when to stop offering it.
+    id: 'napTransition',
+    upperMonths: 18,
+    slots: [
+      { time: '07:00', type: 'meal', mins: 30, moment: 'breakfast' },
+      { time: '07:45', type: 'care', mins: 15, moment: 'nappyDress' },
+      { time: '08:15', type: 'active', mins: 75, moment: 'activeMorning' },
+      { time: '09:35', type: 'meal', mins: 15, moment: 'snackMorning' },
+      { time: '10:00', type: 'sleep', mins: 30, moment: 'napShortMorning' },
+      { time: '10:35', type: 'active', mins: 75, moment: 'activeMidMorning' },
+      { time: '11:55', type: 'meal', mins: 30, moment: 'lunch' },
+      { time: '12:35', type: 'wind', mins: 10, moment: 'windDownNap' },
+      { time: '12:50', type: 'sleep', mins: 105, moment: 'napOne' },
+      { time: '14:40', type: 'meal', mins: 15, moment: 'snackAfternoon' },
+      { time: '15:10', type: 'active', mins: 90, moment: 'activeAfternoon' },
+      { time: '16:45', type: 'play', mins: 30, moment: 'booksSinging' },
+      { time: '17:25', type: 'meal', mins: 30, moment: 'dinner' },
+      { time: '18:05', type: 'care', mins: 25, moment: 'bath' },
+      { time: '18:35', type: 'wind', mins: 20, moment: 'windDownNight' },
+      { time: '18:55', type: 'feed', mins: 15, moment: 'feedBedtime' },
+      { time: '19:30', type: 'sleep', mins: 690, moment: 'nightSleep' },
+    ],
+  },
+  {
+    // 18–24 mo. One nap after lunch, wake windows 5–5.5 h, and the WHO's 180 min
+    // of movement a day carried by three active blocks.
     id: 'oneNap',
     upperMonths: 24,
     slots: [
-      { time: '07:00', type: 'meal', mins: 30 },
-      { time: '07:45', type: 'care', mins: 15 },
-      { time: '08:15', type: 'active', mins: 75 },
-      { time: '09:45', type: 'meal', mins: 15 },
-      { time: '10:15', type: 'active', mins: 90 },
-      { time: '11:45', type: 'meal', mins: 30 },
-      { time: '12:30', type: 'sleep', mins: 120 },
-      { time: '14:30', type: 'meal', mins: 15 },
-      { time: '15:00', type: 'active', mins: 90 },
-      { time: '16:45', type: 'play', mins: 30 },
-      { time: '17:30', type: 'meal', mins: 30 },
-      { time: '18:15', type: 'care', mins: 25 },
-      { time: '18:45', type: 'wind', mins: 20 },
-      { time: '19:15', type: 'sleep', mins: 690 },
+      { time: '07:00', type: 'meal', mins: 30, moment: 'breakfast' },
+      { time: '07:45', type: 'care', mins: 15, moment: 'nappyDress' },
+      { time: '08:15', type: 'active', mins: 90, moment: 'activeMorning' },
+      { time: '09:50', type: 'meal', mins: 15, moment: 'snackMorning' },
+      { time: '10:15', type: 'active', mins: 90, moment: 'activeMidMorning' },
+      { time: '11:45', type: 'meal', mins: 30, moment: 'lunch' },
+      { time: '12:15', type: 'wind', mins: 10, moment: 'windDownNap' },
+      { time: '12:30', type: 'sleep', mins: 120, moment: 'napOne' },
+      { time: '14:50', type: 'meal', mins: 15, moment: 'snackAfternoon' },
+      { time: '15:20', type: 'active', mins: 90, moment: 'activeAfternoon' },
+      { time: '16:55', type: 'play', mins: 35, moment: 'booksSinging' },
+      { time: '17:35', type: 'meal', mins: 30, moment: 'dinner' },
+      { time: '18:15', type: 'care', mins: 25, moment: 'bath' },
+      { time: '18:45', type: 'wind', mins: 20, moment: 'windDownNight' },
+      { time: '19:30', type: 'sleep', mins: 690, moment: 'nightSleep' },
     ],
   },
   {
+    // 2–3 y. One shorter nap, wake windows 5.5–6 h, and teeth added to the
+    // bedtime routine now there are enough of them to brush twice a day.
     id: 'toddler',
+    upperMonths: 36,
+    slots: [
+      { time: '07:00', type: 'meal', mins: 30, moment: 'breakfast' },
+      { time: '07:45', type: 'care', mins: 20, moment: 'nappyDress' },
+      { time: '08:15', type: 'active', mins: 90, moment: 'activeMorning' },
+      { time: '09:50', type: 'meal', mins: 15, moment: 'snackMorning' },
+      { time: '10:20', type: 'active', mins: 105, moment: 'activeMidMorning' },
+      { time: '12:10', type: 'meal', mins: 35, moment: 'lunch' },
+      { time: '12:45', type: 'wind', mins: 10, moment: 'windDownNap' },
+      { time: '13:00', type: 'sleep', mins: 90, moment: 'napOne' },
+      { time: '14:50', type: 'meal', mins: 15, moment: 'snackAfternoon' },
+      { time: '15:20', type: 'active', mins: 120, moment: 'activeAfternoon' },
+      { time: '17:25', type: 'play', mins: 30, moment: 'booksSinging' },
+      { time: '18:00', type: 'meal', mins: 35, moment: 'dinner' },
+      { time: '18:40', type: 'care', mins: 25, moment: 'teethPyjamas' },
+      { time: '19:10', type: 'wind', mins: 25, moment: 'windDownNight' },
+      { time: '19:40', type: 'sleep', mins: 680, moment: 'nightSleep' },
+    ],
+  },
+  {
+    // 3 y+. The nap is on its way out — this day keeps a rest period rather than
+    // a nap, which is what most children this age actually need, and pushes the
+    // hour it frees into movement.
+    id: 'preschool',
     upperMonths: 999,
     slots: [
-      { time: '07:00', type: 'meal', mins: 30 },
-      { time: '07:45', type: 'care', mins: 20 },
-      { time: '08:15', type: 'active', mins: 90 },
-      { time: '09:45', type: 'meal', mins: 15 },
-      { time: '10:15', type: 'active', mins: 105 },
-      { time: '12:00', type: 'meal', mins: 35 },
-      { time: '12:45', type: 'sleep', mins: 90 },
-      { time: '14:30', type: 'meal', mins: 15 },
-      { time: '15:00', type: 'active', mins: 120 },
-      { time: '17:00', type: 'play', mins: 30 },
-      { time: '17:45', type: 'meal', mins: 35 },
-      { time: '18:30', type: 'care', mins: 25 },
-      { time: '19:00', type: 'wind', mins: 25 },
-      { time: '19:30', type: 'sleep', mins: 660 },
+      { time: '07:00', type: 'meal', mins: 30, moment: 'breakfast' },
+      { time: '07:45', type: 'care', mins: 20, moment: 'nappyDress' },
+      { time: '08:15', type: 'active', mins: 105, moment: 'activeMorning' },
+      { time: '10:05', type: 'meal', mins: 15, moment: 'snackMorning' },
+      { time: '10:35', type: 'active', mins: 120, moment: 'activeMidMorning' },
+      { time: '12:40', type: 'meal', mins: 35, moment: 'lunch' },
+      { time: '13:20', type: 'wind', mins: 10, moment: 'windDownNap' },
+      { time: '13:30', type: 'sleep', mins: 60, moment: 'napQuiet' },
+      { time: '14:45', type: 'meal', mins: 15, moment: 'snackAfternoon' },
+      { time: '15:15', type: 'active', mins: 120, moment: 'activeAfternoon' },
+      { time: '17:20', type: 'play', mins: 40, moment: 'booksSinging' },
+      { time: '18:10', type: 'meal', mins: 35, moment: 'dinner' },
+      { time: '18:50', type: 'care', mins: 25, moment: 'teethPyjamas' },
+      { time: '19:20', type: 'wind', mins: 25, moment: 'windDownNight' },
+      { time: '19:50', type: 'sleep', mins: 670, moment: 'nightSleep' },
     ],
   },
 ]
 
-/** The template for an age in months (the app's default when there's no baby on
- *  file is the 3–6 month day, which is where a recognisable clock first appears). */
+/** The month each template starts at — its predecessor's exclusive upper bound.
+ *  The bands tile the timeline with no gap and no overlap, so this is derived
+ *  rather than restated (a hand-written second copy is a gap waiting to happen). */
+export function templateStartMonths(index: number): number {
+  return index === 0 ? 0 : dayTemplates[index - 1].upperMonths
+}
+
+/** The template for an age in months. With no baby on file the 2–4 month day is
+ *  the default: it is the earliest band with a clock a reader can recognise. */
 export function dayTemplateForAge(months: number | null): DayTemplate {
   if (months == null) return dayTemplates[1]
   return dayTemplates.find((d) => months < d.upperMonths) ?? dayTemplates[dayTemplates.length - 1]
