@@ -559,12 +559,18 @@ function AddMeasurementForm({
             trigger truncated to "25/07/20…" at the same widths. Four columns
             give every field 128px at 640px and 160px at 768px: one-line labels
             in both languages, and a date that fits.
-            `items-end`: a label that does wrap (a longer translation, a 320px
-            phone) makes its own cell taller, so bottom-aligning keeps every
-            control — and the button — on one baseline. */}
+            `items-start`, not `items-end`. Bottom-aligning looked like the way
+            to keep controls on one baseline, and it did — but only by pushing
+            *labels* out of line: the three steppers carry a range indicator
+            under them, so their cells are ~14px taller than the date's, and in
+            the two-column layout that shoved "Date" a line lower than "Weight"
+            beside it. Aligning to the top lines up the labels, and the controls
+            follow because every label is the same height; a label that does
+            wrap now lengthens its own cell downward instead of displacing its
+            neighbours. */}
         <form
           onSubmit={submit}
-          className="grid grid-cols-2 items-end gap-4 sm:grid-cols-4 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]"
+          className="grid grid-cols-2 items-start gap-4 sm:grid-cols-4 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]"
         >
           <div className="space-y-1.5">
             <Label htmlFor="m-date">{t.baby.dateLabel}</Label>
@@ -626,15 +632,23 @@ function AddMeasurementForm({
           </div>
           {/* Full width on a phone (never a lonely half cell), its own natural
               width on the row under the fields, then the last cell of the
-              fields' row from `lg`. `h-11 sm:h-8` is the shared control height,
-              so at `lg` it bottom-aligns with the four fields exactly. */}
-          <Button
-            type="submit"
-            disabled={busy}
-            className="col-span-2 w-full sm:col-span-4 sm:w-auto sm:justify-self-start lg:col-span-1"
-          >
-            {busy ? t.baby.saving : t.baby.save}
-          </Button>
+              fields' row from `lg`, where it must line up with the *controls* —
+              not with the labels above them. The cells are top-aligned, so this
+              one reserves the label's line rather than nudging the button down
+              with a margin: a spacer that is the same element as everything
+              else's label cannot drift out of step with it. */}
+          <div className="col-span-2 space-y-1.5 sm:col-span-4 lg:col-span-1">
+            <Label aria-hidden className="invisible hidden lg:block">
+              {t.baby.save}
+            </Label>
+            <Button
+              type="submit"
+              disabled={busy}
+              className="w-full sm:w-auto sm:justify-self-start"
+            >
+              {busy ? t.baby.saving : t.baby.save}
+            </Button>
+          </div>
           <div className="col-span-2 space-y-1.5 sm:col-span-4 lg:col-span-5">
             <Label htmlFor="m-note">{t.baby.noteLabel}</Label>
             <Input id="m-note" value={note} onChange={(e) => setNote(e.target.value)} />

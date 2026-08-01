@@ -117,9 +117,9 @@ test('a program can be restarted from the built-in day for its age', async ({ pa
   await hideOverlays(page)
   page.on('dialog', (d) => d.accept())
   await page.getByRole('button', { name: /Create all nine/ }).click()
-  await expect(page.getByRole('button', { name: /0–2 mo/ })).toBeVisible()
+  await expect(page.getByRole('radio', { name: /0–2 mo/ })).toBeVisible()
 
-  await page.getByRole('button', { name: /2 y–3 y|2–3 y/ }).click()
+  await page.getByRole('radio', { name: /2 y–3 y|2–3 y/ }).click()
   await expect(page.locator('#band-from')).toBeVisible()
   await page.locator('input[id^="slot-what"]').first().fill('Scribbled over')
 
@@ -215,8 +215,8 @@ test('edits save themselves, and survive switching programs', async ({ page }) =
   await page.locator('input[id^="slot-what"]').first().fill('Dad\'s turn')
   await expectSaved(page)
 
-  await page.getByRole('button', { name: /2–4 mo/ }).click()
-  await page.getByRole('button', { name: /0–2 mo/ }).click()
+  await page.getByRole('radio', { name: /2–4 mo/ }).click()
+  await page.getByRole('radio', { name: /0–2 mo/ }).click()
 
   await expect(page.locator('input[id^="slot-what"]').first()).toHaveValue("Dad's turn")
 })
@@ -232,8 +232,8 @@ test.describe('age bands', () => {
     expect(bands.map((b) => b.fromMonths)).toEqual([0, 2, 4, 6, 9, 12, 18, 24, 36])
     expect(bands.every((b) => b.slots.length > 0)).toBe(true)
     // Programs state their range outright rather than only a start month.
-    await expect(page.getByRole('button', { name: /0–2 mo/ })).toBeVisible()
-    await expect(page.getByRole('button', { name: /3 y\+/ })).toBeVisible()
+    await expect(page.getByRole('radio', { name: /0–2 mo/ })).toBeVisible()
+    await expect(page.getByRole('radio', { name: /3 y\+/ })).toBeVisible()
   })
 
   test('any band can be opened and edited', async ({ page }) => {
@@ -241,7 +241,7 @@ test.describe('age bands', () => {
     await hideOverlays(page)
     await page.getByRole('button', { name: /Create all nine/ }).click()
 
-    await page.getByRole('button', { name: /3 y\+/ }).click()
+    await page.getByRole('radio', { name: /3 y\+/ }).click()
     const field = page.locator('input[id^="slot-what"]').first()
     await field.fill('Toddler wake-up')
     await expectSaved(page)
@@ -272,8 +272,8 @@ test.describe('age bands', () => {
     await expect(page.locator('input[id^="slot-what"]').first()).toHaveValue('Newborn morning')
     // Two programs, each stating its own span. Mixed units are spelled out on
     // both ends ("0 mo–1 y"), and the last program is open-ended ("1 y+").
-    await expect(page.getByRole('button', { name: /0 mo–1 y/ })).toBeVisible()
-    await expect(page.getByRole('button', { name: /1 y\+/ })).toBeVisible()
+    await expect(page.getByRole('radio', { name: /0 mo–1 y/ })).toBeVisible()
+    await expect(page.getByRole('radio', { name: /1 y\+/ })).toBeVisible()
   })
 
   test('deleting a band falls back rather than emptying the editor', async ({ page }) => {
@@ -284,7 +284,7 @@ test.describe('age bands', () => {
     page.on('dialog', (d) => d.accept())
     await page.getByRole('button', { name: /Create all nine/ }).click()
 
-    await page.getByRole('button', { name: /0–2 mo/ }).click()
+    await page.getByRole('radio', { name: /0–2 mo/ }).click()
     await page.getByRole('button', { name: /Delete this program/ }).click()
 
     const store = await readStore(page)
@@ -368,7 +368,7 @@ test.describe('creating a program', () => {
     await page.goto('schedule')
     await hideOverlays(page)
     await page.getByRole('button', { name: /Create all nine/ }).click()
-    await page.getByRole('button', { name: /0–2 mo/ }).click()
+    await page.getByRole('radio', { name: /0–2 mo/ }).click()
 
     await page.getByRole('button', { name: /New program/ }).click()
     await setNumberInput(page, 'new-program-from', 21)
@@ -398,7 +398,7 @@ test('nine programs never widen the page on a phone', async ({ page }) => {
   await page.goto('schedule')
   await hideOverlays(page)
   await page.getByRole('button', { name: /Create all nine/ }).click()
-  await expect(page.getByRole('button', { name: /0–2 mo/ })).toBeVisible()
+  await expect(page.getByRole('radio', { name: /0–2 mo/ })).toBeVisible()
 
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -416,7 +416,7 @@ test('an edit is not lost by closing the tab inside the autosave window', async 
   await page.getByRole('button', { name: /Create all nine/ }).click()
   // Seeding loads rows into the editor; typing before that commit lands is
   // overwritten by it.
-  await expect(page.getByRole('button', { name: /0–2 mo/ })).toBeVisible()
+  await expect(page.getByRole('radio', { name: /0–2 mo/ })).toBeVisible()
 
   const field = page.locator('input[id^="slot-what"]').first()
   await field.fill('Vanishing edit')
@@ -438,8 +438,8 @@ test('moving a program onto another program’s start age is refused', async ({ 
   await page.goto('schedule')
   await hideOverlays(page)
   await page.getByRole('button', { name: /Create all nine/ }).click()
-  await expect(page.getByRole('button', { name: /0–2 mo/ })).toBeVisible()
-  await page.getByRole('button', { name: /2–4 mo/ }).click()
+  await expect(page.getByRole('radio', { name: /0–2 mo/ })).toBeVisible()
+  await page.getByRole('radio', { name: /2–4 mo/ }).click()
   await expect(page.locator('#band-from')).toBeVisible()
 
   // 4 mo is the next program's start; stepping onto it must not take, and the
@@ -465,7 +465,7 @@ test('start over clears every program at once', async ({ page }) => {
   await hideOverlays(page)
   page.on('dialog', (d) => d.accept())
   await page.getByRole('button', { name: /Create all nine/ }).click()
-  await expect(page.getByRole('button', { name: /0–2 mo/ })).toBeVisible()
+  await expect(page.getByRole('radio', { name: /0–2 mo/ })).toBeVisible()
 
   await page.getByRole('button', { name: /Start over/ }).click()
 

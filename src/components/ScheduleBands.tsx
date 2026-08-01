@@ -5,7 +5,7 @@ import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { CollapsibleSection } from './CollapsibleSection'
-import { ChoiceGroup } from './ChoiceGroup'
+import { SegmentedGroup } from '@/components/ui/segmented-group'
 import { NewProgramForm, type ProgramSource } from './NewProgramForm'
 import { DayShapeBar, DayShapeSummary } from './DayShapeBar'
 import { dayActivityOrder } from './dayActivity'
@@ -156,20 +156,19 @@ export function ScheduleBands({
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {/* Chips, not blocks.
-              The axis was nine 96×56px tiles each carrying a label and a
-              stripe — a lot of furniture for "which program am I editing", and
-              the stripes were unreadable at that width anyway. This is the
-              app's own single-choice control at the app's own control size, so
-              picking a program costs one tap and one line of page. The day's
-              shape moved to the detail panel below, where there is room to
-              read it. */}
+          {/* One control with nine positions, not nine buttons.
+              This was a grid of 96×56px tiles, then a row of detached pills —
+              both of which said "nine things" when the truth is one axis of
+              ages with a current position. `SegmentedGroup` says it in the
+              shape: a recessed track, and a thumb that travels to the program
+              you pick. The day's shape moved to the panel below, where there
+              is room to read it. */}
           <div className="flex flex-wrap items-center gap-2">
-            <ChoiceGroup
+            <SegmentedGroup
               ariaLabel={ts.stripAria}
               size="md"
               value={activeId ?? ''}
-              onChange={onSelect}
+              onValueChange={onSelect}
               options={bands.map((band, i) => ({
                 value: band.id,
                 ariaLabel: rangeOf(band, i),
@@ -179,7 +178,10 @@ export function ScheduleBands({
                       // The child's position, on the control rather than under
                       // it. A pin placed by `age / axisEnd` was only ever right
                       // while segment widths were proportional to months.
-                      <span className="size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
+                      // `currentColor`, not `bg-primary`: on the selected item
+                      // the thumb *is* primary, so a primary dot on top of it
+                      // disappears.
+                      <span className="size-1.5 shrink-0 rounded-full bg-current" aria-hidden />
                     )}
                     {formatAgeLabel(band.fromMonths, t.baby.monthsShort, t.baby.yearsShort)}
                   </span>

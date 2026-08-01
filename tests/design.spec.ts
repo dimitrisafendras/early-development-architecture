@@ -114,3 +114,30 @@ test('the tab icons all resolve', async ({ page }) => {
     expect(href).not.toMatch(/early-development-architecture\/early-development-architecture/)
   }
 })
+
+test('SegmentedGroup is a radiogroup, not a row of buttons', async ({ page }) => {
+  // A segmented control is a single-choice control: one Tab stop, arrows move
+  // the selection, and a screen reader hears "2 of 9". A row of aria-pressed
+  // buttons says none of that.
+  await seedStore(page, {})
+  await page.goto('schedule')
+  await hideOverlays(page)
+  await page.getByRole('button', { name: /Create all nine/ }).click()
+
+  const group = page.getByRole('radiogroup').first()
+  await expect(group).toBeVisible()
+  const options = group.getByRole('radio')
+  await expect(options).toHaveCount(9)
+  await expect(options.first()).toHaveAttribute('aria-checked', 'true')
+
+  // Roving tabindex: the group costs one Tab stop, not nine.
+  const tabbable = await options.evaluateAll(
+    (els) => els.filter((e) => e.getAttribute('tabindex') === '0').length,
+  )
+  expect(tabbable).toBe(1)
+
+  // The arrows move the selection.
+  await options.first().focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(options.nth(1)).toHaveAttribute('aria-checked', 'true')
+})

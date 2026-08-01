@@ -12,6 +12,7 @@ import {
   CardFooter,
 } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { SegmentedGroup } from '@/components/ui/segmented-group'
 import { Switch } from '@/components/ui/switch'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Progress } from '@/components/ui/progress'
@@ -119,6 +120,7 @@ function Specimen({ label, children }: { label: string; children: React.ReactNod
 
 export function ComponentsSection() {
   const [checked, setChecked] = useState(true)
+  const [segment, setSegment] = useState('week')
   const [agree, setAgree] = useState<boolean>(true)
   const [seg, setSeg] = useState<'day' | 'week' | 'month'>('week')
   const [method, setMethod] = useState<'bottle' | 'breast' | 'solid'>('bottle')
@@ -371,6 +373,30 @@ export function ComponentsSection() {
                 <AlertTitle>Contrast warning</AlertTitle>
                 <AlertDescription>Clear glass over low-contrast media needs a scrim.</AlertDescription>
               </Alert>
+            </div>
+          </Specimen>
+
+          <Specimen label="SegmentedGroup — one control, several positions">
+            <div className="flex flex-col gap-3">
+              <SegmentedGroup
+                ariaLabel="Demo range"
+                value={segment}
+                onValueChange={setSegment}
+                options={[
+                  { value: 'day', label: 'Day' },
+                  { value: 'week', label: 'Week' },
+                  { value: 'month', label: 'Month' },
+                  { value: 'all', label: 'All time' },
+                ]}
+              />
+              <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
+                Use this when the options are positions on one axis — a range, a
+                view mode, consecutive age bands. Use <code className="rounded bg-muted px-1.5 py-0.5 text-xs">ChoiceGroup</code> when
+                they are unrelated switches. A row of detached pills says "four
+                things"; a segmented track says "one thing, currently here", and
+                the thumb travels to the choice you make. It is a{' '}
+                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">radiogroup</code>: one Tab stop, arrows move the selection.
+              </p>
             </div>
           </Specimen>
 
