@@ -45,9 +45,14 @@ export function CollapsibleSection({
   const id = useId()
 
   return (
+    // A Card, not a Card-lookalike. This was `bg-card/40` with a hairline
+    // border — a third surface species beside the app's opaque, ring-edged
+    // content surfaces, which is most of why the page read as assembled from
+    // parts. The design system's rule is blunt: a surface that looks like a
+    // Card must be a Card.
     <section
       className={cn(
-        'rounded-xl border border-border/70 bg-card/40 p-3 transition-colors sm:p-4',
+        'rounded-xl bg-card p-4 ring-1 ring-foreground/10 transition-colors',
         className,
       )}
     >
@@ -57,7 +62,9 @@ export function CollapsibleSection({
           aria-expanded={open}
           aria-controls={id}
           onClick={onToggle}
-          className="flex min-w-0 flex-1 items-center gap-3 rounded-lg text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          // `basis-full` below `sm` so the actions drop under the title instead
+          // of squeezing the hint into five wrapped lines beside them.
+          className="flex min-w-0 flex-1 basis-full items-center gap-3 rounded-lg text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:basis-0"
         >
           <ChevronDown
             aria-hidden
@@ -74,7 +81,7 @@ export function CollapsibleSection({
               {/* `outline`, not `soft`: `soft` is the app's *status* badge
                   ("In use now"), and a plain tally that looks like a status
                   reads as one. */}
-              {count != null && <Badge variant="outline">{count}</Badge>}
+              {count != null && <Badge variant="outline" className="shrink-0">{count}</Badge>}
             </span>
             {hint && <span className="mt-0.5 block text-xs text-muted-foreground">{hint}</span>}
           </span>
@@ -86,7 +93,7 @@ export function CollapsibleSection({
           editable lists and tooltip roots, and keeping four of them mounted is
           the cost the folding was meant to remove. */}
       {open && (
-        <div id={id} className="mt-3">
+        <div id={id} className="mt-4">
           {children}
         </div>
       )}

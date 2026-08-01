@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { CalendarRange, Plus, RotateCcw, Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { CollapsibleSection } from './CollapsibleSection'
+import { ChoiceGroup } from './ChoiceGroup'
 import { NewProgramForm, type ProgramSource } from './NewProgramForm'
 import { DayShapeBar, DayShapeSummary } from './DayShapeBar'
 import { dayActivityOrder } from './dayActivity'
@@ -14,17 +14,6 @@ import { useSectionOpen } from '../lib/useSectionOpen'
 import type { AgeSchedule } from '../store'
 import type { DayActivity } from '../data'
 import { useT } from '../i18n'
-
-/** The strip runs birth to three years; a program starting later still gets a
- *  visible segment, so the axis stretches rather than clipping it. */
-const AXIS_MONTHS = 36
-
-interface Segment {
-  from: number
-  /** Exclusive; the axis end for the last program. */
-  to: number
-  band: AgeSchedule | null
-}
 
 /**
  * Which day you are editing, drawn as an age axis rather than a grid of cards.
@@ -83,23 +72,10 @@ export function ScheduleBands({
   const current = activeIndex >= 0 ? bands[activeIndex] : null
   const next = activeIndex >= 0 ? bands[activeIndex + 1] ?? null : null
 
-  const axisEnd = Math.max(AXIS_MONTHS, (bands[bands.length - 1]?.fromMonths ?? 0) + 6)
-
-  // Segments in age order, including the uncovered head before the first
-  // program. Every segment gets a floor width so a one-month band stays
-  // clickable at 360px.
-  const segments: Segment[] = []
-  if (bands.length && bands[0].fromMonths > 0) {
-    segments.push({ from: 0, to: bands[0].fromMonths, band: null })
-  }
-  bands.forEach((band, i) => {
-    segments.push({ from: band.fromMonths, to: bands[i + 1]?.fromMonths ?? axisEnd, band })
-  })
-
-  const rangeOf = (s: Segment) =>
+  const rangeOf = (band: AgeSchedule, index: number) =>
     formatAgeRange(
-      s.from,
-      s.band && s.to >= axisEnd ? null : s.to,
+      band.fromMonths,
+      bands[index + 1]?.fromMonths ?? null,
       t.baby.monthsShort,
       t.baby.yearsShort,
     )
@@ -163,7 +139,7 @@ export function ScheduleBands({
       {bands.length === 0 ? (
         // Nothing saved: there is no program to choose between, so the offer is
         // the whole set at once rather than one empty day to fill in by hand.
-        <div className="flex flex-col gap-3 rounded-lg border border-dashed border-border p-4 text-center">
+        <div className="flex flex-col gap-3 rounded-xl border border-dashed border-border p-4 text-center">
           <p className="text-sm text-muted-foreground">{ts.programsEmpty}</p>
           <div className="flex flex-wrap justify-center gap-2">
             <Button onClick={onSeedAll}>
@@ -180,113 +156,63 @@ export function ScheduleBands({
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {/* The axis. Segments size themselves by how many months they cover,
-              so the newborn weeks read as the sliver they are and the toddler
-              years as the long stretch they are. */}
-          <div>
-            {/* Scrolls within itself on a phone rather than widening the page.
-                Nine segments at the 44px touch minimum need ~480px, so below
-                that the axis has to give somewhere — and wrapping it to a second
-                line would break the one thing it exists to show, which is a
-                single continuous run of ages. The shell never scrolls
-                horizontally (see CLAUDE.md); this does.
-
-                Not `GlassScrollArea`: that utility fades the *top and bottom*
-                edges and its scrollbar is vertical, so on a horizontal axis it
-                would fade the wrong two edges. The mask below is its horizontal
-                equivalent, and it is dropped from `lg` up where the whole axis
-                fits and a fade would be lying about content that isn't there. */}
-            <ul
-              className="-mx-1 flex items-stretch gap-1 overflow-x-auto px-1 pb-1 [mask-image:linear-gradient(to_right,transparent,black_12px,black_calc(100%-12px),transparent)] lg:[mask-image:none]"
-              aria-label={ts.stripAria}
+          {/* Chips, not blocks.
+              The axis was nine 96×56px tiles each carrying a label and a
+              stripe — a lot of furniture for "which program am I editing", and
+              the stripes were unreadable at that width anyway. This is the
+              app's own single-choice control at the app's own control size, so
+              picking a program costs one tap and one line of page. The day's
+              shape moved to the detail panel below, where there is room to
+              read it. */}
+          <div className="flex flex-wrap items-center gap-2">
+            <ChoiceGroup
+              ariaLabel={ts.stripAria}
+              size="md"
+              value={activeId ?? ''}
+              onChange={onSelect}
+              options={bands.map((band, i) => ({
+                value: band.id,
+                ariaLabel: rangeOf(band, i),
+                label: (
+                  <span className="inline-flex items-center gap-1.5 tabular-nums">
+                    {band.id === inUseId && (
+                      // The child's position, on the control rather than under
+                      // it. A pin placed by `age / axisEnd` was only ever right
+                      // while segment widths were proportional to months.
+                      <span className="size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
+                    )}
+                    {formatAgeLabel(band.fromMonths, t.baby.monthsShort, t.baby.yearsShort)}
+                  </span>
+                ),
+              }))}
+            />
+            <Button
+              variant="ghost"
+              size="md"
+              onClick={() => setCreating(suggestedStart(bands, babyMonths))}
+              className="text-muted-foreground"
             >
-              {segments.map((seg, i) => {
-                const selected = seg.band != null && seg.band.id === activeId
-                const months = Math.max(1, seg.to - seg.from)
-                return (
-                  <li
-                    key={i}
-                    style={{ flexGrow: months, flexBasis: 0 }}
-                    className="min-w-11"
-                  >
-                    <button
-                      type="button"
-                      aria-pressed={selected}
-                      // The visible label is only the start age, because a
-                      // two-month segment has room for nothing else; the full
-                      // span is what the control actually means, so it is the
-                      // accessible name rather than a `title` a screen reader
-                      // may never reach.
-                      aria-label={rangeOf(seg)}
-                      onClick={() =>
-                        seg.band ? onSelect(seg.band.id) : setCreating(seg.from)
-                      }
-                      className={cn(
-                        'flex h-full w-full flex-col justify-between gap-1 rounded-lg border px-1.5 py-2 text-left transition-colors outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50',
-                        seg.band == null
-                          ? 'border-dashed border-border text-muted-foreground hover:border-ring hover:bg-accent/30'
-                          : selected
-                            ? 'border-primary bg-accent/60'
-                            : 'border-border bg-card hover:border-ring hover:bg-accent/30',
-                      )}
-                    >
-                      <span className="truncate text-xs font-semibold tabular-nums">
-                        {seg.from === 0 && seg.band == null
-                          ? '0'
-                          : formatAgeLabel(seg.from, t.baby.monthsShort, t.baby.yearsShort)}
-                      </span>
-                      {seg.band ? (
-                        <DayShapeBar slots={seg.band.slots} />
-                      ) : (
-                        <Plus className="size-3 shrink-0" aria-hidden />
-                      )}
-                    </button>
-                  </li>
-                )
-              })}
-              <li className="shrink-0">
-                <button
-                  type="button"
-                  aria-label={ts.programNew}
-                  title={ts.programNew}
-                  onClick={() => setCreating(suggestedStart(bands, babyMonths))}
-                  className="flex h-full min-h-14 w-11 items-center justify-center rounded-lg border border-dashed border-border text-muted-foreground transition-colors hover:border-ring hover:bg-accent/30 hover:text-foreground"
-                >
-                  <Plus className="size-4" aria-hidden />
-                </button>
-              </li>
-            </ul>
-
-            {/* Where this child is on the axis right now — a marker *on* the
-                line, positioned by age, rather than a sentence underneath it.
-                As a caption the reader still had to work out where "0 mo" fell
-                on a bar whose segments are all different widths. */}
-            {babyMonths != null && (
-              <div className="relative mt-1.5 h-4" aria-hidden>
-                <span
-                  className="absolute top-0 flex -translate-x-1/2 flex-col items-center"
-                  style={{ left: `${Math.min(100, (babyMonths / axisEnd) * 100)}%` }}
-                >
-                  <span className="h-2 w-px bg-primary" />
-                  <span className="size-1.5 rounded-full bg-primary" />
-                </span>
-              </div>
-            )}
-            {babyMonths != null && (
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                <span className="sr-only">{ts.stripAria}. </span>
-                {ts.stripNow} · {formatAgeLabel(babyMonths, t.baby.monthsShort, t.baby.yearsShort)}
-              </p>
-            )}
+              <Plus className="mr-2 size-4" /> {ts.programNew}
+            </Button>
           </div>
+
+          {babyMonths != null && (
+            <p className="text-xs text-muted-foreground">
+              <span className="size-1.5 mr-1.5 inline-block rounded-full bg-primary align-middle" aria-hidden />
+              {ts.stripNow} · {formatAgeLabel(babyMonths, t.baby.monthsShort, t.baby.yearsShort)}
+            </p>
+          )}
 
           {/* The selected program, in full. Only one day's stripe is expanded at
               a time — nine at once was the thing that made them blur together. */}
+          {/* The documented sub-panel inside a Card: 14px radius, muted ground,
+              no border. It was a second bordered card drawn inside the first
+              with a different radius and padding. */}
           {current && creating == null && (
-            <div className="flex flex-col gap-2.5 rounded-lg border border-border bg-card p-3">
+            <div className="flex flex-col gap-3 rounded-xl bg-muted p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <span className="flex items-center gap-2">
-                  <span className="font-heading text-sm font-semibold">
+                  <span className="text-[15px] font-semibold">
                     {formatAgeRange(
                       current.fromMonths,
                       next?.fromMonths ?? null,
@@ -301,9 +227,7 @@ export function ScheduleBands({
                 </span>
               </div>
 
-              {/* No second stripe here: the selected segment above already
-                  draws it, twenty pixels away. The counted summary is the half
-                  of the pair that can actually be read. */}
+              <DayShapeBar slots={current.slots} dense />
               <DayShapeSummary slots={current.slots} />
 
               {/* What changes at the next program — the question a parent is
@@ -359,6 +283,7 @@ export function ScheduleBands({
                     "start this program again from the researched day for its
                     age" is an action on the program rather than a second
                     catalogue of the same nine. */}
+                <div className="flex flex-wrap items-center gap-2">
                 <Button
                   variant="ghost"
                   onClick={() => onUseBuiltIn(current.fromMonths)}
@@ -379,6 +304,7 @@ export function ScheduleBands({
                 >
                   <Trash2 className="mr-2 size-4" /> {ts.programDelete}
                 </Button>
+                </div>
               </div>
             </div>
           )}

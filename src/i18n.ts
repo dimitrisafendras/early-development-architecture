@@ -404,6 +404,7 @@ const en = {
     bandRemove: 'Delete this day',
     blueprintSlots: '{n} moments',
     resetThisDay: 'Reset this day',
+    builtInDay: 'Built-in day',
     clearAll: 'Start over',
     clearAllConfirm:
       'Delete all your programs and start over? Every day you have edited is lost, and the app falls back to the built-in day for your child\u2019s age.',
@@ -1807,6 +1808,7 @@ const el: Messages = {
     bandRemove: 'Διαγραφή αυτής της μέρας',
     blueprintSlots: '{n} στιγμές',
     resetThisDay: 'Επαναφορά αυτής της μέρας',
+    builtInDay: 'Ενσωματωμένη μέρα',
     clearAll: 'Από την αρχή',
     clearAllConfirm:
       'Διαγραφή όλων των προγραμμάτων και έναρξη από την αρχή; Κάθε μέρα που έχετε επεξεργαστεί χάνεται και η εφαρμογή επιστρέφει στην ενσωματωμένη μέρα για την ηλικία του παιδιού.',

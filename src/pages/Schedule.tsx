@@ -8,7 +8,7 @@ import { ActivityField } from '../components/ActivityField'
 import { SlotPresets } from '../components/SlotPresets'
 import { ScheduleBands } from '../components/ScheduleBands'
 import type { ProgramSource } from '../components/NewProgramForm'
-import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -21,7 +21,7 @@ import { dayTemplates, defaultSlotMins, type ScheduleSlot } from '../data'
 import { useSchedule, buildDefaultSchedule, buildScheduleFromTemplate, scheduleForAge } from '../lib/useSchedule'
 import { useBabyAge } from '../components/AgeBadge'
 import { useFieldLabels } from '../lib/useFieldLabels'
-import { minutesOfDay, slotEndTime, sortByClock, overlapMinutes } from '../lib/schedule'
+import { minutesOfDay, slotEndTime, sortByClock, overlapMinutes, formatAgeRange } from '../lib/schedule'
 import { useAppStore, sortSchedules, type AgeSchedule } from '../store'
 import { useT } from '../i18n'
 
@@ -68,6 +68,18 @@ export default function Schedule() {
 
   /** The add-moment palette. Local, not persisted — a popover is a transaction. */
   const [adding, setAdding] = useState(false)
+
+  /** The age span of the program on screen, for the day card's own header. */
+  const activeRange = useMemo(() => {
+    const i = customSchedules.findIndex((b) => b.id === activeId)
+    if (i < 0) return ts.builtInDay
+    return formatAgeRange(
+      customSchedules[i].fromMonths,
+      customSchedules[i + 1]?.fromMonths ?? null,
+      t.baby.monthsShort,
+      t.baby.yearsShort,
+    )
+  }, [customSchedules, activeId, t, ts.builtInDay])
 
   /**
    * Every title the app itself wrote: the eight generic activity names plus the
@@ -397,8 +409,17 @@ export default function Schedule() {
         <EmptyState>{ts.empty}</EmptyState>
       ) : (
         <Card>
+          {/* Which program this day belongs to. Without it the two blocks read
+              as unrelated, and the answer to "whose day am I editing" lived
+              only in the other card. */}
+          <CardHeader className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <CardTitle>{activeRange}</CardTitle>
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {ts.blueprintSlots.replace('{n}', String(rows.length))}
+            </span>
+          </CardHeader>
           <CardContent className="p-0">
-            <ol id="day-moments" className="divide-y divide-border">
+            <ol id="day-moments" className="divide-y divide-border/70">
               {rows.map((row, i) => (
                 <SlotRow
                   key={row.uid}
@@ -561,7 +582,7 @@ const SlotRow = memo(function SlotRow({
 
   return (
     <li>
-      <div className="flex gap-3 px-3 py-3 sm:px-4">
+      <div className="flex gap-3 px-4 py-3">
         {/* The activity's colour as a rail down the row. This is what makes a
             twenty-row day scannable without reading a word — the sleep blocks
             and the feed cadence show up as a vertical stripe. */}
@@ -570,7 +591,7 @@ const SlotRow = memo(function SlotRow({
         <div className="flex min-w-0 flex-1 flex-wrap items-end gap-2">
           {/* Phone: the "what" gets its own full-width line and the timing sits
               below it. From `sm` the whole moment is one line. */}
-          <div className="min-w-0 basis-full space-y-1.5 sm:order-2 sm:min-w-48 sm:flex-1 sm:basis-0">
+          <div className="order-1 min-w-0 flex-1 basis-auto space-y-1.5 sm:order-2 sm:min-w-48 sm:basis-0">
             <Label htmlFor={`slot-what-${row.uid}`} className="sr-only">
               {ts.whatLabel}
             </Label>
@@ -585,7 +606,7 @@ const SlotRow = memo(function SlotRow({
             />
           </div>
 
-          <div className="space-y-1.5 sm:order-1">
+          <div className="order-3 space-y-1.5 sm:order-1">
             <Label htmlFor={`slot-time-${row.uid}`} className="sr-only">
               {ts.timeLabel}
             </Label>
@@ -603,7 +624,7 @@ const SlotRow = memo(function SlotRow({
             />
           </div>
 
-          <div className="space-y-1.5 sm:order-3">
+          <div className="order-4 space-y-1.5 sm:order-3">
             <Label htmlFor={`slot-mins-${row.uid}`} className="sr-only">
               {ts.durationLabel}
             </Label>
@@ -622,10 +643,10 @@ const SlotRow = memo(function SlotRow({
             />
           </div>
 
-          <div className="ml-auto flex items-center gap-1 sm:order-4">
+          <div className="order-2 flex items-center gap-1 sm:order-4 sm:ml-auto">
             {/* The end time, computed. Times and durations are only followable
                 if the reader never has to do the arithmetic themselves. */}
-            <span className="mr-1 hidden text-xs text-muted-foreground tabular-nums md:inline">
+            <span className="mr-1 hidden text-xs text-muted-foreground tabular-nums sm:inline">
               {ts.endsAt.replace('{time}', slotEndTime(row.time, row.mins))}
             </span>
             {/* The moment and the tool that records it, joined. The association
@@ -634,7 +655,12 @@ const SlotRow = memo(function SlotRow({
                 `render`, not a hand-rolled link: beside the delete button it has
                 to be the same size, and `size="icon"` is 44px on a phone where a
                 bare `size-8` link was 32. */}
-            {tool && (
+            {/* Every row reserves this slot, whether or not the activity has a
+                logger. Rendering the link only when one exists let the delete
+                button slide left on sleep, play, care and wind-down rows, so no
+                two rows in the list lined up — the cheapest possible way to make
+                a tidy table look untidy. */}
+            {tool ? (
               <Link
                 to={tool.to}
                 aria-label={ts.logsIn.replace('{tool}', tool.label(t))}
@@ -652,6 +678,8 @@ const SlotRow = memo(function SlotRow({
               >
                 <ArrowUpRight className="size-4" aria-hidden />
               </Link>
+            ) : (
+              <span className="size-11 shrink-0 sm:size-8" aria-hidden />
             )}
             <Button
               type="button"

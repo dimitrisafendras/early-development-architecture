@@ -26,21 +26,64 @@ import { useT } from '../i18n'
  */
 export function DayShapeBar({
   slots,
+  dense = false,
   className,
 }: {
   slots: ScheduleSlot[]
+  /**
+   * Draw the day as one continuous band instead of separated pills.
+   *
+   * A gap between pills is a fixed 2px, so in a narrow container the gutters
+   * win: twenty-eight moments need 54px of gap alone, and inside a 44px segment
+   * every pill was squeezed to zero width — the strip rendered as blank space
+   * with faint lines, which is exactly what "0 mo has no sections" meant. With
+   * no gaps the band always shows its colours, however little room it has.
+   */
+  dense?: boolean
   className?: string
 }) {
   const t = useT()
   if (!slots.length) return null
 
+  /**
+   * In dense mode, consecutive moments of the same kind become one band.
+   *
+   * Back-to-back sleeps already read as one block, and merging them buys width
+   * for the short moments beside them — a five-minute tummy session is 0.3% of
+   * a day, which is a sub-pixel shimmer at this size rather than a colour.
+   */
+  const bands = dense
+    ? slots.reduce<{ slot: ScheduleSlot; mins: number }[]>((acc, slot) => {
+        const last = acc[acc.length - 1]
+        if (last && last.slot.type === slot.type) last.mins += Math.max(1, slot.mins)
+        else acc.push({ slot, mins: Math.max(1, slot.mins) })
+        return acc
+      }, [])
+    : slots.map((slot) => ({ slot, mins: Math.max(1, slot.mins) }))
+
   return (
     <TooltipProvider delay={120}>
-      <ol className={cn('flex gap-0.5', className)} aria-hidden>
-        {slots.map((slot, i) => {
+      <ol
+        className={cn(
+          'flex',
+          dense ? 'gap-0 overflow-hidden rounded-full' : 'gap-0.5',
+          className,
+        )}
+        aria-hidden
+      >
+        {bands.map(({ slot, mins }, i) => {
           const meta = dayActivityMeta[slot.type]
           return (
-            <li key={i} className="flex min-w-0 flex-1">
+            <li
+              key={i}
+              // Sized by how long the moment lasts, so the band reads as a day
+              // rather than as a tally: a three-hour sleep is a block and a
+              // five-minute tummy session is a sliver.
+              style={{ flexGrow: mins, flexBasis: 0 }}
+              // A 2px floor: truthful widths put the shortest moments below one
+              // pixel, where they either shimmer or disappear entirely.
+              className={cn('flex min-w-0', dense && 'min-w-0.5')}
+            >
               <Tooltip>
                 <TooltipTrigger
                   render={
@@ -48,9 +91,18 @@ export function DayShapeBar({
                       // `py-1 -my-1` widens the hover target to a comfortable
                       // height without making the visible pill thicker: a 6px
                       // strip is hard to hit on purpose.
-                      className="block w-full cursor-default rounded-full py-1 -my-1 transition-opacity hover:opacity-70"
+                      className={cn(
+                        'block w-full cursor-default py-1 -my-1 transition-opacity hover:opacity-70',
+                        !dense && 'rounded-full',
+                      )}
                     >
-                      <span className={cn('block h-1.5 w-full rounded-full', meta.bar)} />
+                      <span
+                        className={cn(
+                          'block w-full',
+                          dense ? 'h-2' : 'h-1.5 rounded-full',
+                          meta.bar,
+                        )}
+                      />
                     </span>
                   }
                 />

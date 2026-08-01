@@ -74,7 +74,7 @@ export function NewProgramForm({
   ]
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-primary/50 bg-accent/30 p-3">
+    <div className="flex flex-col gap-3 rounded-xl bg-accent/30 p-4 ring-1 ring-primary/30">
       <Eyebrow as="span">{ts.programNewTitle}</Eyebrow>
 
       <div className="flex flex-wrap items-end gap-x-5 gap-y-3">
