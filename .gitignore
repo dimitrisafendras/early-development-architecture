@@ -12,3 +12,6 @@ dist
 
 # Claude Code local session state (contains full git worktrees)
 .claude/
+
+# Playwright MCP scratch output
+.playwright-mcp/
