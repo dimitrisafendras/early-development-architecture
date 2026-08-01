@@ -123,7 +123,7 @@ test('a program can be restarted from the built-in day for its age', async ({ pa
   await expect(page.locator('#band-from')).toBeVisible()
   await page.locator('input[id^="slot-what"]').first().fill('Scribbled over')
 
-  await page.getByRole('button', { name: /Use the built-in day/ }).click()
+  await page.getByRole('button', { name: /Reset this day/ }).click()
   await expect(page.locator('#day-moments > li')).toHaveCount(15)
   await expect(page.locator('input[id^="slot-what"]').first()).not.toHaveValue('Scribbled over')
 })
@@ -455,4 +455,23 @@ test('moving a program onto another program’s start age is refused', async ({ 
   const starts = (store.customSchedules as { fromMonths: number }[]).map((b) => b.fromMonths)
   expect(starts).toEqual([...starts].sort((a, b) => a - b))
   expect(new Set(starts).size).toBe(starts.length)
+})
+
+test('start over clears every program at once', async ({ page }) => {
+  // Getting back to nothing used to mean deleting nine programs one at a time.
+  // With none saved the app falls back to the built-in day for the age, which is
+  // a valid state — so the empty state offers the whole set again.
+  await page.goto('schedule')
+  await hideOverlays(page)
+  page.on('dialog', (d) => d.accept())
+  await page.getByRole('button', { name: /Create all nine/ }).click()
+  await expect(page.getByRole('button', { name: /0–2 mo/ })).toBeVisible()
+
+  await page.getByRole('button', { name: /Start over/ }).click()
+
+  await expect(page.getByRole('button', { name: /Create all nine/ })).toBeVisible()
+  const store = await readStore(page)
+  expect(store.customSchedules).toEqual([])
+  // The editor is not left empty — it falls back to the built-in day.
+  await expect(page.locator('#day-moments > li').first()).toBeVisible()
 })

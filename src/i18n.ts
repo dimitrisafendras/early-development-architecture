@@ -403,7 +403,10 @@ const en = {
     bandSeedAll: 'Create all nine (0–3 years)',
     bandRemove: 'Delete this day',
     blueprintSlots: '{n} moments',
-    blueprintUse: 'Use the built-in day',
+    resetThisDay: 'Reset this day',
+    clearAll: 'Start over',
+    clearAllConfirm:
+      'Delete all your programs and start over? Every day you have edited is lost, and the app falls back to the built-in day for your child\u2019s age.',
     blueprintConfirm:
       'Replace this program\u2019s moments with the built-in day for its age? Your edits to it are lost.',
     presetsHint: 'Ready-made moments for this age — tap to add one.',
@@ -1803,8 +1806,12 @@ const el: Messages = {
     bandSeedAll: 'Δημιουργία και των εννέα (0–3 ετών)',
     bandRemove: 'Διαγραφή αυτής της μέρας',
     blueprintSlots: '{n} στιγμές',
-    blueprintUse: 'Φόρτωση ημέρας',
-    blueprintConfirm: 'Να αντικατασταθούν οι στιγμές παρακάτω με αυτή την ενδεικτική μέρα;',
+    resetThisDay: 'Επαναφορά αυτής της μέρας',
+    clearAll: 'Από την αρχή',
+    clearAllConfirm:
+      'Διαγραφή όλων των προγραμμάτων και έναρξη από την αρχή; Κάθε μέρα που έχετε επεξεργαστεί χάνεται και η εφαρμογή επιστρέφει στην ενσωματωμένη μέρα για την ηλικία του παιδιού.',
+    blueprintConfirm:
+      'Αντικατάσταση των στιγμών αυτού του προγράμματος με την ενσωματωμένη μέρα για την ηλικία του; Οι αλλαγές σας χάνονται.',
     presetsHint: 'Έτοιμες στιγμές για αυτή την ηλικία — πατήστε για προσθήκη.',
     titlePlaceholder: 'π.χ. Πρωινό τάισμα',
     remove: 'Αφαίρεση',

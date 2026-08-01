@@ -322,6 +322,19 @@ export default function Schedule() {
     load(current.slots, current.id)
   }
 
+  /**
+   * Clear every program and go back to the empty state.
+   *
+   * With no programs saved the app falls back to the built-in day for the
+   * child's age — a valid state, not a broken one — and the empty state offers
+   * the whole set again. Without this, starting over meant deleting nine
+   * programs one at a time.
+   */
+  const clearAllBands = () => {
+    setCustomSchedules([])
+    load(buildDefaultSchedule(t, months), null)
+  }
+
   const removeBand = (id: string) => {
     const next = customSchedules.filter((b) => b.id !== id)
     setCustomSchedules(next)
@@ -374,6 +387,7 @@ export default function Schedule() {
         onRemove={removeBand}
         onChangeFrom={changeBandFrom}
         onUseBuiltIn={useBuiltInDay}
+        onClearAll={clearAllBands}
       />
 
       {/* The day itself: one card holding a divided list, not twenty cards. A

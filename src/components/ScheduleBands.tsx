@@ -50,6 +50,7 @@ export function ScheduleBands({
   onRemove,
   onChangeFrom,
   onUseBuiltIn,
+  onClearAll,
 }: {
   bands: AgeSchedule[]
   activeId: string | null
@@ -62,6 +63,8 @@ export function ScheduleBands({
   onChangeFrom: (id: string, fromMonths: number) => void
   /** Replace this program's day with the built-in one for its start age. */
   onUseBuiltIn: (fromMonths: number) => void
+  /** Clear every program and return to the empty state. */
+  onClearAll: () => void
 }) {
   const t = useT()
   const ts = t.schedule
@@ -128,16 +131,33 @@ export function ScheduleBands({
       open={open}
       onToggle={toggle}
       actions={
-        !open && current ? (
-          <span className="text-xs text-muted-foreground tabular-nums">
-            {formatAgeRange(
-              current.fromMonths,
-              next?.fromMonths ?? null,
-              t.baby.monthsShort,
-              t.baby.yearsShort,
-            )}
-          </span>
-        ) : null
+        <>
+          {!open && current && (
+            <span className="text-xs text-muted-foreground tabular-nums">
+              {formatAgeRange(
+                current.fromMonths,
+                next?.fromMonths ?? null,
+                t.baby.monthsShort,
+                t.baby.yearsShort,
+              )}
+            </span>
+          )}
+          {/* Getting back to nothing took nine deletions. It belongs on the set,
+              not on any one program — and only when there is a set. */}
+          {open && bands.length > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                if (!window.confirm(ts.clearAllConfirm)) return
+                onClearAll()
+              }}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <RotateCcw className="mr-2 size-4" /> {ts.clearAll}
+            </Button>
+          )}
+        </>
       }
     >
       {bands.length === 0 ? (
@@ -344,7 +364,7 @@ export function ScheduleBands({
                   onClick={() => onUseBuiltIn(current.fromMonths)}
                   className="text-muted-foreground hover:text-foreground"
                 >
-                  <RotateCcw className="mr-2 size-4" /> {ts.blueprintUse}
+                  <RotateCcw className="mr-2 size-4" /> {ts.resetThisDay}
                 </Button>
                 {/* Confirmed, like every other destructive action here. With
                     autosave there is no undo, and this erases a hand-built day
