@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label'
 import { NumberInput, type NumberInputProps } from '@/components/ui/number-input'
 import { DateTimePicker } from '@/components/ui/date-time-picker'
 import { cn } from '@/lib/utils'
-import { ChoiceGroup } from './ChoiceGroup'
+import { SegmentedGroup } from '@/components/ui/segmented-group'
 import { nowDateTimeKey, useDateLocale } from '../lib/dates'
 import { useFieldLabels } from '../lib/useFieldLabels'
 import { todayKey } from '../lib/schedule'
@@ -128,11 +128,11 @@ export function AddFeedForm({
   // is `md`, the one size at which the whole control set is the same height.
   // See `ui/control-size.ts`: a row is only ever one size.
   const methodTabs = (
-    <ChoiceGroup
+    <SegmentedGroup
       ariaLabel={tf.method}
       size="md"
       value={method}
-      onChange={setMethod}
+      onValueChange={setMethod}
       options={(['bottle', 'breast', 'solid'] as const).map((m) => ({ value: m, label: tf[m] }))}
     />
   )

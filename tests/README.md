@@ -101,6 +101,15 @@ background distinct; controls in a row share one height (the scale exists
 because a row was once 36/44/44 on a phone); every tab icon resolves 200 and the
 base path is applied once, not twice.
 
+`SegmentedGroup` gets three of its own: it is a `radiogroup` with a roving
+tabindex and working arrow keys rather than a row of pressed buttons; its
+**track** carries the control height, so it matches the stepper it stands beside
+on `/feed` (sizing the items instead left it 40px against 32); and the in-use
+badge is held at its own height, so stepping along the age axis does not move
+the panel under it. The last one measures the heading row, not the whole panel —
+the summary below wraps to different line counts per program on a phone, which
+is content changing height rather than layout jitter.
+
 ### `i18n.spec.ts` — Greek is first-class
 `Messages = typeof en` makes the two structurally identical at compile time, so
 what is left to test is runtime: every page actually renders Greek rather than

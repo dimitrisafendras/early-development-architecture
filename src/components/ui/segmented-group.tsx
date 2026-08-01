@@ -16,13 +16,19 @@ export interface SegmentedOption<T extends string> {
  *
  * ## Why this exists beside `ChoiceGroup`
  *
- * `ChoiceGroup` is a row of *separate* pills: each one is its own island, and
- * the selected one is told apart by fill alone. That is right when the options
- * are unrelated switches. It is wrong when they are positions on one axis —
- * nine consecutive age bands, a range picker, a view mode — because a row of
- * detached lozenges says "nine things" when the truth is "one thing with nine
- * settings", and picking one reads as toggling a button rather than moving a
- * selection.
+ * The split is *settings* against *items*.
+ *
+ * This is for a setting: one thing with a small, fixed set of mutually
+ * exclusive positions — an age band, a report range, how a feed happened, which
+ * palette. `ChoiceGroup` is for choosing among items, where the options are
+ * data rather than positions: which baby, which program to copy. Those sets
+ * grow and shrink and have no order to them, so they stay a row of separate
+ * pills that can wrap; a track with a travelling thumb would be claiming a
+ * sequence that isn't there.
+ *
+ * Drawn as separate pills, a setting reads wrong: a row of detached lozenges
+ * says "nine things" when the truth is "one thing, currently here", and picking
+ * one reads as pressing a button rather than moving a selection.
  *
  * A segmented control says it in the shape: one recessed track, one thumb, and
  * the thumb **travels** to the choice you make. The movement is the whole point
@@ -125,7 +131,14 @@ export function SegmentedGroup<T extends string>({
       className={cn(
         // A recessed track, so the group reads as one inset object with
         // something sitting in it rather than as buttons floating on the page.
-        'relative isolate inline-flex max-w-full items-center gap-0.5 overflow-x-auto rounded-full bg-muted p-1 align-middle',
+        //
+        // The control size is the height of the *track*, not of the items in
+        // it: this sits in rows beside fields and steppers, and the shared
+        // scale promises everything in a row is the same height. Sizing the
+        // items instead made the group its padding taller than the stepper
+        // beside it — 40px against 32.
+        'relative isolate inline-flex max-w-full items-stretch gap-0.5 overflow-x-auto rounded-full bg-muted p-1 align-middle',
+        dims.height,
         '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
         className,
       )}
@@ -137,10 +150,9 @@ export function SegmentedGroup<T extends string>({
           aria-hidden
           style={{ transform: `translateX(${thumb.x}px)`, width: thumb.w }}
           className={cn(
-            'pointer-events-none absolute top-1 left-0 -z-10 rounded-full bg-primary shadow-sm',
+            'pointer-events-none absolute inset-y-1 left-0 -z-10 rounded-full bg-primary shadow-sm',
             'transition-[transform,width] duration-300 ease-[cubic-bezier(0.34,1.4,0.64,1)]',
             'motion-reduce:transition-none',
-            dims.height,
           )}
         />
       )}
@@ -165,11 +177,10 @@ export function SegmentedGroup<T extends string>({
             tabIndex={selected ? 0 : -1}
             onClick={() => onValueChange(option.value)}
             className={cn(
-              'relative inline-flex shrink-0 items-center justify-center rounded-full px-3 font-medium whitespace-nowrap',
+              'relative inline-flex h-full shrink-0 items-center justify-center rounded-full px-3 font-medium whitespace-nowrap',
               'outline-none transition-colors select-none',
               'focus-visible:ring-3 focus-visible:ring-ring/50',
               'disabled:pointer-events-none disabled:opacity-50',
-              dims.height,
               'text-sm',
               selected
                 ? 'text-primary-foreground'

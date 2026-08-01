@@ -352,7 +352,6 @@ const en = {
     subtitle:
       'Tailor the daily rhythm to your baby. Add, remove, or re-order moments and set when each one starts and how long it takes — the Day page follows this.',
     addSlot: 'Add a moment',
-    addBlank: 'Blank moment',
     save: 'Save schedule',
     saved: 'Saved',
     done: 'Done',
@@ -413,8 +412,6 @@ const en = {
     presetsHint: 'Ready-made moments for this age — tap to add one.',
     remove: 'Remove',
     sortNote: 'Moments keep themselves in clock order — to move one, change its time.',
-    durationNote:
-      'Typical lengths, whichever program is open: a milk feed 20–30 min (shorter at night on purpose), a meal 15–35 min, a nap 30 min–2 h, tummy time 5–15 min a session while your baby is not yet mobile, and active play in blocks of 45–120 min once they are. Awake stretches grow with age — roughly 45–60 min for a newborn, 2–3 h by six months, and 5–6 h on one nap — so match each moment to the program you are editing, not to a single number.',
   },
   daily: {
     title: 'Your Day',
@@ -1758,7 +1755,6 @@ const el: Messages = {
     subtitle:
       'Προσαρμόστε τον ημερήσιο ρυθμό στο μωρό σας. Προσθέστε, αφαιρέστε ή αναδιατάξτε στιγμές και ορίστε πότε ξεκινά και πόσο διαρκεί καθεμία — η σελίδα «Μέρα» τα ακολουθεί.',
     addSlot: 'Προσθήκη στιγμής',
-    addBlank: 'Κενή στιγμή',
     save: 'Αποθήκευση',
     saved: 'Αποθηκεύτηκε',
     done: 'Τέλος',
@@ -1818,8 +1814,6 @@ const el: Messages = {
     titlePlaceholder: 'π.χ. Πρωινό τάισμα',
     remove: 'Αφαίρεση',
     sortNote: 'Οι στιγμές μένουν πάντα σε σειρά ώρας — για να μετακινήσετε μία, αλλάξτε την ώρα της.',
-    durationNote:
-      'Τυπικές διάρκειες, όποιο πρόγραμμα κι αν είναι ανοιχτό: γάλα 20–30 λεπτά (πιο σύντομα τη νύχτα επίτηδες), γεύμα 15–35 λεπτά, υπνάκος 30 λεπτά–2 ώρες, μπρούμυτα 5–15 λεπτά ανά συνεδρία όσο το μωρό δεν είναι ακόμη κινητικό, και ενεργό παιχνίδι σε μπλοκ 45–120 λεπτών μόλις γίνει. Οι περίοδοι εγρήγορσης μεγαλώνουν με την ηλικία — περίπου 45–60 λεπτά για νεογνό, 2–3 ώρες στους έξι μήνες, 5–6 ώρες με έναν υπνάκο — οπότε ταιριάξτε κάθε στιγμή με το πρόγραμμα που επεξεργάζεστε, όχι με έναν μοναδικό αριθμό.',
   },
   daily: {
     title: 'Η Μέρα σας',

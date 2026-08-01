@@ -101,6 +101,50 @@ export function overlapMinutes(
   return Math.max(0, end - boundary)
 }
 
+/**
+ * The first minute of the day that no moment already claims.
+ *
+ * This is what the add-a-moment form opens on. The old default was the end of
+ * the *last row in the array*, which sounds like "the end of the day" and is
+ * not: the list is sorted along the day cycle, so its last entry is the 02:00
+ * night feed — pressing Add on an ordinary day proposed half past two in the
+ * morning. And a preset carried the built-in day's own time, so tapping "Feed"
+ * landed it at 07:00 whether or not 07:00 was already a feed, which is how a
+ * one-tap add produced an overlap warning.
+ *
+ * Walking the cycle from the morning anchor and stopping at the first real gap
+ * gives a time that is both plausible and free, so the common case is now: open,
+ * tap the kind, done. `minGap` is what counts as a gap worth offering — a
+ * two-minute seam between a feed and a nap is not somewhere to put anything.
+ *
+ * Falls out at the end of the last moment when the day has no gap at all, which
+ * is the only remaining answer and still a better one than the middle of a nap.
+ */
+export function firstFreeTime(slots: { time: string; mins: number }[], minGap = 15): string {
+  // An empty day starts at the wake the sample days all use, not at the anchor:
+  // 06:00 is where the *cycle* is cut, not where anyone gets up.
+  if (!slots.length) return clockAt(DAY_ANCHOR_MIN + 60)
+  const spans = slots
+    .map((slot) => ({ start: clockRank(slot.time), mins: Math.max(0, slot.mins) }))
+    .sort((a, b) => a.start - b.start)
+  // Start at the first moment, not at the anchor: the stretch before the day
+  // begins is free by definition, and offering 06:00 on a day that wakes at
+  // 07:00 answers "where is there room" with "before you get up".
+  let cursor = spans[0].start
+  let best = { start: cursor, gap: -1 }
+  for (const span of spans) {
+    const gap = span.start - cursor
+    if (gap >= minGap) return clockAt(cursor + DAY_ANCHOR_MIN)
+    if (gap > best.gap) best = { start: cursor, gap }
+    cursor = Math.max(cursor, span.start + span.mins)
+  }
+  // No gap worth the name. A newborn day tiles all 24 hours, so this is a real
+  // case, not a degenerate one — and the end of the last moment is the wrong
+  // answer for it, because the cycle wraps and that is the morning wake. The
+  // widest seam there is beats landing exactly on top of an existing moment.
+  return clockAt((best.gap > 0 ? best.start : cursor) + DAY_ANCHOR_MIN)
+}
+
 export interface BlockWindow {
   index: number
   startMin: number

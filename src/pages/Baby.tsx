@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { Baby as BabyIcon, Trash2, Ruler, Weight, Pencil } from 'lucide-react'
 import { ChoiceGroup } from '../components/ChoiceGroup'
+import { SegmentedGroup } from '@/components/ui/segmented-group'
 import { EmptyState } from '../components/EmptyState'
 import { StatTile } from '../components/StatTile'
 import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
@@ -209,9 +210,9 @@ function CreateBabyForm({
         </div>
         <div className="space-y-1.5">
           <Label>{t.baby.paletteLabel}</Label>
-          <ChoiceGroup
+          <SegmentedGroup
             value={palette}
-            onChange={setPalette}
+            onValueChange={setPalette}
             options={[
               { value: 'blue', label: t.nav.boy },
               { value: 'red', label: t.nav.girl },
@@ -478,9 +479,9 @@ function EditBabyForm({
       </div>
       <div className="space-y-1.5">
         <Label>{t.baby.paletteLabel}</Label>
-        <ChoiceGroup
+        <SegmentedGroup
           value={palette}
-          onChange={setPalette}
+          onValueChange={setPalette}
           options={[
             { value: 'blue', label: t.nav.boy },
             { value: 'red', label: t.nav.girl },

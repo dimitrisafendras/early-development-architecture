@@ -5,6 +5,7 @@ import { Toggle } from '@/components/ui/toggle'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageFrame } from '../components/PageFrame'
 import { ChoiceGroup } from '../components/ChoiceGroup'
+import { SegmentedGroup } from '@/components/ui/segmented-group'
 import { Eyebrow } from '../components/Eyebrow'
 import { ReportDocument } from '../components/report/ReportDocument'
 import type { ReportSections } from '../components/report/ReportDocument'
@@ -78,11 +79,11 @@ export default function Export() {
           they share a row and wrap together on a phone. */}
       <div className="flex flex-wrap items-end gap-x-6 gap-y-4">
         <Field label={tr.rangeLabel}>
-          <ChoiceGroup
+          <SegmentedGroup
             ariaLabel={tr.rangeLabel}
             size="md"
             value={range}
-            onChange={setRange}
+            onValueChange={setRange}
             options={[
               { value: '7d', label: tr.range7 },
               { value: '30d', label: tr.range30 },

@@ -28,10 +28,21 @@ import { useT } from '../i18n'
 export function SlotPresets({
   months,
   onAdd,
+  time,
   listClassName,
 }: {
   months: number | null
   onAdd: (slot: ScheduleSlot) => void
+  /**
+   * The time to add at, overriding the one the preset was written with.
+   *
+   * A preset used to arrive carrying the built-in day's own clock time, so
+   * tapping "Feed" put it at 07:00 — on top of the 07:00 feed that was already
+   * there. What the palette is actually good for is the *content* of a moment
+   * (its kind, its name, its typical length); when it happens is the caller's
+   * question, asked once above the list.
+   */
+  time?: string
   /** Layout for the list itself — one column inside the add-moment popover,
    *  a grid when it has a whole section to spread across. */
   listClassName?: string
@@ -62,7 +73,7 @@ export function SlotPresets({
                 time it carries, rather than landing at the bottom of the list. */}
             <button
               type="button"
-              onClick={() => onAdd({ ...slot })}
+              onClick={() => onAdd({ ...slot, time: time ?? slot.time })}
               className="group flex w-full items-center gap-2.5 rounded-lg border border-border bg-card px-2.5 py-2 text-left transition-colors outline-none hover:border-ring hover:bg-accent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               <span className={cn('flex size-8 shrink-0 items-center justify-center rounded-lg', meta.dot)}>
@@ -71,7 +82,7 @@ export function SlotPresets({
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-sm font-medium">{slot.title}</span>
                 <span className="block text-xs text-muted-foreground tabular-nums">
-                  {slot.time} · {slot.mins} {t.tracker.minutesShort}
+                  {time ?? slot.time} · {slot.mins} {t.tracker.minutesShort}
                 </span>
               </span>
               <Plus className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />

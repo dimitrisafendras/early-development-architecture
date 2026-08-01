@@ -141,3 +141,46 @@ test('SegmentedGroup is a radiogroup, not a row of buttons', async ({ page }) =>
   await page.keyboard.press('ArrowRight')
   await expect(options.nth(1)).toHaveAttribute('aria-checked', 'true')
 })
+
+test('a segmented group is the same height as the fields beside it', async ({ page }) => {
+  // The track carries the control height, not the items inside it. Sizing the
+  // items instead left the group its own padding taller than everything it
+  // stood next to — 40px against a 32px stepper, on the one row where the two
+  // are always side by side.
+  await seedStore(page, {})
+  await page.goto('feed')
+  await hideOverlays(page)
+
+  const heights = await page.evaluate(() => {
+    const segmented = document.querySelector('[role="radiogroup"]')
+    const stepper = document.querySelector('[data-slot="number-input"]')
+    return [segmented, stepper]
+      .filter(Boolean)
+      .map((el) => Math.round((el as HTMLElement).getBoundingClientRect().height))
+  })
+  expect(heights).toHaveLength(2)
+  expect(new Set(heights).size, `heights: ${heights.join(', ')}`).toBe(1)
+})
+
+test('the in-use badge does not change the height of the row it sits in', async ({ page }) => {
+  // It appears on exactly one program of the nine, so a badge taller than the
+  // line it shares would make the whole panel below it jump as you step along
+  // the axis.
+  await seedStore(page, {})
+  await page.goto('schedule')
+  await hideOverlays(page)
+  await page.getByRole('button', { name: /Create all nine/ }).click()
+
+  const options = page.getByRole('radiogroup').first().getByRole('radio')
+  // The heading row the badge shares, not the whole panel: the summary and the
+  // "next change" sentence below it wrap to different line counts per program
+  // on a phone, which is content changing height, not layout jitter.
+  const heading = page.locator('[data-slot="band-heading"]').first()
+  const seen = new Set<number>()
+  const count = await options.count()
+  for (let i = 0; i < count; i++) {
+    await options.nth(i).click()
+    seen.add(Math.round((await heading.boundingBox())!.height))
+  }
+  expect(seen.size, `heading heights: ${[...seen].join(', ')}`).toBe(1)
+})

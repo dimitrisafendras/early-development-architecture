@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Milk, Trash2, Baby as BabyIcon, Utensils, Clock, Hash, Pencil, Check } from 'lucide-react'
 import { useBabyAge } from '../components/AgeBadge'
 import { AddFeedForm } from '../components/AddFeedForm'
-import { ChoiceGroup } from '../components/ChoiceGroup'
+import { SegmentedGroup } from '@/components/ui/segmented-group'
 import { FeedProgress } from '../components/FeedProgress'
 import { StatTile } from '../components/StatTile'
 import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
@@ -242,10 +242,10 @@ function FeedRow({
 
   return (
     <li className="flex flex-col gap-3 py-3">
-      <ChoiceGroup
+      <SegmentedGroup
         ariaLabel={tf.method}
         value={method}
-        onChange={setMethod}
+        onValueChange={setMethod}
         options={(['bottle', 'breast', 'solid'] as const).map((m) => ({ value: m, label: tf[m] }))}
       />
       <div className="flex flex-wrap items-end gap-3">

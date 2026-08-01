@@ -5,7 +5,7 @@
  *
  * Anything you can click or type into is a *control*: `Button`, `Input`,
  * `NumberInput`, `DatePicker`, `TimePicker`, `DateTimePicker`, `Toggle` /
- * `ToggleGroup` / `ChoiceGroup`. Every one of them takes the same three sizes —
+ * `ToggleGroup` / `ChoiceGroup` / `SegmentedGroup`. Every one of them takes the same three sizes —
  * `sm`, `md`, `lg` — and at a given size they are **exactly the same height**.
  *
  * So: *controls standing side by side in a row must all be given the same

@@ -64,7 +64,10 @@ test('range and section switches change what the document contains', async ({ pa
   await page.getByRole('button', { name: 'Summary', exact: true }).click()
   await expect(doc).not.toContainText('Feeds / day')
 
-  await page.getByRole('button', { name: '7 days' }).click()
+  // The range is a `SegmentedGroup` — one setting with three positions — so its
+  // options are radios. The section switches beside it stay buttons: those are
+  // independent on/off toggles, not one choice.
+  await page.getByRole('radio', { name: '7 days' }).click()
   await expect(doc).toBeVisible()
 })
 

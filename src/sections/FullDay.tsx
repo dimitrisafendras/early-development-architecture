@@ -3,7 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { Hourglass } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Eyebrow } from '@/components/Eyebrow'
-import { ChoiceGroup } from '@/components/ChoiceGroup'
+import { SegmentedGroup } from '@/components/ui/segmented-group'
 import { cn } from '@/lib/utils'
 import { dayActivityMeta as activity, dayActivityOrder as legendOrder } from '../components/dayActivity'
 import { useBabyAge } from '../components/AgeBadge'
@@ -59,11 +59,11 @@ export function FullDay() {
           above the legend, with the age badge trailing them. */}
       {/* No age badge beside the pills — the frame's header band already reads the
           child's name and age on every route. */}
-      <ChoiceGroup
+      <SegmentedGroup
         className="mb-6"
         ariaLabel={tf.bandLabel}
         value={band}
-        onChange={setBand}
+        onValueChange={setBand}
         options={dayTemplates.map((d) => ({ value: d.id, label: tf.dayLabels[d.id] }))}
       />
 

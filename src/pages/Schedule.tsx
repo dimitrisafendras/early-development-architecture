@@ -8,7 +8,7 @@ import { ActivityField } from '../components/ActivityField'
 import { SlotPresets } from '../components/SlotPresets'
 import { ScheduleBands } from '../components/ScheduleBands'
 import type { ProgramSource } from '../components/NewProgramForm'
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -21,7 +21,7 @@ import { dayTemplates, defaultSlotMins, type ScheduleSlot } from '../data'
 import { useSchedule, buildDefaultSchedule, buildScheduleFromTemplate, scheduleForAge } from '../lib/useSchedule'
 import { useBabyAge } from '../components/AgeBadge'
 import { useFieldLabels } from '../lib/useFieldLabels'
-import { minutesOfDay, slotEndTime, sortByClock, overlapMinutes, formatAgeRange } from '../lib/schedule'
+import { slotEndTime, sortByClock, overlapMinutes, formatAgeRange, firstFreeTime } from '../lib/schedule'
 import { useAppStore, sortSchedules, type AgeSchedule } from '../store'
 import { useT } from '../i18n'
 
@@ -54,6 +54,7 @@ export default function Schedule() {
   const baby = useBabyAge()
   const months = baby?.months ?? null
   const initial = useSchedule()
+  const fields = useFieldLabels()
 
   /**
    * Which program is being edited. Opens on the one governing the child today,
@@ -66,8 +67,20 @@ export default function Schedule() {
   )
   const [rows, setRows] = useState<Row[]>(() => sortByClock(toRows(initial)))
 
-  /** The add-moment palette. Local, not persisted — a popover is a transaction. */
+  /** The add-moment form. Local, not persisted — a popover is a transaction. */
   const [adding, setAdding] = useState(false)
+  /**
+   * The time the next moment will be added at.
+   *
+   * Asked once, at the top of the form, rather than left to be corrected on the
+   * row afterwards: "when" is the only thing every one of these adds needs and
+   * the only thing neither the kind nor the preset can supply. It re-seeds from
+   * the day's first free minute each time the form opens, so the common case
+   * needs no input at all.
+   */
+  const [addTime, setAddTime] = useState('09:00')
+  /** The row just added — scrolled to, focused and briefly lit. See `insert`. */
+  const [flashUid, setFlashUid] = useState<string | null>(null)
 
   /** The age span of the program on screen, for the day card's own header. */
   const activeRange = useMemo(() => {
@@ -241,35 +254,56 @@ export default function Schedule() {
   }, [])
 
   /**
-   * Add a moment at the end of the day.
+   * Add one moment, and then *show* it.
    *
-   * There is no "insert between" any more: with clock time as the only
-   * ordering, adding a moment and typing its time *is* inserting it, and the
-   * hover-revealed `+` that used to sit on each divider was invisible-but-
-   * tappable on touch — a 24px target with zero opacity that silently added a
-   * moment when a thumb grazed the row boundary.
+   * There is no "insert between": with clock time as the only ordering, adding
+   * a moment at a time *is* inserting it. The cost of that is that a new moment
+   * files itself into the middle of a twenty-odd row list — so the add used to
+   * end with the popover closing and nothing else visibly happening, leaving
+   * the caregiver to scan the day for the row they had just created. Every add
+   * now hands the new row its own uid to the effect below, which scrolls to it,
+   * puts the caret in its name and lights it for a moment.
    */
-  const add = () => {
+  const insert = (slot: ScheduleSlot) => {
+    const [row] = toRows([slot])
     setSavedAt(false)
     setEdited(true)
-    setRows((r) => {
-      const prev = r[r.length - 1]
-      const start = prev ? minutesOfDay(prev.time) + (prev.mins || 30) : 12 * 60
-      const time = `${String(Math.floor((start % 1440) / 60)).padStart(2, '0')}:${String(start % 60).padStart(2, '0')}`
-      return sortByClock([
-        ...r,
-        ...toRows([
-          { time, type: 'feed', mins: defaultSlotMins.feed, title: t.fullDay.types.feed, detail: '' },
-        ]),
-      ])
+    setRows((r) => sortByClock([...r, row]))
+    setAdding(false)
+    setFlashUid(row.uid)
+  }
+
+  /** Add a moment of a kind, at the chosen time, with that kind's own name and
+   *  typical length. This replaced a "Blank moment" button that was neither: it
+   *  hard-coded a feed, and placed it after the array's last row — which on a
+   *  clock-sorted day is the night feed, so it proposed half past two. */
+  const insertType = (type: DayActivity) => {
+    insert({
+      time: addTime,
+      type,
+      mins: defaultSlotMins[type],
+      title: t.fullDay.types[type],
+      detail: '',
     })
   }
 
-  const addPreset = (slot: ScheduleSlot) => {
-    setSavedAt(false)
-    setEdited(true)
-    setRows((r) => sortByClock([...r, ...toRows([slot])]))
-  }
+  /**
+   * Take the caregiver to the moment they just added.
+   *
+   * Focus alone would scroll it into view, but only just into view — at the
+   * very edge of the scroll container, under the shell's own chrome. Scrolling
+   * it to the middle first and then focusing with `preventScroll` keeps the new
+   * row where it can be read together with the moments around it, which is the
+   * thing being decided.
+   */
+  useEffect(() => {
+    if (!flashUid) return
+    const el = document.getElementById(`slot-what-${flashUid}`)
+    el?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    el?.focus({ preventScroll: true })
+    const id = setTimeout(() => setFlashUid(null), 1800)
+    return () => clearTimeout(id)
+  }, [flashUid])
 
   /**
    * Give the open program the built-in day written for its own start age.
@@ -412,11 +446,108 @@ export default function Schedule() {
           {/* Which program this day belongs to. Without it the two blocks read
               as unrelated, and the answer to "whose day am I editing" lived
               only in the other card. */}
-          <CardHeader className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-            <CardTitle>{activeRange}</CardTitle>
-            <span className="text-xs text-muted-foreground tabular-nums">
-              {ts.blueprintSlots.replace('{n}', String(rows.length))}
-            </span>
+          {/* Add lives here, at the top, not under the list. A day is twenty-odd
+              rows; a button in the card's footer meant scrolling the whole day
+              to reach the control that adds to it, and then scrolling back to
+              find where the new moment had filed itself. */}
+          <CardHeader className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-1">
+              <CardTitle>{activeRange}</CardTitle>
+              <span className="text-xs text-muted-foreground tabular-nums">
+                {ts.blueprintSlots.replace('{n}', String(rows.length))}
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Two questions, in the order they are actually answered: when,
+                  then what. Both used to be guesses the form made for you and
+                  you undid on the row afterwards. */}
+              <Popover
+                open={adding}
+                onOpenChange={(open) => {
+                  if (open) setAddTime(firstFreeTime(rows))
+                  setAdding(open)
+                }}
+              >
+                {/* Classes on the trigger, not `render={<Button/>}`: `Button` is
+                    a plain function component, so the render prop has no ref to
+                    attach and React warns on every mount. */}
+                <PopoverTrigger className={buttonVariants({ variant: 'secondary', size: 'sm' })}>
+                  <Plus className="mr-2 size-4" /> {ts.addSlot}
+                </PopoverTrigger>
+                <PopoverContent
+                  align="end"
+                  // Capped and split into a fixed head and a scrolling tail: at
+                  // full height the form is taller than the room under its own
+                  // trigger, so it flipped above the header and had its Time
+                  // field clipped off the top of the window. The time and the
+                  // eight kinds stay put; only the preset list scrolls.
+                  className="flex max-h-[min(28rem,calc(100svh-4rem))] w-[min(23rem,calc(100vw-2rem))] flex-col gap-0 overflow-hidden p-0"
+                >
+                  <div className="space-y-1.5 p-3">
+                    <Label htmlFor="add-time">{ts.timeLabel}</Label>
+                    <TimePicker
+                      id="add-time"
+                      size="md"
+                      value={addTime}
+                      onValueChange={setAddTime}
+                      className="w-full"
+                      {...fields.timePicker}
+                    />
+                    <p className="text-xs text-muted-foreground">{ts.sortNote}</p>
+                  </div>
+                  <Separator />
+                  <div className="space-y-2 p-3">
+                    <Label>{ts.whatLabel}</Label>
+                    {/* One tap per kind, named and coloured. The eight kinds are
+                        a closed set, so they belong on the surface rather than
+                        behind a picker inside a picker. */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {dayActivityOrder.map((type) => {
+                        const meta = dayActivityMeta[type]
+                        const Icon = meta.icon
+                        return (
+                          <button
+                            key={type}
+                            type="button"
+                            onClick={() => insertType(type)}
+                            className="inline-flex items-center gap-1.5 rounded-full border border-border py-1.5 pr-2.5 pl-2 text-xs font-medium transition-colors outline-none hover:border-ring hover:bg-accent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                          >
+                            <Icon className={cn('size-3.5', meta.text)} aria-hidden />
+                            {t.fullDay.types[type]}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <Separator />
+                  {/* The named moments of the built-in day for this age — the
+                      same tap, but arriving with a real title and a typical
+                      length. They take the time chosen above rather than the one
+                      they were written with, which is what used to drop a preset
+                      feed straight on top of the existing 07:00 feed. */}
+                  <div className="min-h-0 flex-1 overflow-y-auto p-3">
+                    <p className="pb-2 text-xs text-muted-foreground">{ts.presetsHint}</p>
+                    <SlotPresets
+                      months={months}
+                      time={addTime}
+                      listClassName="grid-cols-1"
+                      onAdd={insert}
+                    />
+                  </div>
+                </PopoverContent>
+              </Popover>
+              {/* Autosave is invisible by design, so it has to speak: a live
+                  region is the only evidence a screen-reader user gets that the
+                  Save button they used to press is no longer needed. */}
+              <span
+                role="status"
+                aria-live="polite"
+                className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"
+              >
+                {savedAt && <Check className="size-3.5" aria-hidden />}
+                {savedAt ? ts.saved : ts.autoSaved}
+              </span>
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <ol id="day-moments" className="divide-y divide-border/70">
@@ -426,6 +557,7 @@ export default function Schedule() {
                   row={row}
                   next={rows[i + 1]}
                   appWrittenTitles={appWrittenTitles}
+                  flash={row.uid === flashUid}
                   onPatch={patch}
                   onSettle={settle}
                   onRemove={remove}
@@ -433,68 +565,6 @@ export default function Schedule() {
               ))}
             </ol>
           </CardContent>
-          {/* In the card's own footer rather than floating under it. As a
-              sibling of the card it needed `-mt-3 sm:-mt-5` to claw back the
-              frame's gap — arithmetic standing in for structure. */}
-          <CardFooter className="flex flex-wrap items-center gap-3">
-            {/* The palette hangs off this button rather than occupying a section
-                of its own. "Add what?" is a question you ask at the moment you
-                add, and every preset arrives already typed, titled and timed —
-                then files itself by the time it carries. */}
-            <Popover open={adding} onOpenChange={setAdding}>
-              {/* Classes on the trigger, not `render={<Button/>}`: `Button` is
-                  a plain function component, so the render prop has no ref to
-                  attach and React warns on every mount. */}
-              <PopoverTrigger className={buttonVariants({ variant: 'secondary' })}>
-                <Plus className="mr-2 size-4" /> {ts.addSlot}
-              </PopoverTrigger>
-              <PopoverContent align="start" className="w-[min(22rem,calc(100vw-2rem))] p-0">
-                <div className="p-2">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start"
-                    onClick={() => {
-                      add()
-                      setAdding(false)
-                    }}
-                  >
-                    <Plus className="mr-2 size-4" /> {ts.addBlank}
-                  </Button>
-                </div>
-                <Separator />
-                <div className="max-h-72 overflow-y-auto p-2">
-                  <p className="px-1 pb-2 text-xs text-muted-foreground">{ts.presetsHint}</p>
-                  <SlotPresets
-                    months={months}
-                    listClassName="grid-cols-1"
-                    onAdd={(slot) => {
-                      addPreset(slot)
-                      setAdding(false)
-                    }}
-                  />
-                </div>
-                <Separator />
-                {/* The typical lengths, where the length is being chosen. As a
-                    permanent paragraph on the page it was read once and then in
-                    the way for ever. */}
-                <div className="space-y-1.5 p-3 text-xs leading-relaxed text-muted-foreground">
-                  <p>{ts.sortNote}</p>
-                  <p>{ts.durationNote}</p>
-                </div>
-              </PopoverContent>
-            </Popover>
-            {/* Autosave is invisible by design, so it has to speak: a live
-                region is the only evidence a screen-reader user gets that the
-                Save button they used to press is no longer needed. */}
-            <span
-              role="status"
-              aria-live="polite"
-              className="inline-flex items-center gap-1.5 text-xs text-muted-foreground"
-            >
-              {savedAt && <Check className="size-3.5" aria-hidden />}
-              {savedAt ? ts.saved : ts.autoSaved}
-            </span>
-          </CardFooter>
         </Card>
       )}
 
@@ -541,6 +611,7 @@ const SlotRow = memo(function SlotRow({
   row,
   next,
   appWrittenTitles,
+  flash,
   onPatch,
   onSettle,
   onRemove,
@@ -549,6 +620,8 @@ const SlotRow = memo(function SlotRow({
   /** The moment after this one, for the overlap check. */
   next: Row | undefined
   appWrittenTitles: Set<string>
+  /** Just added: lit briefly so the row can be found in a twenty-row day. */
+  flash: boolean
   onPatch: (uid: string, p: Partial<ScheduleSlot>) => void
   onSettle: () => void
   onRemove: (uid: string) => void
@@ -581,7 +654,11 @@ const SlotRow = memo(function SlotRow({
   const warningId = `slot-overlap-${row.uid}`
 
   return (
-    <li>
+    // Lit instantly, faded out slowly: arriving at once is what makes it
+    // findable, and leaving over half a second is what keeps it from reading as
+    // a row that has permanently changed colour. A wash rather than a ring — a
+    // ring on a divided list draws a second line beside the dividers.
+    <li className={cn('transition-colors duration-500', flash && 'bg-primary/8 duration-0')}>
       <div className="flex gap-3 px-4 py-3">
         {/* The activity's colour as a rail down the row. This is what makes a
             twenty-row day scannable without reading a word — the sleep blocks

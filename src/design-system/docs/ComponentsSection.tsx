@@ -39,6 +39,7 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { TimePicker, TimeColumns } from '@/components/ui/time-picker'
 import { DateTimePicker } from '@/components/ui/date-time-picker'
 import { ChoiceGroup } from '@/components/ChoiceGroup'
+import { LiveBadge, LiveDot } from '@/components/ui/live-badge'
 import { todayKey } from '@/lib/schedule'
 import { nowDateTimeKey } from '@/lib/dates'
 
@@ -255,16 +256,19 @@ export function ComponentsSection() {
               A ToggleGroup in the <code className="text-foreground">pill</code> variant, where the pressed
               option takes the palette fill instead of <code className="text-foreground">bg-muted</code>. It
               swallows deselection, because none of the choices it covers has a valid empty state.
+              Detached pills are the point: these options are <em>items</em>, so the set can grow
+              and wrap, and no one of them is "next" to another. For a setting with fixed
+              positions, use <code className="text-foreground">SegmentedGroup</code> below.
             </p>
             <div className="flex flex-col gap-3">
               <ChoiceGroup
-                ariaLabel="Feed method"
+                ariaLabel="Which baby"
                 value={method}
                 onChange={setMethod}
                 options={[
-                  { value: 'bottle', label: 'Bottle' },
-                  { value: 'breast', label: 'Breast' },
-                  { value: 'solid', label: 'Solid' },
+                  { value: 'bottle', label: 'Oriana' },
+                  { value: 'breast', label: 'Elias' },
+                  { value: 'solid', label: 'Nadia' },
                 ]}
               />
               <ChoiceGroup
@@ -273,9 +277,9 @@ export function ComponentsSection() {
                 value={method}
                 onChange={setMethod}
                 options={[
-                  { value: 'bottle', label: 'Bottle' },
-                  { value: 'breast', label: 'Breast' },
-                  { value: 'solid', label: 'Solid' },
+                  { value: 'bottle', label: 'Oriana' },
+                  { value: 'breast', label: 'Elias' },
+                  { value: 'solid', label: 'Nadia' },
                 ]}
               />
             </div>
@@ -376,6 +380,32 @@ export function ComponentsSection() {
             </div>
           </Specimen>
 
+          <Specimen label="LiveBadge — the one thing that is true right now">
+            <div className="flex flex-col items-start gap-3">
+              <LiveBadge detail="4 mo">In use now</LiveBadge>
+              <LiveBadge detail="12:04">Timer running</LiveBadge>
+              <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <LiveDot className="text-primary" />
+                Now · 4 mo
+              </p>
+              <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
+                A plain <code className="rounded bg-muted px-1.5 py-0.5 text-xs">Badge</code> saying "in use
+                now" is the same shape as the badge saying "15 moments" — a label, when the
+                fact is live. This is that pill with the state made visible: a pulsing dot, an
+                inset ring, and an optional <code className="rounded bg-muted px-1.5 py-0.5 text-xs">detail</code>{' '}
+                for the value the claim rests on. Use{' '}
+                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">LiveDot</code> alone where the
+                same fact needs a quieter mention.
+              </p>
+              <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
+                One per view. Its whole power is that nothing else on the screen moves — a
+                second one and both stop meaning anything. The halo is dropped under{' '}
+                <code className="rounded bg-muted px-1.5 py-0.5 text-xs">prefers-reduced-motion</code>,
+                where a ping that cannot animate reads as a rendering fault rather than a signal.
+              </p>
+            </div>
+          </Specimen>
+
           <Specimen label="SegmentedGroup — one control, several positions">
             <div className="flex flex-col gap-3">
               <SegmentedGroup
@@ -390,12 +420,19 @@ export function ComponentsSection() {
                 ]}
               />
               <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
-                Use this when the options are positions on one axis — a range, a
-                view mode, consecutive age bands. Use <code className="rounded bg-muted px-1.5 py-0.5 text-xs">ChoiceGroup</code> when
-                they are unrelated switches. A row of detached pills says "four
-                things"; a segmented track says "one thing, currently here", and
-                the thumb travels to the choice you make. It is a{' '}
+                Reach for this whenever one <em>setting</em> has a small, fixed set of
+                mutually exclusive positions — a range, a view mode, an age band, the
+                three ways a feed can happen. A row of detached pills says "four
+                things"; a segmented track says "one thing, currently here", and the
+                thumb travels to the choice you make. It is a{' '}
                 <code className="rounded bg-muted px-1.5 py-0.5 text-xs">radiogroup</code>: one Tab stop, arrows move the selection.
+              </p>
+              <p className="max-w-prose text-sm leading-relaxed text-muted-foreground">
+                Keep <code className="rounded bg-muted px-1.5 py-0.5 text-xs">ChoiceGroup</code> for the other
+                case: picking among <em>items</em> rather than settings — which baby, which
+                starting point for a new program. Those sets are data, so they grow, shrink
+                and have no natural order, and a track with a travelling thumb would be
+                claiming a sequence that isn't there.
               </p>
             </div>
           </Specimen>

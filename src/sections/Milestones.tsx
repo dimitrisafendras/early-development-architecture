@@ -15,7 +15,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { Eyebrow } from '@/components/Eyebrow'
 import { IconChip } from '@/components/IconChip'
-import { ChoiceGroup } from '@/components/ChoiceGroup'
+import { SegmentedGroup } from '@/components/ui/segmented-group'
 import { cn } from '@/lib/utils'
 import { statusTone, scheduleTone } from '../lib/tone'
 import { milestoneBands, milestoneUppers, milestoneDomainOrder } from '../data'
@@ -53,12 +53,12 @@ export function Milestones() {
       {/* No age badge beside the pills: the frame's header band already reads the
           child's name and age on every route, so a second copy here was the same
           fact twice, 40px apart. */}
-      <ChoiceGroup
+      <SegmentedGroup
         className="mb-6"
         ariaLabel={tm.bandLabel}
         size="sm"
         value={String(band)}
-        onChange={(v) => setBand(Number(v))}
+        onValueChange={(v) => setBand(Number(v))}
         options={tm.ages.map((age, i) => ({ value: String(i), label: age }))}
       />
 

@@ -3,7 +3,7 @@ import { CalendarRange, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
+import { LiveBadge, LiveDot } from '@/components/ui/live-badge'
 import { CollapsibleSection } from './CollapsibleSection'
 import { SegmentedGroup } from '@/components/ui/segmented-group'
 import { NewProgramForm, type ProgramSource } from './NewProgramForm'
@@ -198,9 +198,18 @@ export function ScheduleBands({
             </Button>
           </div>
 
+          {/* What the marked chip means — the quiet half of the same live fact
+              the badge below states in full. It uses the same `LiveDot`, so the
+              dot on the chip, the dot here and the dot in the badge are visibly
+              one thing rather than three similar circles.
+
+              Rendered for every program, not only while the in-use one is
+              unselected: making it conditional would move the panel under it up
+              and down by a line as you step along the axis, and this legend is
+              the least important thing on the page to be causing that. */}
           {babyMonths != null && (
-            <p className="text-xs text-muted-foreground">
-              <span className="size-1.5 mr-1.5 inline-block rounded-full bg-primary align-middle" aria-hidden />
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <LiveDot className="text-primary" />
               {ts.stripNow} · {formatAgeLabel(babyMonths, t.baby.monthsShort, t.baby.yearsShort)}
             </p>
           )}
@@ -213,7 +222,11 @@ export function ScheduleBands({
           {current && creating == null && (
             <div className="flex flex-col gap-3 rounded-xl bg-muted p-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className="flex items-center gap-2">
+                {/* Held at the badge's own height whether or not the badge is
+                    there. The badge is 26px against a 22px line, so the panel
+                    grew by 4px on exactly one program of the nine — and stepping
+                    along the axis nudged everything below it. */}
+                <span data-slot="band-heading" className="flex min-h-6.5 items-center gap-2">
                   <span className="text-[15px] font-semibold">
                     {formatAgeRange(
                       current.fromMonths,
@@ -222,7 +235,17 @@ export function ScheduleBands({
                       t.baby.yearsShort,
                     )}
                   </span>
-                  {current.id === inUseId && <Badge variant="soft">{ts.bandInUse}</Badge>}
+                  {/* The one live fact on this page, and now the only thing on
+                      it that moves. As a plain <Badge> it was the same shape as
+                      the counts and the tags around it — a label saying "now"
+                      that looked no more current than "15 moments". */}
+                  {current.id === inUseId && babyMonths != null && (
+                    <LiveBadge
+                      detail={formatAgeLabel(babyMonths, t.baby.monthsShort, t.baby.yearsShort)}
+                    >
+                      {ts.bandInUse}
+                    </LiveBadge>
+                  )}
                 </span>
                 <span className="text-xs text-muted-foreground tabular-nums">
                   {ts.blueprintSlots.replace('{n}', String(current.slots.length))}
