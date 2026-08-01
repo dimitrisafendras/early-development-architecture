@@ -31,6 +31,8 @@ Two invariants that are easy to break:
 
 The tracker reads the day program too. `/tracker`'s target is age-derived (`activityTargetForAge` — the AAP ramp under a year, the WHO's 180 min from the first birthday), but the sessions the caregiver's own day *plans* come from `useSchedule()` — the `tummy` slots, or `active` from twelve months. The console's bar is drawn in *sessions*, not minutes: one section per planned session, each as wide as that session is long, filled as you log them and outlined while still to come. It states both totals, because they can disagree — the newborn sample day plans 15 min against a 5 min target, and while the two lived on separate pages nothing said so.
 
+**A widget that appears on both a page and the dashboard is one component, not two.** `/feed` and `/daily` share `FeedProgress` + `AddFeedForm`; `/tracker` and `/daily` share `TummyConsole`. Each takes a `compact` prop for the dashboard, and that prop is a *density* switch only — smaller type, a shorter caption. If the two screens would say different things, that belongs in the caller. The tummy pair spent a while as two different instruments (a session bar on the page, a progress ring with its own clock and labels on the dashboard), which is exactly the drift this rule exists to stop.
+
 Shared daily logic is hook-first: `useDailyChecklist` (checklist + streak + sync), `useTummyTracker`, `useBabies`, `useHousehold`, `useBabyAge` (age-band highlighting). Both the `/daily` widgets and the standalone sections/pages reuse these — don't duplicate the state.
 
 ## Stack

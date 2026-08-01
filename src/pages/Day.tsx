@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  Play,
-  Square,
   ArrowRight,
   Milk,
   BookOpen,
@@ -16,6 +14,7 @@ import {
 import { PageFrame } from '../components/PageFrame'
 import { Eyebrow } from '../components/Eyebrow'
 import { ProgressRing } from '../components/ProgressRing'
+import { TummyConsole } from '../components/TummyConsole'
 import { dayActivityMeta } from '../components/dayActivity'
 import { AddFeedForm } from '../components/AddFeedForm'
 import { FeedProgress } from '../components/FeedProgress'
@@ -651,82 +650,22 @@ function TummyWidget() {
   const { currentBaby } = useBabies()
   const tracker = useTummyTracker(currentBaby?.id ?? null, currentBaby?.household_id ?? null)
   // From the first birthday the target stops being tummy time and becomes the
-  // WHO's 180 min/day of movement — the label has to move with the number.
+  // WHO's 180 min/day of movement — the label moves with the number.
   const { mins: target, kind } = activityTargetForAge(
     currentBaby ? ageInMonths(currentBaby.birth_date) : null,
   )
-  const runningMin = tracker.isRunning ? tracker.elapsedSeconds / 60 : 0
-  const total = tracker.completedMinutes + runningMin
-  const pct = Math.round((total / target) * 100)
-  const done = total >= target
-  const clock = tracker.isRunning
-    ? `${String(Math.floor(tracker.elapsedSeconds / 60)).padStart(2, '0')}:${String(tracker.elapsedSeconds % 60).padStart(2, '0')}`
-    : null
+
   return (
-    <div className="relative flex flex-col items-center gap-4 py-1">
-      {/* Soft success-hued wash so the ring reads as "tummy" even at 0% — never a
-          dead grey donut. The hue is `--success`, the same semantic token the
-          completed ring uses, rather than a literal emerald. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-1 mx-auto size-36 rounded-full bg-success/10 blur-2xl"
-      />
-      {/* Same two arcs as `/tracker`: solid is banked, the translucent lead with
-          the dot at its head is the session running now. This widget had the
-          same mismatch — the arc plotted the day while the clock inside it
-          counted the session — and the two screens have to tell one story. */}
-      <ProgressRing
-        progress={tracker.completedMinutes / target}
-        live={total / target}
-        size={140}
-        stroke={11}
-        accent="var(--success)"
-        complete={done}
-      >
-        <div className="flex flex-col items-center leading-none">
-          {clock ? (
-            <>
-              <span className="font-heading text-3xl font-semibold tabular-nums text-foreground">{clock}</span>
-              <Eyebrow as="span" tone="inherit" className="mt-2 text-success">
-                {t.tracker.running}
-              </Eyebrow>
-            </>
-          ) : (
-            <>
-              <span className="font-heading text-3xl font-semibold tabular-nums text-foreground">
-                {Math.round(total)}
-                <span className="text-sm font-medium text-muted-foreground">/{target}</span>
-              </span>
-              <Eyebrow as="span" tone="muted" className="mt-1">
-                {kind === 'movement' ? t.daily.movementMinutes : t.daily.tummyMinutes}
-              </Eyebrow>
-            </>
-          )}
-        </div>
-      </ProgressRing>
+    <div className="flex flex-col gap-4">
+      {/* The same console `/tracker` runs, at dashboard density. It used to be a
+          second instrument entirely — a progress ring with its own clock, its
+          own labels and its own idea of what the arc measured — which is the
+          drift `FeedProgress` and `AddFeedForm` already fixed for feeds. */}
+      <TummyConsole tracker={tracker} target={target} movement={kind === 'movement'} compact />
 
-      <p className="-mt-0.5 text-xs font-medium">
-        {done ? (
-          <span className="text-success">{t.daily.tummyDone}</span>
-        ) : (
-          <span className="text-muted-foreground">
-            <span className="tabular-nums text-foreground">{pct}%</span> {t.daily.ofTarget}
-          </span>
-        )}
-      </p>
-
-      {tracker.isRunning ? (
-        <Button variant="destructive" className="w-44" onClick={() => void tracker.stop()}>
-          <Square className="mr-2 size-4" /> {t.daily.stopSession}
-        </Button>
-      ) : (
-        <Button className="w-44" onClick={() => void tracker.start()}>
-          <Play className="mr-2 size-4" /> {t.daily.startSession}
-        </Button>
-      )}
       <Link
         to="/tracker"
-        className="inline-flex min-h-11 items-center gap-1 self-start text-sm font-medium text-primary hover:underline sm:min-h-0"
+        className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-primary hover:underline sm:min-h-0"
       >
         {t.daily.openTracker} <ArrowRight className="size-3.5" />
       </Link>

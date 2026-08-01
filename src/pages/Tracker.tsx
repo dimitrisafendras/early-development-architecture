@@ -1,7 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import {
-  Play,
-  Square,
   Trash2,
   Pencil,
   Check,
@@ -19,11 +17,7 @@ import { DatePicker } from '@/components/ui/date-picker'
 import { TimePicker } from '@/components/ui/time-picker'
 import { Label } from '@/components/ui/label'
 import { GlassScrollArea } from '@dimitrisafendras/liquid-glass'
-import { cn } from '@/lib/utils'
-import { Eyebrow } from '../components/Eyebrow'
-import { SessionBar } from '../components/SessionBar'
-import { useSchedule } from '../lib/useSchedule'
-import { LiveBadge } from '@/components/ui/live-badge'
+import { TummyConsole } from '../components/TummyConsole'
 import { StatTile } from '../components/StatTile'
 import { TummyWeekChart } from '../components/charts'
 import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
@@ -40,12 +34,6 @@ import {
 } from '../lib/dates'
 import { useFieldLabels } from '../lib/useFieldLabels'
 import { useT } from '../i18n'
-
-function fmtClock(totalSeconds: number): string {
-  const m = Math.floor(totalSeconds / 60)
-  const s = totalSeconds % 60
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-}
 
 /** Uses the app's locale, not the browser's, so times read the same everywhere. */
 function fmtTime(iso: string, locale: string): string {
@@ -82,17 +70,8 @@ export default function Tracker() {
    * `useSchedule` resolves the program in effect for this child's age, which is
    * the same one `/daily` runs the day from.
    */
-  const daySchedule = useSchedule()
-  const plannedSlots = useMemo(
-    () => daySchedule.filter((slot) => slot.type === (movementKind ? 'active' : 'tummy')),
-    [daySchedule, movementKind],
-  )
-  const plannedMinutes = plannedSlots.reduce((sum, slot) => sum + slot.mins, 0)
-
   const runningMin = tracker.isRunning ? tracker.elapsedSeconds / 60 : 0
   const totalWithRunning = tracker.completedMinutes + runningMin
-  const remaining = Math.max(0, Math.round(target - totalWithRunning))
-  const metTarget = totalWithRunning >= target
 
   const weekLabels = week.map((d) => formatDateKey(d.key, locale, { weekday: 'short' }))
   const weekMinutes = week.map((d) => Math.round(d.minutes))
@@ -105,12 +84,6 @@ export default function Tracker() {
     if (week[i].minutes >= target) streak++
     else break
   }
-
-  // The most recent completed session *today* — the pacing fact the console needs
-  // and the tiles don't carry: how many so far and when the last one ended.
-  const lastToday = [...tracker.todaySessions].sort((a, b) =>
-    b.started_at.localeCompare(a.started_at),
-  )[0]
 
   // Average completed-session length across the 7-day window.
   const durations = tracker.sessions.map(
@@ -199,133 +172,11 @@ export default function Tracker() {
            that border rendered nothing). No title: the tier eyebrow names it. */
         <Card>
           <CardContent className="flex flex-col gap-7">
-            {/* The readout, on its own line so it can be as big as it deserves
-                — it is the one thing being watched. */}
-            <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
-              <div>
-                {tracker.isRunning ? (
-                  <div className="font-heading text-5xl leading-none font-semibold tabular-nums text-foreground sm:text-6xl">
-                    {fmtClock(tracker.elapsedSeconds)}
-                  </div>
-                ) : (
-                  <div className="font-heading text-5xl leading-none font-semibold text-foreground sm:text-6xl">
-                    {Math.round(totalWithRunning)}
-                    <span className="text-xl font-medium text-muted-foreground sm:text-2xl">
-                      {' / '}
-                      {target} {t.tracker.minutesShort}
-                    </span>
-                  </div>
-                )}
-                <Eyebrow className="mt-2.5">
-                  {tracker.isRunning
-                    ? movement
-                      ? t.tracker.sessionLabelMovement
-                      : t.tracker.sessionLabel
-                    : t.tracker.todayLabel}
-                </Eyebrow>
-              </div>
-
-              {/* The live half of the readout, opposite it: `LiveBadge` while
-                  recording, the distance to target while stopped — so the corner
-                  is never simply empty, which is what the old reserved-height
-                  status slot was for half its life. */}
-              {tracker.isRunning ? (
-                <LiveBadge>{t.tracker.running}</LiveBadge>
-              ) : (
-                <Eyebrow
-                  className={cn('mt-1.5', metTarget && 'text-success')}
-                  tone={metTarget ? 'inherit' : 'muted'}
-                >
-                  {metTarget ? t.tracker.targetMet : `${remaining} ${t.tracker.toGo}`}
-                </Eyebrow>
-              )}
-            </div>
-
-            {/* The day, to scale: one segment per session in the order they
-                happened, the running one translucent with a live dot at its
-                head. This is the part the ring could not draw at all. */}
-            <div className="flex flex-col gap-2.5">
-              {/* Sessions are matched to the plan by order, not by clock: the
-                  program says "three sessions, five minutes each", and which of
-                  them you have done is simply how many you have logged. */}
-              <SessionBar
-                planned={plannedSlots.map((slot) => slot.mins)}
-                done={tracker.todaySessions.map((session) =>
-                  minutesBetween(session.started_at, session.ended_at),
-                )}
-                running={tracker.isRunning ? runningMin : undefined}
-                complete={metTarget}
-              />
-              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                {/* Sessions first, minutes second — the bar is counted in
-                    sessions now, so its caption has to be too. */}
-                <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
-                  <Timer aria-hidden className="size-3.5 shrink-0 text-primary/70" />
-                  {plannedSlots.length > 0 ? (
-                    <span className="tabular-nums">
-                      <span className="font-semibold text-foreground">
-                        {tracker.todaySessions.length}
-                      </span>
-                      {' '}
-                      {t.tracker.ofPlanned.replace('{n}', String(plannedSlots.length))}
-                    </span>
-                  ) : (
-                    <span className="tabular-nums">
-                      <span className="font-semibold text-foreground">
-                        {tracker.todaySessions.length}
-                      </span>{' '}
-                      {t.tracker.sessionsToday.toLowerCase()}
-                    </span>
-                  )}
-                  {lastToday && (
-                    <>
-                      <span aria-hidden>·</span>
-                      <span className="tabular-nums">
-                        {fmtTime(lastToday.started_at, locale)}–{fmtTime(lastToday.ended_at, locale)}
-                      </span>
-                    </>
-                  )}
-                </span>
-                {/* The scale's far end, and what the day program puts inside it.
-                    Stating both is the point: when the plan falls short of the
-                    target that is a real thing to know, and it was invisible
-                    while the two lived on separate pages. */}
-                <span className="flex flex-wrap items-center gap-x-1.5 tabular-nums">
-                  {plannedSlots.length > 0 && (
-                    <>
-                      <span>
-                        {t.tracker.planned.replace('{mins}', String(plannedMinutes))}
-                      </span>
-                      <span aria-hidden>·</span>
-                    </>
-                  )}
-                  <span>
-                    {t.tracker.targetLabel}: {target} {t.tracker.minutesShort}
-                  </span>
-                </span>
-              </div>
-            </div>
-
-            {/* The action. Full width on a phone, and wide enough on a desktop
-                to stay the obvious thing to press. */}
-            {tracker.isRunning ? (
-              <Button
-                size="lg"
-                variant="destructive"
-                className="w-full sm:w-auto sm:min-w-64 sm:self-start"
-                onClick={() => void tracker.stop()}
-              >
-                <Square className="mr-2 size-4" /> {t.tracker.stop}
-              </Button>
-            ) : (
-              <Button
-                size="lg"
-                className="w-full sm:w-auto sm:min-w-64 sm:self-start"
-                onClick={() => void tracker.start()}
-              >
-                <Play className="mr-2 size-4" /> {t.tracker.start}
-              </Button>
-            )}
+            {/* The console itself is shared with the `/daily` dashboard, which
+                is where the two used to drift: this page ran a session bar
+                while the dashboard ran a progress ring with its own clock and
+                its own idea of what the arc measured. */}
+            <TummyConsole tracker={tracker} target={target} movement={movement} />
 
             {/* Footer strip — the context that used to crowd the action, now
                 spanning the card so its width is used at every breakpoint. */}

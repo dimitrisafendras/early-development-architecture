@@ -199,3 +199,60 @@ test('the tracker console draws the sessions the day program plans', async ({ pa
   await expect(card).toContainText(/Day plans \d+ min/)
   await expect(card).toContainText(/Daily target: \d+ min/)
 })
+
+test('the dashboard and /tracker run the same tummy console', async ({ page }) => {
+  // They had drifted into two different instruments — a session bar on the page
+  // and a progress ring with its own clock and labels on the dashboard. Feeds
+  // were already shared (FeedProgress + AddFeedForm); this is the other half.
+  await seedStore(page, {})
+
+  await page.goto('tracker')
+  await hideOverlays(page)
+  const onPage = page.locator('[data-slot="card"]', { hasText: /Start session|Stop session/ }).first()
+  const caption = (await onPage.textContent())!.match(/of (\d+) sessions planned/)
+  expect(caption, 'the tracker states the plan').not.toBeNull()
+
+  await page.goto('')
+  await hideOverlays(page)
+  // The dashboard shows the console only while a tummy moment is selected.
+  // Wait for the timeline to hydrate first — clicking into a half-rendered list
+  // selects nothing and the assertion below then measures the wrong card.
+  const moment = page.getByRole('button', { name: /Tummy time/i }).first()
+  await expect(moment).toBeVisible()
+  await moment.click()
+  const onDash = page.locator('[data-slot="card"]', { hasText: /Start session|Stop session/ }).first()
+  await expect(onDash).toContainText(`of ${caption![1]} sessions planned`)
+  await expect(onDash).toContainText(/Daily target: \d+ min/)
+})
+
+test('tummy minutes pour across the planned blocks, continuing where they left off', async ({
+  page,
+}) => {
+  // Sessions used to map one-to-one onto blocks, so stopping a five-minute block
+  // at one minute left it a fifth full for ever and pressing Start again opened
+  // the *next* block. Minutes fill in order instead.
+  await seedStore(page, {})
+  await page.addInitScript(() => {
+    const now = Date.now()
+    const mk = (agoMin: number, len: number) => ({
+      id: 's' + agoMin,
+      started_at: new Date(now - agoMin * 60000).toISOString(),
+      ended_at: new Date(now - (agoMin - len) * 60000).toISOString(),
+    })
+    // 4 minutes banked, in two sittings — and today, not before midnight.
+    localStorage.setItem('eda-tummy-local', JSON.stringify([mk(6, 3), mk(2, 1)]))
+  })
+  await page.goto('tracker')
+  await hideOverlays(page)
+
+  const blocks = page.locator('[data-slot="session-block"]')
+  await expect(blocks.first()).toBeVisible()
+  const solid = await blocks.evaluateAll((els) =>
+    els.map((e) => Number((e as HTMLElement).dataset.solid)),
+  )
+  // Two sittings, one block: 4 of the first block's 5 minutes, not 3 in block
+  // one and 1 in block two.
+  expect(solid.length).toBeGreaterThan(1)
+  expect(solid[0]).toBeGreaterThan(solid[1])
+  expect(solid[1]).toBe(0)
+})

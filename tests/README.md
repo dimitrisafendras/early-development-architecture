@@ -110,9 +110,13 @@ the panel under it. The last one measures the heading row, not the whole panel �
 the summary below wraps to different line counts per program on a phone, which
 is content changing height rather than layout jitter.
 
-One more covers the tracker console: it reads the day program, so it names how
+Three more cover the tummy console. It reads the day program, so it names how
 many sessions the program plans and how many have been logged against them, as
-well as the age-derived target those two can disagree with.
+well as the age-derived target those two can disagree with. `/tracker` and the
+`/daily` dashboard must render the *same* console — they had drifted into two
+different instruments once already. And minutes pour across the planned blocks
+in order rather than one block per session, which is asserted off the
+`data-solid` attributes because fill widths are invisible to a text-based test.
 
 ### `i18n.spec.ts` — Greek is first-class
 `Messages = typeof en` makes the two structurally identical at compile time, so
