@@ -9,7 +9,8 @@ import { SegmentedGroup } from '@/components/ui/segmented-group'
 import { NewProgramForm, type ProgramSource } from './NewProgramForm'
 import { DayShapeBar, DayShapeSummary } from './DayShapeBar'
 import { dayActivityOrder } from './dayActivity'
-import { formatAgeRange, formatAgeLabel } from '../lib/schedule'
+import { cn } from '@/lib/utils'
+import { formatAgeRange, formatAgeLabel, activityTargetForAge } from '../lib/schedule'
 import { useSectionOpen } from '../lib/useSectionOpen'
 import type { AgeSchedule } from '../store'
 import type { DayActivity } from '../data'
@@ -255,6 +256,15 @@ export function ScheduleBands({
               <DayShapeBar slots={current.slots} dense />
               <DayShapeSummary slots={current.slots} />
 
+              {/* The age guidance, checked against the day being authored.
+                  This is where the age target belongs: `/tracker` measures the
+                  caregiver against their own plan, so the plan itself has to be
+                  measured against something, and here is where it can still be
+                  changed. It reads the program's *own* start age, not the
+                  child's — the day for 0–2 months is judged as a 0–2 month day
+                  whoever is looking at it. */}
+              <ActivityCheck band={current} />
+
               {/* What changes at the next program — the question a parent is
                   really asking when they look ahead. */}
               <p className="text-xs leading-relaxed text-muted-foreground">
@@ -348,6 +358,37 @@ export function ScheduleBands({
         </div>
       )}
     </CollapsibleSection>
+  )
+}
+
+/**
+ * How the day's own movement minutes compare with the guidance for its age.
+ *
+ * A day program can plan far more or far less than the age band asks for, and
+ * until this line existed nothing said so anywhere: `/tracker` now measures the
+ * caregiver against their plan rather than against the guidance, which is only
+ * defensible if the plan itself is checked somewhere — and the only useful
+ * somewhere is here, next to the day while it can still be edited.
+ *
+ * Silent when the day plans none of this kind of moment: a program with no
+ * tummy time is a deliberate shape (a night-heavy newborn day, say), not a
+ * shortfall to nag about.
+ */
+function ActivityCheck({ band }: { band: AgeSchedule }) {
+  const t = useT()
+  const { mins: target, kind } = activityTargetForAge(band.fromMonths)
+  const slots = band.slots.filter((slot) => slot.type === (kind === 'movement' ? 'active' : 'tummy'))
+  if (!slots.length) return null
+
+  const planned = slots.reduce((sum, slot) => sum + slot.mins, 0)
+  const short = planned < target
+  return (
+    <p className={cn('text-xs', short ? 'text-warning' : 'text-muted-foreground')}>
+      {(short ? t.schedule.activityShort : t.schedule.activityOk)
+        .replace('{planned}', String(planned))
+        .replace('{target}', String(target))
+        .replace('{kind}', t.fullDay.types[kind === 'movement' ? 'active' : 'tummy'])}
+    </p>
   )
 }
 

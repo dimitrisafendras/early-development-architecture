@@ -146,22 +146,45 @@ export async function deleteMeasurement(id: string): Promise<void> {
 
 /* --------------------------------------------------------- tummy sessions */
 
-export async function listSessionsSince(isoDate: string): Promise<TummySession[]> {
-  const { data, error } = await client()
-    .from('tummy_sessions')
-    .select('*')
-    .gte('started_at', isoDate)
-    .order('started_at', { ascending: false })
+/**
+ * How a query is narrowed to one child.
+ *
+ * Reads used to have no baby filter at all, while writes carried a `baby_id` —
+ * so with two children in a household the younger one's tummy time filled the
+ * elder's bar, "today" was the pooled total, and it was measured against
+ * whichever child's age target happened to be selected.
+ *
+ * "Or unassigned" is the legacy bucket, not a convenience: every row written
+ * since `openSession` has carried a `baby_id`, but rows from before a baby
+ * existed have none, and dropping them would make a user's history disappear
+ * the day they add a child. The bucket cannot grow, so it drains rather than
+ * accumulating.
+ */
+function forBaby<T extends { or: (f: string) => T; is: (c: string, v: null) => T }>(
+  query: T,
+  babyId: string | null,
+): T {
+  return babyId ? query.or(`baby_id.eq.${babyId},baby_id.is.null`) : query.is('baby_id', null)
+}
+
+export async function listSessionsSince(
+  isoDate: string,
+  babyId: string | null = null,
+): Promise<TummySession[]> {
+  const { data, error } = await forBaby(
+    client().from('tummy_sessions').select('*').gte('started_at', isoDate),
+    babyId,
+  ).order('started_at', { ascending: false })
   if (error) throw error
   return (data ?? []) as TummySession[]
 }
 
-/** Any session still open (ended_at is null), newest first. */
-export async function findOpenSession(): Promise<TummySession | null> {
-  const { data, error } = await client()
-    .from('tummy_sessions')
-    .select('*')
-    .is('ended_at', null)
+/** This baby's session still open (ended_at is null), newest first. */
+export async function findOpenSession(babyId: string | null = null): Promise<TummySession | null> {
+  const { data, error } = await forBaby(
+    client().from('tummy_sessions').select('*').is('ended_at', null),
+    babyId,
+  )
     .order('started_at', { ascending: false })
     .limit(1)
   if (error) throw error
@@ -230,12 +253,16 @@ export async function deleteSession(id: string): Promise<void> {
 
 /* ------------------------------------------------------------- feed logs */
 
-export async function listFeedsSince(isoDate: string): Promise<FeedLog[]> {
-  const { data, error } = await client()
-    .from('feed_logs')
-    .select('*')
-    .gte('fed_at', isoDate)
-    .order('fed_at', { ascending: false })
+export async function listFeedsSince(
+  isoDate: string,
+  babyId: string | null = null,
+): Promise<FeedLog[]> {
+  // Same defect and same fix as the sessions above: writes carried a `baby_id`
+  // and reads ignored it, so one child's feeds counted as another's.
+  const { data, error } = await forBaby(
+    client().from('feed_logs').select('*').gte('fed_at', isoDate),
+    babyId,
+  ).order('fed_at', { ascending: false })
   if (error) throw error
   return (data ?? []) as FeedLog[]
 }

@@ -91,7 +91,11 @@ export function SessionBar({
       length,
       solidPct: (solid / length) * 100,
       livePct: (running / length) * 100,
-      touched: solid > 0 || running > 0,
+      // A hair's worth is not a session. Filling a block *exactly* leaves float
+      // dust in the next one, which drew it as a started block rather than as
+      // one still to come — the plan losing an outline for a thousandth of a
+      // minute.
+      touched: solid > 0.01 || running > 0.01,
       // The block the live edge is currently in — the only one that gets a dot.
       liveEdge: running > 0 && liveLeft === 0,
     }

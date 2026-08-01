@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { isSupabaseEnabled } from './supabase'
 import { useSession } from './use-session'
 import { todayKey } from './schedule'
@@ -22,6 +22,8 @@ interface LocalSession {
   id: string
   started_at: string
   ended_at: string
+  /** Absent on rows written before sessions were scoped to a child. */
+  baby_id?: string | null
 }
 
 function loadLocal(): LocalSession[] {
@@ -30,6 +32,18 @@ function loadLocal(): LocalSession[] {
   } catch {
     return []
   }
+}
+
+/**
+ * This child's sessions, plus any from before sessions were scoped to a child.
+ *
+ * The signed-out path was one undifferentiated list, so a second baby inherited
+ * the first's whole history. Unassigned rows are the legacy bucket — see
+ * `forBaby` in `db.ts` for why they are kept rather than hidden — and `stop`
+ * and `addManual` now stamp every new row, so the bucket drains.
+ */
+function localForBaby(babyId: string | null): LocalSession[] {
+  return loadLocal().filter((s) => (s.baby_id ?? null) === babyId || s.baby_id == null)
 }
 function saveLocal(list: LocalSession[]) {
   localStorage.setItem(LOCAL_SESSIONS, JSON.stringify(list))
@@ -57,19 +71,34 @@ export function useTummyTracker(babyId: string | null, householdId: string | nul
   const [sessions, setSessions] = useState<TrackerSession[]>([])
   const [, setTick] = useState(0)
 
+  /**
+   * Guards against a stale fetch overwriting a fresh one.
+   *
+   * `refreshSessions` now depends on `babyId`, which arrives asynchronously —
+   * so a load fires once for "no baby yet" and again for the real child, and
+   * whichever *resolves* last wins. The unscoped one usually did, wiping a
+   * populated history back to empty a beat after it appeared. Only the newest
+   * request may write.
+   */
+  const latestRequest = useRef(0)
+
   const refreshSessions = useCallback(async () => {
+    const request = (latestRequest.current += 1)
+    const apply = (rows: TrackerSession[]) => {
+      if (request === latestRequest.current) setSessions(rows)
+    }
     if (signedIn) {
-      const rows = await listSessionsSince(historyStartISO())
-      setSessions(
+      const rows = await listSessionsSince(historyStartISO(), babyId)
+      apply(
         rows
           .filter((r): r is TummySession & { ended_at: string } => Boolean(r.ended_at))
           .map((r) => ({ id: r.id, started_at: r.started_at, ended_at: r.ended_at })),
       )
     } else {
       const cutoff = new Date(historyStartISO()).getTime()
-      setSessions(loadLocal().filter((s) => new Date(s.started_at).getTime() >= cutoff))
+      apply(localForBaby(babyId).filter((s) => new Date(s.started_at).getTime() >= cutoff))
     }
-  }, [signedIn])
+  }, [signedIn, babyId])
 
   // Bootstrap: resume an in-progress session or discard a stale one.
   useEffect(() => {
@@ -93,7 +122,7 @@ export function useTummyTracker(babyId: string | null, householdId: string | nul
         // unconditionally, so a row left open by a sign-out (stop takes the
         // local branch and never closes the remote row) would be picked up days
         // later and shown as a session running for four thousand minutes.
-        const open = await findOpenSession().catch(() => null)
+        const open = await findOpenSession(babyId).catch(() => null)
         if (open && !cancelled) {
           const started = new Date(open.started_at)
           if (Date.now() - started.getTime() > STALE_MS) {
@@ -112,7 +141,7 @@ export function useTummyTracker(babyId: string | null, householdId: string | nul
       cancelled = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signedIn])
+  }, [signedIn, babyId])
 
   // Live elapsed clock while a session runs.
   useEffect(() => {
@@ -135,31 +164,19 @@ export function useTummyTracker(babyId: string | null, householdId: string | nul
     if (!activeStart) return
     const endedAt = new Date().toISOString()
     const startedAt = activeStart.toISOString()
-    // A mis-tap — Start then Stop — used to bank a zero-minute session that
-    // every reading then believed: history showed "0 min", the session count
-    // included it, and it became the "last session" the pacing line reported.
-    // Below half a minute there is nothing to record.
-    const tooShort = new Date(endedAt).getTime() - activeStart.getTime() < 30_000
     setActiveStart(null)
     localStorage.removeItem(ACTIVE_START)
-    if (tooShort) {
-      const rid = localStorage.getItem(ACTIVE_REMOTE_ID)
-      localStorage.removeItem(ACTIVE_REMOTE_ID)
-      if (signedIn && rid) await deleteSession(rid).catch(() => {})
-      await refreshSessions().catch(() => {})
-      return
-    }
     const rid = localStorage.getItem(ACTIVE_REMOTE_ID)
     localStorage.removeItem(ACTIVE_REMOTE_ID)
     if (signedIn && rid) {
       await closeSession(rid, endedAt).catch(() => {})
     } else {
       const local = loadLocal()
-      local.push({ id: crypto.randomUUID(), started_at: startedAt, ended_at: endedAt })
+      local.push({ id: crypto.randomUUID(), started_at: startedAt, ended_at: endedAt, baby_id: babyId })
       saveLocal(local)
     }
     await refreshSessions().catch(() => {})
-  }, [activeStart, signedIn, refreshSessions])
+  }, [activeStart, signedIn, babyId, refreshSessions])
 
   /**
    * Log a session that has already happened — the one you forgot to time.
@@ -174,7 +191,12 @@ export function useTummyTracker(babyId: string | null, householdId: string | nul
         await insertClosedSession(babyId, startedAt, endedAt, householdId).catch(() => {})
       } else {
         const local = loadLocal()
-        local.push({ id: crypto.randomUUID(), started_at: startedAt, ended_at: endedAt })
+        local.push({
+          id: crypto.randomUUID(),
+          started_at: startedAt,
+          ended_at: endedAt,
+          baby_id: babyId,
+        })
         saveLocal(local)
       }
       await refreshSessions().catch(() => {})

@@ -78,11 +78,34 @@ export function TummyConsole({
 
   const runningMin = tracker.isRunning ? tracker.elapsedSeconds / 60 : 0
   const totalWithRunning = tracker.completedMinutes + runningMin
+
+  /**
+   * **The plan governs this console when the day has one.**
+   *
+   * The console used to serve two masters: the bar was scaled by the day
+   * program while "done", the green fill, the stopped readout and "to go" were
+   * scaled by the age target. Every remaining incoherence came from that split,
+   * and the newborn day showed it plainly — three planned five-minute sessions
+   * against a five-minute target, so the bar turned green and announced the
+   * target met with two of its three blocks still standing empty. Green means
+   * done; the shape said a third done.
+   *
+   * One scale, and it is the caregiver's: they wrote the day, and the
+   * instrument's job is to hold them to *their* plan rather than arbitrate
+   * between their plan and the WHO on every glance. The age target has not gone
+   * anywhere — it still governs the tiles, the week chart and the streak, and it
+   * still judges the plan itself where the plan is written, on `/schedule`. It
+   * governs here only when the day plans nothing of this kind.
+   */
+  const plannedTotal = planned.reduce((sum, mins) => sum + mins, 0)
+  const goal = planned.length ? plannedTotal : target
+  const byPlan = planned.length > 0
+
   // `ceil`, not `round`: with 4.6 of 5 minutes banked, rounding gave "0 min to
-  // go" beside a target that was not met — two readings of one fact
-  // disagreeing. Ceil says "1 min to go" until it genuinely is met.
-  const remaining = Math.max(0, Math.ceil(target - totalWithRunning))
-  const metTarget = totalWithRunning >= target
+  // go" beside a goal that was not met — two readings of one fact disagreeing.
+  // Ceil says "1 min to go" until it genuinely is met.
+  const remaining = Math.max(0, Math.ceil(goal - totalWithRunning))
+  const metTarget = totalWithRunning >= goal
 
   /**
    * The session now being timed: how long the plan says it should run, and how
@@ -146,7 +169,7 @@ export function TummyConsole({
                 )}
               >
                 {' / '}
-                {target} {t.tracker.minutesShort}
+                {goal} {t.tracker.minutesShort}
               </span>
             </div>
           )}
@@ -169,7 +192,14 @@ export function TummyConsole({
             className={cn('mt-1.5', metTarget && 'text-success')}
             tone={metTarget ? 'inherit' : 'muted'}
           >
-            {metTarget ? t.tracker.targetMet : `${remaining} ${t.tracker.toGo}`}
+            {/* "Day plan complete" when the plan is the scale — announcing the
+                *target* met while the plan's own blocks stood empty was the
+                clearest symptom of the console serving two masters. */}
+            {metTarget
+              ? byPlan
+                ? t.tracker.planMet
+                : t.tracker.targetMet
+              : `${remaining} ${t.tracker.toGo}`}
           </Eyebrow>
         )}
       </div>
@@ -214,14 +244,14 @@ export function TummyConsole({
               </>
             )}
           </span>
-          {/* Just the target. "Day plans 15 min" used to sit here too, and it
-              was a passenger: the bar's geometry *is* the plan — three blocks,
-              sized by their minutes — so the words restated what the reader was
-              already looking at, and putting the two totals side by side turned
-              every glance into "plans 15 · target 5, so which am I doing?".
-              The plan belongs where it is authored, on `/schedule`. */}
+          {/* One number, and it names the scale actually in force. Both used to
+              sit here — "Day plans 15 min · Daily target: 5 min" — which turned
+              every glance into "so which am I doing?". Now the console answers
+              that itself, and says which answer it used. */}
           <span className="tabular-nums">
-            {t.tracker.targetLabel}: {target} {t.tracker.minutesShort}
+            {byPlan
+              ? `${t.tracker.planLabel}: ${plannedTotal} ${t.tracker.minutesShort}`
+              : `${t.tracker.targetLabel}: ${target} ${t.tracker.minutesShort}`}
           </span>
         </div>
       </div>

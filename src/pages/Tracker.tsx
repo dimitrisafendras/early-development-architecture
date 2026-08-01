@@ -76,12 +76,27 @@ export default function Tracker() {
   const weekLabels = week.map((d) => formatDateKey(d.key, locale, { weekday: 'short' }))
   const weekMinutes = week.map((d) => Math.round(d.minutes))
   const weekTotal = weekMinutes.reduce((a, b) => a + b, 0)
-  const daysOnTarget = week.filter((d) => d.minutes >= target).length
 
-  // Day streak: consecutive days up to today with the target met (from the 7-day window).
+  /**
+   * The target that was in force on a given past day — not today's.
+   *
+   * Today's target applied to the whole week rewrote history at every band
+   * boundary, and worst of all on the first birthday, where it triples from 60
+   * to 180 (`activityTargetForAge`): a seven-day streak became zero overnight
+   * with no data changing and nothing to explain it. The week did not change;
+   * the yardstick did. Each day is judged by the yardstick it was lived under.
+   */
+  const targetOn = (dayKey: string) =>
+    currentBaby
+      ? activityTargetForAge(ageInMonths(currentBaby.birth_date, new Date(dayKey))).mins
+      : target
+
+  const daysOnTarget = week.filter((d) => d.minutes >= targetOn(d.key)).length
+
+  // Day streak: consecutive days up to today that met their own day's target.
   let streak = 0
   for (let i = week.length - 1; i >= 0; i--) {
-    if (week[i].minutes >= target) streak++
+    if (week[i].minutes >= targetOn(week[i].key)) streak++
     else break
   }
 

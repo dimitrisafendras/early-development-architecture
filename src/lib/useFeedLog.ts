@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { isSupabaseEnabled } from './supabase'
 import { useSession } from './use-session'
 import { todayKey } from './schedule'
@@ -13,6 +13,8 @@ export interface FeedEntry {
   amount_ml: number | null
   minutes: number | null
   note: string | null
+  /** Absent on rows written before feeds were scoped to a child. */
+  baby_id?: string | null
 }
 
 function loadLocal(): FeedEntry[] {
@@ -21,6 +23,18 @@ function loadLocal(): FeedEntry[] {
   } catch {
     return []
   }
+}
+
+/**
+ * This child's feeds, plus any from before feeds were scoped to a child.
+ *
+ * The signed-out list was undifferentiated, so a second baby inherited the
+ * first's whole feed history — and the age-banded "feeds per day" range it was
+ * being judged against belonged to whichever baby was selected. Unassigned rows
+ * are the legacy bucket; `add` stamps every new one, so it drains.
+ */
+function localForBaby(babyId: string | null): FeedEntry[] {
+  return loadLocal().filter((f) => (f.baby_id ?? null) === babyId || f.baby_id == null)
 }
 function saveLocal(list: FeedEntry[]) {
   localStorage.setItem(LOCAL_KEY, JSON.stringify(list))
@@ -51,10 +65,19 @@ export function useFeedLog(babyId: string | null, householdId: string | null) {
   const [feeds, setFeeds] = useState<FeedEntry[]>([])
   const [, tick] = useState(0)
 
+  // Same stale-response guard as the tracker: `refresh` depends on `babyId`,
+  // which arrives asynchronously, so two loads are in flight and the unscoped
+  // one must not win.
+  const latestRequest = useRef(0)
+
   const refresh = useCallback(async () => {
+    const request = (latestRequest.current += 1)
+    const apply = (rows: FeedEntry[]) => {
+      if (request === latestRequest.current) setFeeds(rows)
+    }
     if (signedIn) {
-      const rows = await listFeedsSince(sevenDaysAgoISO())
-      setFeeds(
+      const rows = await listFeedsSince(sevenDaysAgoISO(), babyId)
+      apply(
         rows.map((r: FeedLog) => ({
           id: r.id,
           fed_at: r.fed_at,
@@ -66,13 +89,13 @@ export function useFeedLog(babyId: string | null, householdId: string | null) {
       )
     } else {
       const cutoff = new Date(sevenDaysAgoISO()).getTime()
-      setFeeds(
-        loadLocal()
+      apply(
+        localForBaby(babyId)
           .filter((f) => new Date(f.fed_at).getTime() >= cutoff)
           .sort((a, b) => b.fed_at.localeCompare(a.fed_at)),
       )
     }
-  }, [signedIn])
+  }, [signedIn, babyId])
 
   useEffect(() => {
     void refresh().catch(() => {})
@@ -90,7 +113,7 @@ export function useFeedLog(babyId: string | null, householdId: string | null) {
         await addFeed({ ...input, baby_id: babyId, household_id: householdId }).catch(() => {})
       } else {
         const local = loadLocal()
-        local.push({ id: crypto.randomUUID(), ...input })
+        local.push({ id: crypto.randomUUID(), ...input, baby_id: babyId })
         saveLocal(local)
       }
       await refresh().catch(() => {})

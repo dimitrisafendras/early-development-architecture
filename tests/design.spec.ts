@@ -195,12 +195,12 @@ test('the tracker console draws the sessions the day program plans', async ({ pa
 
   const card = page.locator('[data-slot="card"]', { hasText: /Start session|Stop session/ }).first()
   // Counted in sessions, because the bar is: one block per planned session.
-  // The plan's *total* is deliberately not stated here — the bar's geometry is
-  // the plan, so the words restated the picture and invited "plans 15 · target
-  // 5, so which am I doing?" on every glance.
+  // And exactly one scale is named — the plan's, when the day has one. Both at
+  // once ("Day plans 15 · Daily target: 5") made every glance ask which of the
+  // two the console was actually measuring.
   await expect(card).toContainText(/of \d+ sessions planned/)
-  await expect(card).not.toContainText(/Day plans/)
-  await expect(card).toContainText(/Daily target: \d+ min/)
+  await expect(card).toContainText(/Day plan: \d+ min/)
+  await expect(card).not.toContainText(/Daily target/)
 })
 
 test('the dashboard and /tracker run the same tummy console', async ({ page }) => {
@@ -225,7 +225,7 @@ test('the dashboard and /tracker run the same tummy console', async ({ page }) =
   await moment.click()
   const onDash = page.locator('[data-slot="card"]', { hasText: /Start session|Stop session/ }).first()
   await expect(onDash).toContainText(`of ${caption![1]} sessions planned`)
-  await expect(onDash).toContainText(/Daily target: \d+ min/)
+  await expect(onDash).toContainText(/Day plan: \d+ min/)
 })
 
 test('tummy minutes pour across the planned blocks, continuing where they left off', async ({
@@ -280,4 +280,54 @@ test('the running clock reads elapsed against the planned session length', async
   await page.getByRole('button', { name: /Stop session/ }).click()
   // Stopped, it goes back to the day's total against the target.
   await expect(console_).toContainText(/\d+\s*\/\s*\d+\s*min/)
+})
+
+test('the plan governs the console, and the age guidance judges the plan', async ({ page }) => {
+  // The console used to serve two masters — the bar scaled by the day program,
+  // "done" and the green fill scaled by the age target — so the newborn day
+  // announced the target met with two of its three blocks still empty.
+  await seedStore(page, {})
+  await page.goto('tracker')
+  await hideOverlays(page)
+
+  const console_ = page
+    .locator('[data-slot="card"]')
+    .filter({ has: page.locator('[data-slot="session-block"]') })
+    .first()
+  // One scale is named, and it is the plan's.
+  await expect(console_).toContainText(/Day plan: \d+ min/)
+  await expect(console_).not.toContainText(/Daily target/)
+
+  // The age target has not vanished — it judges the plan where the plan is
+  // written, which is the only place the plan can still be changed.
+  await page.goto('schedule')
+  await hideOverlays(page)
+  await page.getByRole('button', { name: /Create all nine/ }).click()
+  await expect(page.getByText(/the guidance at this age is \d+ min/)).toBeVisible()
+})
+
+test('sessions are scoped to one baby', async ({ page }) => {
+  // Reads had no baby filter while writes carried one, so a second child's
+  // tummy time filled the first's bar and was judged against the first's age.
+  await seedStore(page, {})
+  await page.addInitScript(() => {
+    const now = Date.now()
+    localStorage.setItem(
+      'eda-tummy-local',
+      JSON.stringify([
+        {
+          id: 'other',
+          baby_id: 'some-other-baby',
+          started_at: new Date(now - 30 * 60000).toISOString(),
+          ended_at: new Date(now - 20 * 60000).toISOString(),
+        },
+      ]),
+    )
+  })
+  await page.goto('tracker')
+  await hideOverlays(page)
+
+  // No baby on file here, so another baby's session must not be counted.
+  const history = page.locator('[data-slot="card"]', { hasText: /Log a past session/ }).first()
+  await expect(history).toContainText(/No tummy sessions logged yet/)
 })

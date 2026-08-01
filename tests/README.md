@@ -119,7 +119,9 @@ in order rather than one block per session, which is asserted off the
 `data-solid` attributes because fill widths are invisible to a text-based test. Two in `logs.spec.ts` cover hand-logged sessions:
 one lands in History, and a stop time in the future is refused — the date picker
 only ever capped the *day*, so "today 45 / 60 min" could describe the next two
-hours.
+hours. Two more: the plan governs the console (one scale is
+named, and it is the plan's) while the age guidance judges the plan on
+`/schedule`; and another baby's sessions are not counted as this one's.
 
 ### `i18n.spec.ts` — Greek is first-class
 `Messages = typeof en` makes the two structurally identical at compile time, so
