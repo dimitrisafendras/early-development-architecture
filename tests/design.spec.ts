@@ -256,3 +256,25 @@ test('tummy minutes pour across the planned blocks, continuing where they left o
   expect(solid[0]).toBeGreaterThan(solid[1])
   expect(solid[1]).toBe(0)
 })
+
+test('the running clock reads elapsed against the planned session length', async ({ page }) => {
+  // The plan already says how long this sitting should be; a bare elapsed time
+  // gave the number nothing to measure itself against.
+  await seedStore(page, {})
+  await page.goto('tracker')
+  await hideOverlays(page)
+
+  // Scoped by the bar, not by the button: filtering the card on "Stop session"
+  // makes the locator stop matching the moment the session ends.
+  const console_ = page
+    .locator('[data-slot="card"]')
+    .filter({ has: page.locator('[data-slot="session-block"]') })
+    .first()
+
+  await page.getByRole('button', { name: /Start session/ }).click()
+  await expect(console_).toContainText(/\d\d:\d\d\s*\/\s*\d\d:\d\d/)
+
+  await page.getByRole('button', { name: /Stop session/ }).click()
+  // Stopped, it goes back to the day's total against the target.
+  await expect(console_).toContainText(/\d+\s*\/\s*\d+\s*min/)
+})

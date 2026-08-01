@@ -156,3 +156,29 @@ export function SessionBar({
     </div>
   )
 }
+
+/**
+ * How long the session currently being filled is *meant* to be, in minutes.
+ *
+ * The same walk the bar draws: pour `minutes` into the blocks in order and
+ * report the length of the block the edge lands in. The running clock uses it to
+ * read "01:12 / 05:00" rather than a bare elapsed time — the plan already says
+ * how long this sitting should be, and the timer had no reason to keep it a
+ * secret.
+ *
+ * Past the end of the plan it returns the plan's typical length, which is the
+ * same length the bar gives its overflow blocks, so the two never disagree.
+ */
+export function plannedLengthAt(planned: number[], minutes: number): number {
+  const base = planned.filter((mins) => mins > 0)
+  if (!base.length) return 0
+  const typical = base.reduce((a, b) => a + b, 0) / base.length
+  let left = Math.max(0, minutes)
+  for (const length of base) {
+    // `<` not `<=`: landing exactly on a boundary means the block just finished,
+    // so the session being timed is the next one.
+    if (left < length) return length
+    left -= length
+  }
+  return typical
+}

@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { LiveBadge } from '@/components/ui/live-badge'
 import { Eyebrow } from './Eyebrow'
-import { SessionBar } from './SessionBar'
+import { SessionBar, plannedLengthAt } from './SessionBar'
 import { useSchedule } from '../lib/useSchedule'
 import { useDateLocale } from '../lib/dates'
 import type { useTummyTracker } from '../lib/useTummyTracker'
@@ -82,6 +82,12 @@ export function TummyConsole({
   const remaining = Math.max(0, Math.round(target - totalWithRunning))
   const metTarget = totalWithRunning >= target
 
+  // How long the sitting now being timed is meant to run, from the plan — so
+  // the clock can read "01:12 / 05:00" instead of an elapsed time with nothing
+  // to measure itself against.
+  const blocks = planned.length ? planned : [target]
+  const thisSessionMins = plannedLengthAt(blocks, tracker.completedMinutes)
+
   // The most recent completed session today — the pacing fact neither the tiles
   // nor the bar carry: not how much, but when you last did one.
   const lastToday = [...tracker.todaySessions].sort((a, b) =>
@@ -102,6 +108,17 @@ export function TummyConsole({
               )}
             >
               {fmtClock(tracker.elapsedSeconds)}
+              {thisSessionMins > 0 && (
+                <span
+                  className={cn(
+                    'font-medium text-muted-foreground',
+                    compact ? 'text-sm' : 'text-xl sm:text-2xl',
+                  )}
+                >
+                  {' / '}
+                  {fmtClock(Math.round(thisSessionMins * 60))}
+                </span>
+              )}
             </div>
           ) : (
             <div
@@ -154,7 +171,7 @@ export function TummyConsole({
         <SessionBar
           // With no plan of this kind in the program, the target itself is the
           // single block — the bar still reads rather than emptying out.
-          planned={planned.length ? planned : [target]}
+          planned={blocks}
           done={tracker.completedMinutes}
           running={runningMin}
           complete={metTarget}
