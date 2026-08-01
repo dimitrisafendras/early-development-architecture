@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { BookOpen, PanelLeftClose, PanelLeftOpen, type LucideIcon } from 'lucide-react'
+import { BookOpen, FileDown, PanelLeftClose, PanelLeftOpen, type LucideIcon } from 'lucide-react'
 import { GlassSurface } from '@dimitrisafendras/liquid-glass'
 import { cn } from '@/lib/utils'
 import { AccountControl } from './AccountControl'
@@ -28,6 +28,10 @@ export function SideNav() {
   const destinations: { to: string; Icon: LucideIcon; label: string }[] = [
     ...appAreas.map((a) => ({ to: a.to, Icon: a.Icon, label: a.label(t) })),
     { to: '/wiki', Icon: BookOpen, label: t.nav.wiki },
+    // Beside the Wiki rather than in `appAreas`: that list drives the mobile
+    // bottom tab bar, which is a five-column grid of the things you reach many
+    // times a day. Exporting a report is neither.
+    { to: '/export', Icon: FileDown, label: t.report.title },
   ]
 
   // One row shape for links, the settings trigger and the account control, so the

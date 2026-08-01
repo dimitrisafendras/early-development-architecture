@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { dayTemplateForAge, defaultSlotMins, type DayTemplate, type ScheduleSlot } from '../data'
-import { useAppStore } from '../store'
+import { useAppStore, type AgeSchedule } from '../store'
 import { useBabyAge } from '../components/AgeBadge'
 import { useT, type Messages } from '../i18n'
 
@@ -30,16 +30,39 @@ function withDuration(slot: ScheduleSlot): ScheduleSlot {
   return slot.mins > 0 ? slot : { ...slot, mins: defaultSlotMins[slot.type] }
 }
 
-/** The effective day schedule: the user's customized one if present, otherwise
- *  the built-in day for the current baby's age — a newborn, a one-nap toddler
- *  and a three-year-old do not share a clock. */
+/**
+ * The user-authored day in effect at `months`, or `null` if none covers it.
+ *
+ * The list is sorted ascending, so the match is the last band whose
+ * `fromMonths` the child has reached. A child younger than every band falls
+ * through to `null` and gets the built-in day — a schedule written for
+ * "from 12 months" must not govern a newborn just because it is the only one
+ * saved.
+ */
+export function scheduleForAge(list: AgeSchedule[], months: number | null): AgeSchedule | null {
+  if (!list.length) return null
+  // No baby on file: the earliest band is the only defensible guess.
+  if (months == null) return list[0].fromMonths === 0 ? list[0] : null
+  let match: AgeSchedule | null = null
+  for (const entry of list) {
+    if (entry.fromMonths <= months) match = entry
+    else break
+  }
+  return match
+}
+
+/** The effective day schedule: the user's band for this age if one covers it,
+ *  otherwise the built-in day for the age — a newborn, a one-nap toddler and a
+ *  three-year-old do not share a clock, and neither do their saved days. */
 export function useSchedule(): ScheduleSlot[] {
-  const custom = useAppStore((s) => s.customSchedule)
+  const custom = useAppStore((s) => s.customSchedules)
   const baby = useBabyAge()
   const months = baby?.months ?? null
   const t = useT()
-  return useMemo(
-    () => (custom && custom.length ? custom.map(withDuration) : buildDefaultSchedule(t, months)),
-    [custom, t, months],
-  )
+  return useMemo(() => {
+    const match = scheduleForAge(custom, months)
+    return match && match.slots.length
+      ? match.slots.map(withDuration)
+      : buildDefaultSchedule(t, months)
+  }, [custom, t, months])
 }

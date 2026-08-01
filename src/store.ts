@@ -4,6 +4,26 @@ import { todayKey } from './lib/schedule'
 import type { ScheduleSlot } from './data'
 
 export type LatencyMode = 'optimal' | 'delayed' | 'none'
+
+/**
+ * One user-authored day and the age it starts applying at.
+ *
+ * `fromMonths` is an inclusive lower bound; the band runs until the next
+ * schedule's `fromMonths`, so the list is a partition of the timeline rather
+ * than a set of ranges that could overlap or leave gaps. Keep it sorted —
+ * `sortSchedules` is the one place that guarantees it.
+ */
+export interface AgeSchedule {
+  id: string
+  fromMonths: number
+  slots: ScheduleSlot[]
+}
+
+/** Ascending by `fromMonths`, so resolution is a simple scan. */
+export function sortSchedules(list: AgeSchedule[]): AgeSchedule[] {
+  return [...list].sort((a, b) => a.fromMonths - b.fromMonths)
+}
+
 export type Palette = 'blue' | 'red'
 export type Locale = 'en' | 'el'
 
@@ -26,9 +46,21 @@ interface AppState {
   /** User's preferred hub card order (topic slugs). Empty = registry order. */
   cardOrder: string[]
   setCardOrder: (order: string[]) => void
-  /** A user-customized day schedule. `null` = use the built-in localized one. */
-  customSchedule: ScheduleSlot[] | null
-  setCustomSchedule: (slots: ScheduleSlot[] | null) => void
+  /**
+   * User-authored days, each bound to an age.
+   *
+   * A child's day changes shape several times before three, so one saved
+   * schedule could never be right for long: the newborn day a parent tunes at
+   * six weeks is actively wrong at eighteen months, and the app would keep
+   * serving it. Each entry claims everything from `fromMonths` up to the next
+   * entry's start, so the effective day follows the child without anyone
+   * re-editing it (see `useSchedule`).
+   *
+   * Bands are arbitrary rather than the five built-in ones: families split the
+   * day where their own child changed, not where the literature does.
+   */
+  customSchedules: AgeSchedule[]
+  setCustomSchedules: (list: AgeSchedule[]) => void
   /** Desktop sidebar collapsed to an icon rail. Defaults to collapsed so the
    *  page gets the width; expanded state persists across sessions. */
   navCollapsed: boolean
@@ -63,6 +95,18 @@ interface AppState {
   weatherDenied: boolean
   setWeatherCoords: (coords: { lat: number; lon: number }) => void
   denyWeather: () => void
+  /**
+   * Whether the user wants the header's weather reading at all.
+   *
+   * Deliberately a separate flag from `weatherDenied`, not a reuse of it. The
+   * two record different actors: this one is a choice made in the app's own
+   * settings, `weatherDenied` is what the *browser* was told. Folding them
+   * together would make "I turned it off" indistinguishable from "the browser
+   * refused" — and the settings panel has to tell them apart, because only one
+   * of the two can be undone from inside this app.
+   */
+  weatherOn: boolean
+  setWeatherOn: (on: boolean) => void
 }
 
 /** Keep only ids belonging to `day` — notification ids carry their own day
@@ -105,8 +149,8 @@ export const useAppStore = create<AppState>()(
         })),
       cardOrder: [],
       setCardOrder: (cardOrder) => set({ cardOrder }),
-      customSchedule: null,
-      setCustomSchedule: (customSchedule) => set({ customSchedule }),
+      customSchedules: [],
+      setCustomSchedules: (list) => set({ customSchedules: sortSchedules(list) }),
       navCollapsed: true,
       toggleNav: () => set((state) => ({ navCollapsed: !state.navCollapsed })),
       notifSeen: [],
@@ -129,9 +173,34 @@ export const useAppStore = create<AppState>()(
       setWeatherCoords: (weatherCoords) => set({ weatherCoords }),
       // Only ever called for PERMISSION_DENIED — see useWeather.
       denyWeather: () => set({ weatherDenied: true, weatherCoords: null }),
+      weatherOn: true,
+      // Switching it back on clears the recorded refusal as well: the user is
+      // asking to be prompted again, and the browser permission may have been
+      // allowed since. A `weatherDenied` left standing would swallow that
+      // request, and the toggle would read "On" while showing nothing.
+      setWeatherOn: (weatherOn) =>
+        set(weatherOn ? { weatherOn, weatherDenied: false } : { weatherOn, weatherCoords: null }),
     }),
     {
       name: 'eda-theme',
+      /**
+       * v1 turned the single `customSchedule` into a list of age-banded ones.
+       * A day saved before this existed was authored for whatever age the child
+       * was then, which nothing recorded — so it becomes the band starting at
+       * 0 months, which is the only reading that keeps it in effect rather than
+       * silently discarding work.
+       */
+      version: 1,
+      migrate: (persisted, version) => {
+        const state = (persisted ?? {}) as Record<string, unknown>
+        if (version === 0 && Array.isArray(state.customSchedule) && state.customSchedule.length) {
+          state.customSchedules = [
+            { id: 'migrated', fromMonths: 0, slots: state.customSchedule as ScheduleSlot[] },
+          ]
+        }
+        delete state.customSchedule
+        return state
+      },
       // Theming + language choices, checklist history, and the hub card order
       // persist; the latency simulator stays ephemeral.
       partialize: (state) => ({
@@ -140,7 +209,7 @@ export const useAppStore = create<AppState>()(
         locale: state.locale,
         checklistHistory: state.checklistHistory,
         cardOrder: state.cardOrder,
-        customSchedule: state.customSchedule,
+        customSchedules: state.customSchedules,
         navCollapsed: state.navCollapsed,
         notifSeen: state.notifSeen,
         notifDismissed: state.notifDismissed,
@@ -150,6 +219,7 @@ export const useAppStore = create<AppState>()(
         // longer read, so anyone the previous logic had wrongly locked out gets
         // asked once more.
         weatherDenied: state.weatherDenied,
+        weatherOn: state.weatherOn,
       }),
     },
   ),

@@ -1,6 +1,8 @@
 import { useAppStore } from '@/store'
 import { semanticTokens, type PaletteId } from '@dimitrisafendras/liquid-glass/tokens'
 import { DocSection, DocBlock, Panel, useCssVar } from './primitives'
+import { dayActivityMeta, dayActivityOrder } from '@/components/dayActivity'
+import { useT } from '@/i18n'
 
 /** The published material docs, where the two ramps and their contrast report live. */
 const MATERIAL_COLOR_DOCS = 'https://dimitrisafendras.github.io/liquid-glass/#color'
@@ -15,6 +17,99 @@ const MATERIAL_COLOR_DOCS = 'https://dimitrisafendras.github.io/liquid-glass/#co
  * framing back into the package.
  */
 const APP_PALETTE_LABEL: Record<PaletteId, string> = { blue: 'Boy', red: 'Girl' }
+
+/** OKLCH hue of a computed colour, for the separation figures below. */
+function hueOf(color: string): number | null {
+  const m = color.match(/oklch\([\d.]+ [\d.]+ ([\d.]+)/)
+  return m ? Number(m[1]) : null
+}
+
+/**
+ * One activity's colour, read off a live element rather than from a table.
+ *
+ * The swatch renders the real `dot` and `text` classes and then reports the hue
+ * the browser actually resolved, so this page cannot drift from
+ * `dayActivityMeta` the way a hand-maintained list of hexes would.
+ */
+function ActivitySwatch({ activity, label }: { activity: (typeof dayActivityOrder)[number]; label: string }) {
+  const meta = dayActivityMeta[activity]
+  const Icon = meta.icon
+  const ref = (el: HTMLSpanElement | null) => {
+    if (!el) return
+    const h = hueOf(getComputedStyle(el).color)
+    const out = el.parentElement?.querySelector('[data-hue]')
+    if (out && h != null) out.textContent = `${Math.round(h)}°`
+  }
+  return (
+    <div className="flex min-w-0 items-center gap-3 rounded-xl border border-border bg-card p-3">
+      <span className={`flex size-10 shrink-0 items-center justify-center rounded-lg ${meta.dot}`} aria-hidden>
+        <Icon className="size-5" />
+      </span>
+      <div className="min-w-0">
+        <div className="flex items-baseline gap-2">
+          <span ref={ref} className={`font-medium ${meta.text}`}>
+            {label}
+          </span>
+          <code data-hue className="text-[0.68rem] text-muted-foreground" />
+        </div>
+        <code className="block truncate text-xs text-muted-foreground">{meta.bar.replace('bg-', '')}</code>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * The eight day-activity hues — the app's third colour axis, after theme and
+ * palette, and the only place raw Tailwind ramps are sanctioned.
+ */
+function ActivityColorBlock() {
+  const t = useT()
+  return (
+    <DocBlock
+      title="Day-activity hues"
+      description="Eight fixed colours, one per activity, shared by the day timeline, the “what’s now” card and the /schedule type picker. They are the app’s third colour axis — and the one case where raw Tailwind ramps beat tokens."
+    >
+      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {dayActivityOrder.map((activity) => (
+          <ActivitySwatch key={activity} activity={activity} label={t.fullDay.types[activity]} />
+        ))}
+      </div>
+
+      <Panel>
+        <h4 className="font-heading text-base font-semibold">
+          Fixed meanings, so they never follow the palette
+        </h4>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          An activity&rsquo;s colour is a fixed meaning, exactly like a state token: sleep is indigo
+          whichever child the app is set up for. Tinting these with{' '}
+          <code className="text-foreground">--primary</code> would make the whole day change colour
+          when you switch palette, which would say nothing at all. They live in{' '}
+          <code className="text-foreground">src/components/dayActivity.tsx</code> as one record —{' '}
+          <code className="text-foreground">icon</code>, <code className="text-foreground">dot</code>,{' '}
+          <code className="text-foreground">text</code>, <code className="text-foreground">bar</code>{' '}
+          and a raw <code className="text-foreground">accent</code> hex for the places that must
+          compute a colour (SVG strokes, gradient stops) rather than apply a class.
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+          <strong className="text-foreground">Hue separation is the whole design.</strong> In the{' '}
+          <code className="text-foreground">/schedule</code> picker these are eight identical
+          16&ndash;20px glyphs, so hue is often the only thing telling them apart.
+          The set was picked by searching every 8-subset of the Tailwind families for the largest
+          minimum pairwise OKLCH hue gap <em>at the steps the app actually paints</em> — 400 in the
+          dark theme, 700 in the light one — while staying clear of the hues that already mean
+          something else (<code className="text-foreground">--destructive</code> and the two palette
+          primaries). Measuring the 500 ramp instead is wrong by up to 20°: <em>pink</em> is 354° at
+          500 but 350° at 400 and 4° at 700. The floor is <strong className="text-foreground">27.6°</strong>,
+          between <em>wind-down</em> and <em>active play</em> — and that is the ceiling too, since no
+          other eight fit the circle better once both painted steps are counted. Before this,{' '}
+          <em>care</em> was cyan and sat 22° from <em>feed</em>&rsquo;s sky: at 16px they were the
+          same colour. Adding a ninth activity means re-running that search, not eyeballing a hue
+          that looks free.
+        </p>
+      </Panel>
+    </DocBlock>
+  )
+}
 
 function SemanticSwatch({ cssVar, name, description }: { cssVar: string; name: string; description: string }) {
   const value = useCssVar(cssVar)
@@ -199,6 +294,8 @@ export function ColorSection() {
           ))}
         </div>
       </DocBlock>
+
+      <ActivityColorBlock />
 
       <DocBlock
         title="Semantic state tokens"

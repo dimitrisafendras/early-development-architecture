@@ -72,6 +72,40 @@ export function nowDateTimeKey(at: Date = new Date()): string {
   return joinDateTimeKey(toDateKey(at), toTimeKey(at.getHours(), at.getMinutes()))
 }
 
+/* ---- ISO instants <-> keys ------------------------------------------------
+   Logged entries (feeds, tummy sessions) are stored as ISO instants but edited
+   through the pickers, which speak keys. These two are the whole round-trip, in
+   one place: `/feed` and `/tracker` each carried a private `timeOfDay` +
+   `withTimeOfDay` pair that could only rewrite the *time* of an entry, so an
+   entry stamped onto the wrong calendar day could not be corrected at all. */
+
+/** Local `HH:MM` for an ISO instant. */
+export function timeKeyFromISO(iso: string): string {
+  const date = new Date(iso)
+  return toTimeKey(date.getHours(), date.getMinutes())
+}
+
+/** Local `YYYY-MM-DDTHH:MM` for an ISO instant. */
+export function dateTimeKeyFromISO(iso: string): string {
+  return nowDateTimeKey(new Date(iso))
+}
+
+/**
+ * The ISO instant a local `YYYY-MM-DDTHH:MM` key names.
+ *
+ * Seconds are zeroed rather than carried over from the entry being edited: the
+ * pickers only ever offer minutes, so keeping a stray `:37` would make a saved
+ * time differ from the one displayed.
+ */
+export function isoFromDateTimeKey(key: string): string {
+  const parts = splitDateTimeKey(key)
+  if (!parts) return new Date().toISOString()
+  const date = parseDateKey(parts.date)!
+  const [h, m] = parseTimeKey(parts.time)!
+  date.setHours(h, m, 0, 0)
+  return date.toISOString()
+}
+
 /** A new date-time `minutes` away (negative goes back), crossing days safely. */
 export function shiftDateTimeKey(key: string, minutes: number): string {
   const parts = splitDateTimeKey(key)

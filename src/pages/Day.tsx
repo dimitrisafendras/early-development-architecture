@@ -42,15 +42,6 @@ import { useFeedLog } from '../lib/useFeedLog'
 import { useT } from '../i18n'
 
 /** Wiki topic each activity maps to, for the panel's "learn more" link + info. */
-const typeWiki: Record<DayActivity, string> = {
-  feed: 'feeding',
-  meal: 'feeding',
-  sleep: 'sleep',
-  play: 'serve-return',
-  tummy: 'tummy-time',
-  care: 'bathing',
-  wind: 'soothing',
-}
 
 export default function Day() {
   const t = useT()
@@ -340,7 +331,7 @@ function MomentTool({ type, isNow, accent }: { type: DayActivity; isNow: boolean
         <GlassScrollArea className="-mx-1 max-w-2xl px-1">
           {type === 'feed' ? (
             <FeedWidget />
-          ) : type === 'tummy' ? (
+          ) : type === 'tummy' || type === 'active' ? (
             <TummyWidget />
           ) : type === 'sleep' ? (
             <SafeSleepInfo />
@@ -349,7 +340,7 @@ function MomentTool({ type, isNow, accent }: { type: DayActivity; isNow: boolean
           )}
         </GlassScrollArea>
         <Link
-          to={wikiPath(typeWiki[type])}
+          to={wikiPath(dayActivityMeta[type].wiki)}
           className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
         >
           <BookOpen className="size-4" /> {t.day.learnFull}
@@ -642,7 +633,7 @@ function SafeSleepInfo() {
 /** For play / care slots: a short "what helps" note drawn from the topic blurb. */
 function TopicInfo({ type }: { type: DayActivity }) {
   const t = useT()
-  const topic = findTopic(typeWiki[type])
+  const topic = findTopic(dayActivityMeta[type].wiki)
   return (
     <div>
       <p className="text-sm font-semibold text-foreground">{t.day.noTool}</p>

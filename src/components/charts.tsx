@@ -55,9 +55,21 @@ const CHART_STEPS = {
   soft: { light: '300', dark: '500' },
 } as const
 
-function useChartColors() {
-  const dark = useAppStore((s) => s.dark)
+/**
+ * `scheme` pins a chart to one colour scheme instead of following the app's.
+ *
+ * The printable report needs it. Chart.js paints to a canvas from JavaScript
+ * values, so a `@media print` rule cannot reach these colours the way it
+ * reaches the rest of the page — a dark-theme axis label is light grey, and on
+ * white paper it is invisible. The report is a sheet of paper whether it is on
+ * screen or in a printer, so it asks for `light` and gets it in both.
+ */
+export type ChartScheme = 'light' | 'dark'
+
+function useChartColors(scheme?: ChartScheme) {
+  const themeDark = useAppStore((s) => s.dark)
   const palette = useAppStore((s) => s.palette)
+  const dark = scheme ? scheme === 'dark' : themeDark
   const mode = dark ? 'dark' : 'light'
   return {
     text: dark ? '#cbd5e1' : '#475569',
@@ -163,12 +175,14 @@ export function TummyWeekChart({
   labels,
   minutes,
   target,
+  scheme,
 }: {
   labels: string[]
   minutes: number[]
   target: number
+  scheme?: ChartScheme
 }) {
-  const c = useChartColors()
+  const c = useChartColors(scheme)
   const max = Math.max(target, ...minutes, 1)
   return (
     <div style={{ position: 'relative', height: 240 }}>
@@ -228,14 +242,16 @@ export function FeedWeekChart({
   counts,
   mlLabel,
   feedsLabel,
+  scheme,
 }: {
   labels: string[]
   ml: number[]
   counts: number[]
   mlLabel: string
   feedsLabel: string
+  scheme?: ChartScheme
 }) {
-  const c = useChartColors()
+  const c = useChartColors(scheme)
   return (
     <div style={{ position: 'relative', height: 240 }}>
       <Bar
@@ -300,13 +316,15 @@ export function GrowthChart({
   data,
   label,
   yTitle,
+  scheme,
 }: {
   labels: string[]
   data: (number | null)[]
   label: string
   yTitle: string
+  scheme?: ChartScheme
 }) {
-  const c = useChartColors()
+  const c = useChartColors(scheme)
   return (
     <div style={{ position: 'relative', height: 240 }}>
       <Line

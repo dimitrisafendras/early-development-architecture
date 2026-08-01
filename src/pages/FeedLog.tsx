@@ -10,30 +10,17 @@ import { FeedWeekChart } from '../components/charts'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { DateTimePicker } from '@/components/ui/date-time-picker'
 import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { useBabies } from '../lib/useBabies'
 import { useFeedLog, type FeedEntry } from '../lib/useFeedLog'
 import { useFieldLabels } from '../lib/useFieldLabels'
 import { bandIndex, todayKey } from '../lib/schedule'
-import { formatDateKey, useDateLocale } from '../lib/dates'
+import { dateTimeKeyFromISO, formatDateKey, isoFromDateTimeKey, useDateLocale } from '../lib/dates'
 import { feedingRows, feedingUppers } from '../data'
 import type { FeedMethod } from '../lib/db'
 import { useT } from '../i18n'
-
-/** "HH:MM" for a time input, from an ISO timestamp (app locale-independent). */
-function timeOfDay(iso: string): string {
-  const d = new Date(iso)
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-}
-/** Re-stamp an ISO timestamp's time-of-day (same calendar day) from "HH:MM". */
-function withTimeOfDay(iso: string, hhmm: string): string {
-  const d = new Date(iso)
-  const [h, m] = hhmm.split(':').map(Number)
-  d.setHours(h || 0, m || 0, 0, 0)
-  return d.toISOString()
-}
 
 /** Uses the app's locale, not the browser's, so it agrees with the time field. */
 function fmtTime(iso: string, locale: string): string {
@@ -161,8 +148,16 @@ export default function FeedLog() {
   )
 }
 
-/** One feed in today's list. Tap the pencil to edit method / amount / time
- *  inline; saving persists via `onSave` (local-first, syncs when signed in). */
+/**
+ * One feed in today's list. Tap the pencil to edit method / amount / when
+ * inline; saving persists via `onSave` (local-first, syncs when signed in).
+ *
+ * "When" is a full date **and** time, not a time alone. The row used to hold the
+ * entry's calendar day fixed and rewrite only its clock time, so a feed logged
+ * just after midnight — or stamped onto the wrong day by a stale form — could
+ * never be moved back. The list here is today's, so correcting the date does
+ * remove the row from view; that is the edit succeeding, not failing.
+ */
 function FeedRow({
   entry,
   onSave,
@@ -180,14 +175,14 @@ function FeedRow({
   const [method, setMethod] = useState<FeedMethod>(entry.method)
   const [amount, setAmount] = useState<number | null>(entry.amount_ml)
   const [minutes, setMinutes] = useState<number | null>(entry.minutes)
-  const [time, setTime] = useState(timeOfDay(entry.fed_at))
+  const [when, setWhen] = useState(dateTimeKeyFromISO(entry.fed_at))
   const [busy, setBusy] = useState(false)
 
   async function save() {
     setBusy(true)
     try {
       await onSave({
-        fed_at: withTimeOfDay(entry.fed_at, time),
+        fed_at: isoFromDateTimeKey(when),
         method,
         amount_ml: method === 'breast' ? null : amount,
         minutes: method === 'breast' ? minutes : null,
@@ -254,13 +249,19 @@ function FeedRow({
         options={(['bottle', 'breast', 'solid'] as const).map((m) => ({ value: m, label: tf[m] }))}
       />
       <div className="flex flex-wrap items-end gap-3">
-        <div className="space-y-1.5">
-          <Label>{tf.timeLabel}</Label>
-          <Input
-            type="time"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            className="w-32 tabular-nums"
+        {/* The same control the log form uses (`AddFeedForm`), so logging a feed
+            and correcting one are the same interaction — and so the date is
+            reachable at all. `maxDate` matches the form's: a feed cannot have
+            happened tomorrow. Wider than the old `w-32` time box because the
+            trigger now carries a date as well. */}
+        <div className="min-w-[12rem] space-y-1.5">
+          <Label htmlFor={`f-when-${entry.id}`}>{tf.timeLabel}</Label>
+          <DateTimePicker
+            id={`f-when-${entry.id}`}
+            value={when}
+            onValueChange={setWhen}
+            maxDate={todayKey()}
+            {...fields.dateTimePicker}
           />
         </div>
         <div className="min-w-[8rem] flex-1 space-y-1.5">

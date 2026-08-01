@@ -184,3 +184,46 @@ export function ageInMonths(birthDate: string, at: Date = new Date()): number {
   if (at.getDate() < b.getDate()) months -= 1
   return Math.max(0, months)
 }
+
+/**
+ * The span one age band covers, phrased as a range rather than a start.
+ *
+ * "From 0 mo" / "From 3 mo" chips made the reader do the arithmetic to work out
+ * what each day was actually for — and the last one had no visible end at all.
+ * A range says it outright, and switches to years past twelve months because
+ * that is how the age is spoken: "1–2 y", never "12–24 mo".
+ *
+ * `toMonths` is exclusive; `null` means the band is open-ended.
+ */
+export function formatAgeRange(
+  fromMonths: number,
+  toMonths: number | null,
+  monthsShort: string,
+  yearsShort: string,
+): string {
+  const inYears = (m: number) => m >= 12 && m % 12 === 0
+  const value = (m: number) => (inYears(m) ? m / 12 : m)
+  const unit = (m: number) => (inYears(m) ? yearsShort : monthsShort)
+
+  if (toMonths == null) return `${value(fromMonths)} ${unit(fromMonths)}+`
+  // One unit for the whole range when both ends agree, so it reads "0–3 mo"
+  // rather than "0 mo–3 mo".
+  if (unit(fromMonths) === unit(toMonths)) {
+    return `${value(fromMonths)}–${value(toMonths)} ${unit(toMonths)}`
+  }
+  return `${value(fromMonths)} ${unit(fromMonths)}–${value(toMonths)} ${unit(toMonths)}`
+}
+
+/**
+ * An age in months, phrased the way it is said aloud: "0 mo" under a year and
+ * "2 y 3 mo" past it. Nobody calls a toddler "27 mo".
+ *
+ * Units come in as arguments rather than being read from `i18n` here, because
+ * this module is imported by non-React code that has no locale.
+ */
+export function formatAgeLabel(months: number, monthsShort: string, yearsShort: string): string {
+  if (months < 12) return `${months} ${monthsShort}`
+  const years = Math.floor(months / 12)
+  const rest = months % 12
+  return rest === 0 ? `${years} ${yearsShort}` : `${years} ${yearsShort} ${rest} ${monthsShort}`
+}

@@ -104,6 +104,30 @@ async function fetchWeather(lat: number, lon: number): Promise<Weather | null> {
 let askedThisLoad = false
 
 /**
+ * Whether this browser can produce a position at all.
+ *
+ * False on an insecure origin — Chrome removes the API outright there, so the
+ * app served over plain http from a LAN address can never have weather. The
+ * settings switch is hidden in that case rather than shown dead: a control that
+ * could not possibly do anything is worse than no control.
+ */
+export function weatherSupported(): boolean {
+  return typeof navigator !== 'undefined' && 'geolocation' in navigator
+}
+
+/**
+ * Clears the per-load ask guard.
+ *
+ * Settings calls this when weather is switched back on, so the browser is asked
+ * on the tap rather than on the next page load — `askedThisLoad` would
+ * otherwise swallow the request, and a toggle that appears to do nothing until
+ * you reload is worse than no toggle at all.
+ */
+export function resetWeatherAsk(): void {
+  askedThisLoad = false
+}
+
+/**
  * Coordinates, asked for at most once per page load and at most once ever after
  * a real refusal.
  *
@@ -114,13 +138,16 @@ let askedThisLoad = false
  * feature for good — the browser would still have been willing to ask.
  */
 function useCoords(): { lat: number; lon: number } | null {
+  const on = useAppStore((s) => s.weatherOn)
   const coords = useAppStore((s) => s.weatherCoords)
   const denied = useAppStore((s) => s.weatherDenied)
   const setCoords = useAppStore((s) => s.setWeatherCoords)
   const deny = useAppStore((s) => s.denyWeather)
 
   useEffect(() => {
-    if (coords || denied || askedThisLoad) return
+    // `on` first: nothing should ask for a location for a reading the user has
+    // switched off.
+    if (!on || coords || denied || askedThisLoad) return
     if (typeof navigator === 'undefined' || !navigator.geolocation) return
     askedThisLoad = true
     navigator.geolocation.getCurrentPosition(
@@ -133,13 +160,14 @@ function useCoords(): { lat: number; lon: number } | null {
       },
       { timeout: 10_000, maximumAge: 30 * 60 * 1000 },
     )
-  }, [coords, denied, setCoords, deny])
+  }, [on, coords, denied, setCoords, deny])
 
   return coords
 }
 
-/** Current conditions, or `null` while unknown/unavailable. */
+/** Current conditions, or `null` while unknown, unavailable, or switched off. */
 export function useWeather(): Weather | null {
+  const on = useAppStore((s) => s.weatherOn)
   const coords = useCoords()
   const [weather, setWeather] = useState<Weather | null>(() => cache?.value ?? null)
 
@@ -161,5 +189,8 @@ export function useWeather(): Weather | null {
     }
   }, [coords])
 
-  return weather
+  // Gated at the return rather than by clearing `weather`, so switching the
+  // reading off empties the header immediately while the value already fetched
+  // survives — switching back on is then instant instead of a second round trip.
+  return on ? weather : null
 }

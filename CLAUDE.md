@@ -14,6 +14,7 @@ Guidance for Claude Code sessions working in this repo.
 - `/tracker` — full tummy-time session tracker (local-first, syncs to Supabase when signed in)
 - `/baby` — baby profile (create/edit/delete) + weight/height/head growth monitoring
 - `/family` — household sharing: create a family, invite parents, share babies
+- `/export` — the printable care report: range + section controls over a live preview, exported via `window.print()`
 - `/design-system` — a Liquid Glass design system documentation page
 
 The Learn topics are defined once in `src/sections/registry.tsx` (slug, module, `group`, icon, i18n label/blurb getters, section component). That registry drives the hub grid (grouped by theme via `group` / `groupOrder`), the routes, the nav links, and the pager. Topic content/data lives in `src/data.ts` + `src/i18n.ts` (en + el must stay in sync — `Messages = typeof en`).
@@ -38,7 +39,8 @@ Shared daily logic is hook-first: `useDailyChecklist` (checklist + streak + sync
 
 | Path | Purpose |
 |---|---|
-| `src/pages/` | Route components (`Day.tsx` = home split view, `Wiki.tsx` / `WikiTopic.tsx`, `Tracker.tsx`, `FeedLog.tsx`, `Baby.tsx`, `Family.tsx`, `Auth.tsx`, `DesignSystem.tsx`) |
+| `src/pages/` | Route components (`Day.tsx` = home split view, `Wiki.tsx` / `WikiTopic.tsx`, `Tracker.tsx`, `FeedLog.tsx`, `Baby.tsx`, `Family.tsx`, `Export.tsx`, `Auth.tsx`, `DesignSystem.tsx`) |
+| `src/components/report/` | `ReportDocument` — the `/export` document. It is **both** the on-screen preview and the printed page; never add a second print-only layout. It carries its own light tokens (`.report-document` in `index.css`) and pins its charts with `scheme="light"`, because chart.js paints from JS values a print stylesheet cannot reach. Printing is isolated by the `@media print` block in `index.css`, which hides the whole page and un-hides `#report-document` alone — so new app chrome never leaks onto paper and needs no `print:hidden` annotation |
 | `src/components/` | Shared app components — `Layout` (app shell), `SideNav` (desktop rail) / `NavBar` (mobile bar) / `BottomNav`, `SettingsMenu`, `AuroraBackground`, `PageFrame`, `WidgetPage`, `SectionHeader`, `StatTile`, `AgeBadge`, `ProgressRing`, `dayActivity`, `charts.tsx` |
 | `src/components/ui/` | Vendored shadcn primitives. These are **owned source, not a dependency** — edit them directly to extend variants/behavior |
 | `src/sections/` | The infographic topic sections (registry-driven, rendered on the Wiki topic pages) |
@@ -124,10 +126,17 @@ Documented on `/design-system` under **Patterns** (`src/design-system/docs/Patte
 ## Commands
 
 ```
-npm run dev      # Vite dev server
+npm run dev       # Vite dev server
 npm run build     # tsc -b && vite build — this is the verification gate; run it after any non-trivial change
 npm run preview   # preview the production build
+npm test          # Playwright end-to-end suite (chromium + mobile); starts the dev server itself
+npm run test:ui   # the same suite in Playwright's watch UI
 ```
+
+Tests live in `tests/`; **`tests/README.md` is the test plan** — what each spec
+covers, what is deliberately not covered, and the conventions for adding one
+(seed state before `goto`, `hideOverlays` for the fixed banners, `openSettings`
+because both navigations are in the DOM at every width).
 
 ## Deployment
 

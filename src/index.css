@@ -332,3 +332,131 @@ section {
     scroll-behavior: auto !important;
   }
 }
+/* --------------------------------------------------------------- report ---
+   The `/export` document is a sheet of paper, and it looks like one in both
+   places it exists: as the on-screen preview and in the printer. So the light
+   neutrals are scoped to the document itself rather than switched on inside
+   `@media print` — the preview then *is* the artefact, which is the whole
+   premise of the page, and there is no second appearance to keep in sync.
+
+   Only this repo's own neutral tokens are restated, with `:root`'s values
+   verbatim. The palette accents live in the Liquid Glass package and are not
+   duplicated here; `ReportDocument` simply never depends on the accent for
+   anything that must be read, so a dark palette's ~L 0.72 pink can't end up as
+   2.3:1 body text on white. */
+.report-document {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.53 0 0);
+  --border: oklch(0.922 0 0);
+  color-scheme: light;
+}
+
+/* ---------------------------------------------------------------- print ---
+   The `/export` report. Only `#report-document` reaches paper; everything
+   else on the page — the rail, the tab bar, the aurora, the export controls —
+   is hidden here rather than by a `print:hidden` class per element, so a new
+   piece of app chrome can never leak into a printed report by omission.
+
+   The `visibility` pass rather than `display: none`: hiding an ancestor with
+   `display` would take the report down with it, since the document sits inside
+   the same `<main>` as the controls. `visibility` is inherited and can be
+   turned back on for one subtree, which is exactly the shape needed. */
+@media print {
+  /* Before anything else: paper has no animations, and a running one is not
+     merely ugly here — it is a correctness bug. `visibility` is a *discrete*
+     transitionable property, and the app's controls carry `transition-all`, so
+     hiding them below would not take effect until each transition finished and
+     a toggle could still be painted into the snapshot. Killing transitions
+     makes the hide immediate. */
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #report-document,
+  #report-document * {
+    visibility: visible;
+  }
+
+  /* Lifted out of the app's layout so it starts at the top of page 1 rather
+     than wherever the (now invisible) header and toolbar left it. */
+  #report-document {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* The @page margin is the document's frame; a card border and padding
+       inside it would be a second, narrower frame. The card *background*
+       stays: the document carries light tokens, so its text is near-black, and
+       letting the app's dark page show through here is how this printed black
+       text on a black sheet. */
+    border: 0;
+    padding: 0;
+  }
+
+  /* The sheet is white. Without this the app's dark page background is what
+     surrounds — and, with backgrounds enabled, prints behind — the document. */
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  /* Backgrounds and chart fills are data here, not decoration — without this
+     browsers drop them and the report prints as unlabelled outlines. */
+  #report-document,
+  #report-document * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* Keep a figure, a day's rows or a single row from being split across a
+     sheet — but deliberately NOT the whole section. A section is a chart plus
+     a thirty-day table; asking the printer not to break it just pushes the
+     entire thing to a fresh page and leaves the one before it three-quarters
+     empty. Breaking *inside* a long table is fine and expected; breaking a day
+     in half is not. */
+  .report-figure,
+  .report-day,
+  #report-document tr {
+    break-inside: avoid;
+  }
+
+  /* A heading stays with what it introduces. */
+  #report-document h3 {
+    break-after: avoid;
+  }
+
+  /* Column headers repeat on every sheet a table runs onto, so page four is
+     still readable without flipping back to page two. */
+  #report-document thead {
+    display: table-header-group;
+  }
+
+  /* chart.js sizes its canvas in inline pixels against the screen viewport;
+     unconstrained, a 900px chart runs off the side of an A4 page. The wrapper
+     has to give up its fixed pixel height at the same time, or the shrunken
+     canvas leaves a band of white between the chart and its caption. */
+  #report-document canvas {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  #report-document figure > div {
+    height: auto !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+}

@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { BookOpen } from 'lucide-react'
+import { BookOpen, FileDown } from 'lucide-react'
 import { GlassNav } from '@dimitrisafendras/liquid-glass'
 import { cn } from '@/lib/utils'
 import { AccountControl } from './AccountControl'
@@ -76,6 +76,8 @@ function MobileActions({ activeHref }: { activeHref: string }) {
   const destinations = [
     ...appAreas.map((a) => ({ to: a.to, Icon: a.Icon, label: a.label(t) })),
     { to: '/wiki', Icon: BookOpen, label: t.nav.wiki },
+    // Same reasoning as the rail: not a bottom-tab area — see SideNav.
+    { to: '/export', Icon: FileDown, label: t.report.title },
   ]
   return (
     <div className="flex flex-col gap-3">

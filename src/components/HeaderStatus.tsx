@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils'
 import { Eyebrow } from './Eyebrow'
 import { useBabyAge } from './AgeBadge'
 import { useDateLocale, formatDateKey, formatTimeKey } from '../lib/dates'
-import { todayKey } from '../lib/schedule'
+import { formatAgeLabel, todayKey } from '../lib/schedule'
 import { useNow } from '../lib/useNow'
 import { useWeather, type Condition } from '../lib/useWeather'
 import { useT } from '../i18n'
@@ -95,15 +95,6 @@ function WeatherIcon({ condition }: { condition: Condition }) {
   return <Icon aria-hidden className={cn('mr-1.5 inline size-4 align-[-0.2em]', className)} />
 }
 
-/** Age as "0 mo" under a year and "2 y 3 mo" past it — "27 mo" is not how anyone
- *  says a toddler's age out loud. */
-function formatAge(months: number, monthsShort: string, yearsShort: string): string {
-  if (months < 12) return `${months} ${monthsShort}`
-  const y = Math.floor(months / 12)
-  const m = months % 12
-  return m === 0 ? `${y} ${yearsShort}` : `${y} ${yearsShort} ${m} ${monthsShort}`
-}
-
 /**
  * The right-hand half of the header band: who this is, how old they are, and the
  * live date and time — set on the title's own line.
@@ -140,7 +131,7 @@ export function HeaderStatus() {
           {
             key: 'age',
             label: t.header.age,
-            value: formatAge(baby.months, t.baby.monthsShort, t.baby.yearsShort),
+            value: formatAgeLabel(baby.months, t.baby.monthsShort, t.baby.yearsShort),
           },
         ]
       : []),

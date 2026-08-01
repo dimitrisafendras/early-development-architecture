@@ -401,7 +401,20 @@ export const feedingUppers = [1, 2, 4, 6, 9, 12, 24, 999]
  *  `feed` is milk (breast/bottle/cup) and `meal` is solid food — one kind could
  *  not carry both once the app covered 6 months to 3 years, where a day holds
  *  three meals *and* a milk drink. */
-export type DayActivity = 'feed' | 'meal' | 'sleep' | 'play' | 'tummy' | 'care' | 'wind'
+export type DayActivity =
+  | 'feed'
+  | 'meal'
+  | 'sleep'
+  | 'play'
+  | 'tummy'
+  | 'care'
+  | 'wind'
+  /** Gross-motor play once the child is mobile — the WHO's 180 min a day of
+   *  movement from the first birthday. Distinct from `play` (serve-and-return,
+   *  quiet connection) and from `tummy` (floor time for a pre-mobile baby), and
+   *  it is what the tracker logs against once tummy time stops being the thing
+   *  being built. Only appears in the one-nap and toddler day templates. */
+  | 'active'
 
 /** A fully-resolved schedule slot (when it starts, how long it takes, and its
  *  own text). The built-in {@link fullDaySchedule} pairs with localized text in
@@ -432,6 +445,7 @@ export const defaultSlotMins: Record<DayActivity, number> = {
   tummy: 10,
   care: 20,
   wind: 15,
+  active: 45,
 }
 
 /** The age bands the sample days are written for. `id` keys the localized text
@@ -551,13 +565,13 @@ export const dayTemplates: DayTemplate[] = [
     slots: [
       { time: '07:00', type: 'meal', mins: 30 },
       { time: '07:45', type: 'care', mins: 15 },
-      { time: '08:15', type: 'play', mins: 75 },
+      { time: '08:15', type: 'active', mins: 75 },
       { time: '09:45', type: 'meal', mins: 15 },
-      { time: '10:15', type: 'play', mins: 90 },
+      { time: '10:15', type: 'active', mins: 90 },
       { time: '11:45', type: 'meal', mins: 30 },
       { time: '12:30', type: 'sleep', mins: 120 },
       { time: '14:30', type: 'meal', mins: 15 },
-      { time: '15:00', type: 'play', mins: 90 },
+      { time: '15:00', type: 'active', mins: 90 },
       { time: '16:45', type: 'play', mins: 30 },
       { time: '17:30', type: 'meal', mins: 30 },
       { time: '18:15', type: 'care', mins: 25 },
@@ -571,13 +585,13 @@ export const dayTemplates: DayTemplate[] = [
     slots: [
       { time: '07:00', type: 'meal', mins: 30 },
       { time: '07:45', type: 'care', mins: 20 },
-      { time: '08:15', type: 'play', mins: 90 },
+      { time: '08:15', type: 'active', mins: 90 },
       { time: '09:45', type: 'meal', mins: 15 },
-      { time: '10:15', type: 'play', mins: 105 },
+      { time: '10:15', type: 'active', mins: 105 },
       { time: '12:00', type: 'meal', mins: 35 },
       { time: '12:45', type: 'sleep', mins: 90 },
       { time: '14:30', type: 'meal', mins: 15 },
-      { time: '15:00', type: 'play', mins: 120 },
+      { time: '15:00', type: 'active', mins: 120 },
       { time: '17:00', type: 'play', mins: 30 },
       { time: '17:45', type: 'meal', mins: 35 },
       { time: '18:30', type: 'care', mins: 25 },

@@ -103,6 +103,7 @@ export default function Auth({ mode }: { mode: AuthMode }) {
           variant="ghost"
           size="sm"
           render={<Link to="/" />}
+          nativeButton={false}
           className="w-fit text-muted-foreground"
         >
           <ArrowLeft aria-hidden />
@@ -119,6 +120,7 @@ export default function Auth({ mode }: { mode: AuthMode }) {
               <Button
                 variant="link"
                 render={<Link to={`/signin?next=${encodeURIComponent(next)}`} />}
+                nativeButton={false}
                 className="mt-2 h-auto p-0 font-semibold"
               >
                 {t.auth.submitSignIn}
@@ -195,6 +197,7 @@ export default function Auth({ mode }: { mode: AuthMode }) {
       <Button
         variant="link"
         render={<Link to={`${isSignUp ? '/signin' : '/signup'}?next=${encodeURIComponent(next)}`} />}
+        nativeButton={false}
         className="w-full"
       >
         {isSignUp ? t.auth.toggleToSignIn : t.auth.toggleToSignUp}

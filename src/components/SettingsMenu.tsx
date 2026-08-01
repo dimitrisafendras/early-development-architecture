@@ -6,6 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Separator } from '@/components/ui/separator'
 import { useAppStore } from '../store'
 import { useInstall } from '../lib/useInstall'
+import { resetWeatherAsk, weatherSupported } from '../lib/useWeather'
 import {
   pushPermission,
   pushSupported,
@@ -41,6 +42,9 @@ export function SettingsMenu({
   const notifPush = useAppStore((s) => s.notifPush)
   const setNotifPush = useAppStore((s) => s.setNotifPush)
   const [pushDenied, setPushDenied] = useState(false)
+  const weatherOn = useAppStore((s) => s.weatherOn)
+  const weatherDenied = useAppStore((s) => s.weatherDenied)
+  const setWeatherOn = useAppStore((s) => s.setWeatherOn)
 
   /**
    * Turning it on asks the browser first — the stored flag only records intent,
@@ -69,6 +73,17 @@ export function SettingsMenu({
       body: t.notifications.pushTestBody,
       path: '/',
     })
+  }
+
+  /**
+   * Unlike push, this asks for nothing itself — flipping the store flag is
+   * enough, because `useWeather` owns the geolocation request and runs it the
+   * moment weather is on with no coordinates. Clearing the per-load ask guard
+   * first is what makes that happen on the tap instead of on the next reload.
+   */
+  function toggleWeather(on: boolean) {
+    if (on) resetWeatherAsk()
+    setWeatherOn(on)
   }
 
   return (
@@ -133,6 +148,30 @@ export function SettingsMenu({
             </Field>
             <p className="text-xs leading-relaxed text-muted-foreground">
               {pushDenied ? t.notifications.pushDenied : t.notifications.pushHint}
+            </p>
+          </>
+        )}
+        {/* Grouped with push because they are the same kind of setting: a
+            reading the app can only offer once the browser agrees. Both pair a
+            switch with a line that says what happens, and swap that line for
+            the browser-blocked case, which the switch cannot resolve. */}
+        {weatherSupported() && (
+          <>
+            <Separator />
+            <Field label={t.weather.title}>
+              <GlassToggleGroup
+                ariaLabel={t.weather.title}
+                size="sm"
+                value={weatherOn ? 'on' : 'off'}
+                onChange={(v) => toggleWeather(v === 'on')}
+                options={[
+                  { value: 'off', label: t.weather.off },
+                  { value: 'on', label: t.weather.on },
+                ]}
+              />
+            </Field>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              {weatherOn && weatherDenied ? t.weather.denied : t.weather.hint}
             </p>
           </>
         )}

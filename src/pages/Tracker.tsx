@@ -15,7 +15,8 @@ import {
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import { DatePicker } from '@/components/ui/date-picker'
+import { TimePicker } from '@/components/ui/time-picker'
 import { Label } from '@/components/ui/label'
 import { GlassScrollArea } from '@dimitrisafendras/liquid-glass'
 import { cn } from '@/lib/utils'
@@ -27,26 +28,21 @@ import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../componen
 import { useBabies } from '../lib/useBabies'
 import { useTummyTracker, useWeeklyMinutes, type TrackerSession } from '../lib/useTummyTracker'
 import { activityTargetForAge, ageInMonths, todayKey } from '../lib/schedule'
-import { formatDateKey, useDateLocale } from '../lib/dates'
+import {
+  formatDateKey,
+  isoFromDateTimeKey,
+  joinDateTimeKey,
+  timeKeyFromISO,
+  toDateKey,
+  useDateLocale,
+} from '../lib/dates'
+import { useFieldLabels } from '../lib/useFieldLabels'
 import { useT } from '../i18n'
 
 function fmtClock(totalSeconds: number): string {
   const m = Math.floor(totalSeconds / 60)
   const s = totalSeconds % 60
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-}
-
-/** "HH:MM" for a time input, from an ISO timestamp. */
-function timeOfDay(iso: string): string {
-  const d = new Date(iso)
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-}
-/** Re-stamp an ISO timestamp's time-of-day (same calendar day) from "HH:MM". */
-function withTimeOfDay(iso: string, hhmm: string): string {
-  const d = new Date(iso)
-  const [h, m] = hhmm.split(':').map(Number)
-  d.setHours(h || 0, m || 0, 0, 0)
-  return d.toISOString()
 }
 
 /** Uses the app's locale, not the browser's, so times read the same everywhere. */
@@ -364,8 +360,21 @@ export default function Tracker() {
   )
 }
 
-/** One session in the history. Tap the pencil to adjust its start/end times
- *  inline; saving re-derives the duration and persists via `onSave`. */
+/**
+ * One session in the history. Tap the pencil to adjust its day and its
+ * start/stop times inline; saving re-derives the duration and persists via
+ * `onSave`.
+ *
+ * **One date for both timestamps, not one each.** `started_at` and `ended_at`
+ * are stored as independent instants, so a pair of date-time pickers would be
+ * the literal mapping — and would let a session start on Tuesday and end on
+ * Friday. A tummy session is one sitting; a single date makes that state
+ * unreachable instead of merely unlikely. The cost is that a session running
+ * through midnight cannot be expressed, which no tummy session does.
+ *
+ * The row previously held the date fixed and edited only the clock times, so a
+ * session recorded on the wrong day was uncorrectable.
+ */
 function SessionRow({
   session,
   locale,
@@ -378,18 +387,27 @@ function SessionRow({
   onRemove: () => void
 }) {
   const t = useT()
+  const fields = useFieldLabels()
   const [editing, setEditing] = useState(false)
-  const [start, setStart] = useState(timeOfDay(session.started_at))
-  const [end, setEnd] = useState(timeOfDay(session.ended_at))
+  const [date, setDate] = useState(toDateKey(new Date(session.started_at)))
+  const [start, setStart] = useState(timeKeyFromISO(session.started_at))
+  const [end, setEnd] = useState(timeKeyFromISO(session.ended_at))
   const [busy, setBusy] = useState(false)
   const mins = minutesBetween(session.started_at, session.ended_at)
+  // `HH:MM` is zero-padded and fixed-width, so it orders correctly as a string.
+  // A stop at or before the start yields a zero or negative duration, which
+  // every reading downstream — the day's total, the weekly chart, the streak —
+  // would take at face value. Cheaper to refuse the save than to sanitise it in
+  // each of them.
+  const ordered = end > start
 
   async function save() {
+    if (!ordered) return
     setBusy(true)
     try {
       await onSave({
-        started_at: withTimeOfDay(session.started_at, start),
-        ended_at: withTimeOfDay(session.ended_at, end),
+        started_at: isoFromDateTimeKey(joinDateTimeKey(date, start)),
+        ended_at: isoFromDateTimeKey(joinDateTimeKey(date, end)),
       })
       setEditing(false)
     } finally {
@@ -433,36 +451,58 @@ function SessionRow({
   }
 
   return (
-    <li className="flex flex-wrap items-end gap-3 py-3">
-      {/* `w-32` and a real `htmlFor`, matching the identical time field on /feed. */}
-      <div className="space-y-1.5">
-        <Label htmlFor={`s-start-${session.id}`}>{t.tracker.start}</Label>
-        <Input
-          id={`s-start-${session.id}`}
-          type="time"
-          value={start}
-          onChange={(e) => setStart(e.target.value)}
-          className="w-32 tabular-nums"
-        />
+    <li className="flex flex-col gap-2 py-3">
+      <div className="flex flex-wrap items-end gap-3">
+        {/* Date first: it scopes the two times that follow, and reading the row
+            in the other order asks "09:15 on which day?". */}
+        <div className="space-y-1.5">
+          <Label htmlFor={`s-date-${session.id}`}>{t.common.date}</Label>
+          <DatePicker
+            id={`s-date-${session.id}`}
+            value={date}
+            onValueChange={setDate}
+            max={todayKey()}
+            className="w-40"
+            {...fields.datePicker}
+          />
+        </div>
+        {/* The DS pickers, not `<input type="time">`: the native control's
+            appearance is the browser's, so it ignored the app's 24-hour clock
+            and both themes. `invalid` marks the stop field rather than the start
+            one — stop is the value that has to move. */}
+        <div className="space-y-1.5">
+          <Label htmlFor={`s-start-${session.id}`}>{t.tracker.start}</Label>
+          <TimePicker
+            id={`s-start-${session.id}`}
+            value={start}
+            onValueChange={setStart}
+            className="w-32"
+            {...fields.timePicker}
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor={`s-end-${session.id}`}>{t.tracker.stop}</Label>
+          <TimePicker
+            id={`s-end-${session.id}`}
+            value={end}
+            onValueChange={setEnd}
+            invalid={!ordered}
+            className="w-32"
+            {...fields.timePicker}
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Button type="button" onClick={save} disabled={busy || !ordered}>
+            <Check className="mr-1.5 size-4" /> {t.common.save}
+          </Button>
+          <Button type="button" variant="ghost" onClick={() => setEditing(false)}>
+            {t.common.cancel}
+          </Button>
+        </div>
       </div>
-      <div className="space-y-1.5">
-        <Label htmlFor={`s-end-${session.id}`}>{t.tracker.stop}</Label>
-        <Input
-          id={`s-end-${session.id}`}
-          type="time"
-          value={end}
-          onChange={(e) => setEnd(e.target.value)}
-          className="w-32 tabular-nums"
-        />
-      </div>
-      <div className="flex items-center gap-2">
-        <Button type="button" onClick={save} disabled={busy}>
-          <Check className="mr-1.5 size-4" /> {t.common.save}
-        </Button>
-        <Button type="button" variant="ghost" onClick={() => setEditing(false)}>
-          {t.common.cancel}
-        </Button>
-      </div>
+      {/* Says why Save is dead. A disabled button with no reason beside it is
+          the row failing silently. */}
+      {!ordered && <p className="text-xs text-destructive">{t.tracker.endBeforeStart}</p>}
     </li>
   )
 }

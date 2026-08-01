@@ -8,6 +8,7 @@ import Tracker from './pages/Tracker'
 import Baby from './pages/Baby'
 import Family from './pages/Family'
 import FeedLog from './pages/FeedLog'
+import Export from './pages/Export'
 import Auth from './pages/Auth'
 import DesignSystem from './pages/DesignSystem'
 import { Layout, APP_SCROLL_ID } from './components/Layout'
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="/baby" element={<Baby />} />
           <Route path="/family" element={<Family />} />
           <Route path="/feed" element={<FeedLog />} />
+          <Route path="/export" element={<Export />} />
           <Route path="/signin" element={<Auth mode="signin" />} />
           <Route path="/signup" element={<Auth mode="signup" />} />
           <Route path="/design-system" element={<DesignSystem />} />

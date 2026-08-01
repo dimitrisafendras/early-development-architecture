@@ -9,14 +9,27 @@
       content="An evidence-based visual infographic mapping the neurobiological foundations, acoustic language scaffolding, tummy-time optimization, and daily caregiver routines of early infant development."
     />
 
-    <!-- PWA -->
-    <link rel="manifest" href="/early-development-architecture/manifest.webmanifest" />
+    <!-- PWA.
+         Paths here are root-relative and carry NO base prefix: Vite rewrites a
+         leading `/` to `base` in both the dev server and the build. Spelling
+         `/early-development-architecture/…` out by hand worked in the build and
+         silently doubled to `…/early-development-architecture/early-development-architecture/…`
+         in dev, which is why the tab icon was missing while developing. It also
+         keeps the repo name out of five more places — `vite.config.ts` owns it. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#cc3744" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Early Dev" />
-    <link rel="apple-touch-icon" href="/early-development-architecture/apple-touch-icon.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/early-development-architecture/icon-512.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- Tab icon at the three sizes browsers actually ask for, each rendered
+         from the artwork at that size rather than left to the browser to
+         downscale from one big file — which is what made the old tab icon
+         mush. PNG rather than SVG because the mark *is* an illustration: a
+         vector favicon could only ever be an approximation of it. -->
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48.png" />
 
     <!-- Pre-hydration theme bootstrap: apply the persisted (or default dark+rose)
          theme to <html> before React mounts so there is no flash of the wrong theme. -->
