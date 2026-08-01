@@ -20,16 +20,21 @@ import { useT } from '../i18n'
  * Deduplicated by title: the built-in day repeats "Feed" many times, and a
  * palette that lists the same card six times is a worse palette.
  *
- * Plain content, no shell: the folding section around it belongs to the page
- * (`CollapsibleSection`), so this used to carry a second, differently-styled
- * collapse of its own inside the first one.
+ * Plain content, no shell. It had its own collapse once, then lived in a folding
+ * section of its own; it now hangs off the "Add a moment" button, which is where
+ * someone is standing when they want one. A palette is an answer to "add what?",
+ * so it belongs to that question rather than to a permanent slab of page.
  */
 export function SlotPresets({
   months,
   onAdd,
+  listClassName,
 }: {
   months: number | null
   onAdd: (slot: ScheduleSlot) => void
+  /** Layout for the list itself — one column inside the add-moment popover,
+   *  a grid when it has a whole section to spread across. */
+  listClassName?: string
 }) {
   const t = useT()
 
@@ -46,7 +51,7 @@ export function SlotPresets({
   if (presets.length === 0) return null
 
   return (
-    <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+    <ul className={cn('grid gap-2', listClassName)}>
       {presets.map((slot, i) => {
         const meta = dayActivityMeta[slot.type]
         const Icon = meta.icon

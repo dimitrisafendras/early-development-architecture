@@ -92,8 +92,9 @@ test('a preset adds a fully-formed moment in one tap', async ({ page }) => {
   await hideOverlays(page)
   const before = await page.locator('#day-moments > li').count()
 
-  await page.getByRole('button', { name: /Add from your day/ }).click()
-  const card = page.locator('section ul li button').filter({ hasText: /\d\d:\d\d/ }).first()
+  // The palette lives in the "Add a moment" popover now, not a page section.
+  await page.getByRole('button', { name: /Add a moment/ }).click()
+  const card = page.locator('ul li button').filter({ hasText: /\d\d:\d\d/ }).first()
   const label = (await card.textContent())!.trim()
   await card.click()
 
@@ -108,19 +109,23 @@ test('a preset adds a fully-formed moment in one tap', async ({ page }) => {
   expect(added.length).toBeGreaterThan(0)
 })
 
-test('a blueprint replaces the day', async ({ page }) => {
+test('a program can be restarted from the built-in day for its age', async ({ page }) => {
+  // The "Day blueprints" section was a second grid of the same nine days the age
+  // axis already shows — two pickers for one decision. What survived is the one
+  // action that was actually about the open program.
   await page.goto('schedule')
   await hideOverlays(page)
   page.on('dialog', (d) => d.accept())
+  await page.getByRole('button', { name: /Create all nine/ }).click()
+  await expect(page.getByRole('button', { name: /0–2 mo/ })).toBeVisible()
 
-  await page.getByRole('button', { name: /Day blueprints/ }).click()
-  const cards = page.locator('section li').filter({ has: page.locator('ol') })
-  await expect(cards).toHaveCount(9)
-  // The band matching the child is marked, not filtered to.
-  await expect(page.getByText('Matches your baby')).toHaveCount(1)
+  await page.getByRole('button', { name: /2 y–3 y|2–3 y/ }).click()
+  await expect(page.locator('#band-from')).toBeVisible()
+  await page.locator('input[id^="slot-what"]').first().fill('Scribbled over')
 
-  await cards.last().getByRole('button', { name: 'Load this day' }).click()
+  await page.getByRole('button', { name: /Use the built-in day/ }).click()
   await expect(page.locator('#day-moments > li')).toHaveCount(15)
+  await expect(page.locator('input[id^="slot-what"]').first()).not.toHaveValue('Scribbled over')
 })
 
 test('clock time is the only ordering — drag and the arrows are gone', async ({ page }) => {

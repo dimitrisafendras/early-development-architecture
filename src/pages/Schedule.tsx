@@ -6,11 +6,11 @@ import { PageFrame } from '../components/PageFrame'
 import { EmptyState } from '../components/EmptyState'
 import { ActivityField } from '../components/ActivityField'
 import { SlotPresets } from '../components/SlotPresets'
-import { DayBlueprints } from '../components/DayBlueprints'
 import { ScheduleBands } from '../components/ScheduleBands'
-import { CollapsibleSection } from '../components/CollapsibleSection'
 import type { ProgramSource } from '../components/NewProgramForm'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
+import { Separator } from '@/components/ui/separator'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { NumberInput } from '@/components/ui/number-input'
 import { TimePicker } from '@/components/ui/time-picker'
@@ -21,7 +21,6 @@ import { dayTemplates, defaultSlotMins, type ScheduleSlot } from '../data'
 import { useSchedule, buildDefaultSchedule, buildScheduleFromTemplate, scheduleForAge } from '../lib/useSchedule'
 import { useBabyAge } from '../components/AgeBadge'
 import { useFieldLabels } from '../lib/useFieldLabels'
-import { useSectionOpen } from '../lib/useSectionOpen'
 import { minutesOfDay, slotEndTime, sortByClock, overlapMinutes } from '../lib/schedule'
 import { useAppStore, sortSchedules, type AgeSchedule } from '../store'
 import { useT } from '../i18n'
@@ -67,10 +66,8 @@ export default function Schedule() {
   )
   const [rows, setRows] = useState<Row[]>(() => sortByClock(toRows(initial)))
 
-  // Sections that are reference material rather than the job: folded by default,
-  // and the choice sticks (see `useSectionOpen`).
-  const [presetsOpen, togglePresets] = useSectionOpen('presets', false)
-  const [blueprintsOpen, toggleBlueprints] = useSectionOpen('blueprints', false)
+  /** The add-moment palette. Local, not persisted — a popover is a transaction. */
+  const [adding, setAdding] = useState(false)
 
   /**
    * Every title the app itself wrote: the eight generic activity names plus the
@@ -262,11 +259,19 @@ export default function Schedule() {
     setRows((r) => sortByClock([...r, ...toRows([slot])]))
   }
 
-  /** Replace the whole day with a built-in blueprint (confirmed by the caller). */
-  const loadBlueprint = (slots: ScheduleSlot[]) => {
+  /**
+   * Give the open program the built-in day written for its own start age.
+   *
+   * This is all that survived of the "Day blueprints" section, which was a
+   * second grid of the same nine days sitting under the axis that already shows
+   * them — two pickers competing for one decision. Replacing a day belongs to
+   * the program being replaced, not to a catalogue.
+   */
+  const useBuiltInDay = (fromMonths: number) => {
+    if (!window.confirm(ts.blueprintConfirm)) return
     setSavedAt(false)
     setEdited(true)
-    setRows(sortByClock(toRows(slots)))
+    setRows(sortByClock(toRows(buildDefaultSchedule(t, fromMonths))))
   }
 
   /** Switch programs, loading that program's day into the editor. */
@@ -368,6 +373,7 @@ export default function Schedule() {
         onSeedAll={seedAllBands}
         onRemove={removeBand}
         onChangeFrom={changeBandFrom}
+        onUseBuiltIn={useBuiltInDay}
       />
 
       {/* The day itself: one card holding a divided list, not twenty cards. A
@@ -396,9 +402,52 @@ export default function Schedule() {
               sibling of the card it needed `-mt-3 sm:-mt-5` to claw back the
               frame's gap — arithmetic standing in for structure. */}
           <CardFooter className="flex flex-wrap items-center gap-3">
-            <Button variant="secondary" onClick={add}>
-              <Plus className="mr-2 size-4" /> {ts.addSlot}
-            </Button>
+            {/* The palette hangs off this button rather than occupying a section
+                of its own. "Add what?" is a question you ask at the moment you
+                add, and every preset arrives already typed, titled and timed —
+                then files itself by the time it carries. */}
+            <Popover open={adding} onOpenChange={setAdding}>
+              {/* Classes on the trigger, not `render={<Button/>}`: `Button` is
+                  a plain function component, so the render prop has no ref to
+                  attach and React warns on every mount. */}
+              <PopoverTrigger className={buttonVariants({ variant: 'secondary' })}>
+                <Plus className="mr-2 size-4" /> {ts.addSlot}
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-[min(22rem,calc(100vw-2rem))] p-0">
+                <div className="p-2">
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      add()
+                      setAdding(false)
+                    }}
+                  >
+                    <Plus className="mr-2 size-4" /> {ts.addBlank}
+                  </Button>
+                </div>
+                <Separator />
+                <div className="max-h-72 overflow-y-auto p-2">
+                  <p className="px-1 pb-2 text-xs text-muted-foreground">{ts.presetsHint}</p>
+                  <SlotPresets
+                    months={months}
+                    listClassName="grid-cols-1"
+                    onAdd={(slot) => {
+                      addPreset(slot)
+                      setAdding(false)
+                    }}
+                  />
+                </div>
+                <Separator />
+                {/* The typical lengths, where the length is being chosen. As a
+                    permanent paragraph on the page it was read once and then in
+                    the way for ever. */}
+                <div className="space-y-1.5 p-3 text-xs leading-relaxed text-muted-foreground">
+                  <p>{ts.sortNote}</p>
+                  <p>{ts.durationNote}</p>
+                </div>
+              </PopoverContent>
+            </Popover>
             {/* Autosave is invisible by design, so it has to speak: a live
                 region is the only evidence a screen-reader user gets that the
                 Save button they used to press is no longer needed. */}
@@ -414,31 +463,6 @@ export default function Schedule() {
         </Card>
       )}
 
-      <CollapsibleSection
-        title={ts.presetsTitle}
-        hint={ts.presetsHint}
-        open={presetsOpen}
-        onToggle={togglePresets}
-      >
-        <SlotPresets months={months} onAdd={addPreset} />
-        {/* Orientation copy lives with the thing it orients. As a permanent
-            paragraph on the page it was four lines of prose between the day and
-            the folds, read once and then in the way for ever. */}
-        <div className="mt-3 space-y-1.5 border-t border-border/70 pt-3 text-xs leading-relaxed text-muted-foreground">
-          <p>{ts.sortNote}</p>
-          <p>{ts.durationNote}</p>
-        </div>
-      </CollapsibleSection>
-
-      <CollapsibleSection
-        title={ts.blueprintsTitle}
-        hint={ts.blueprintsHint}
-        count={dayTemplates.length}
-        open={blueprintsOpen}
-        onToggle={toggleBlueprints}
-      >
-        <DayBlueprints months={months} onLoad={loadBlueprint} />
-      </CollapsibleSection>
     </PageFrame>
   )
 }

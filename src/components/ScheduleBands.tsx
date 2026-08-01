@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CalendarRange, Plus, Trash2 } from 'lucide-react'
+import { CalendarRange, Plus, RotateCcw, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import { NumberInput } from '@/components/ui/number-input'
@@ -49,6 +49,7 @@ export function ScheduleBands({
   onSeedAll,
   onRemove,
   onChangeFrom,
+  onUseBuiltIn,
 }: {
   bands: AgeSchedule[]
   activeId: string | null
@@ -59,6 +60,8 @@ export function ScheduleBands({
   onSeedAll: () => void
   onRemove: (id: string) => void
   onChangeFrom: (id: string, fromMonths: number) => void
+  /** Replace this program's day with the built-in one for its start age. */
+  onUseBuiltIn: (fromMonths: number) => void
 }) {
   const t = useT()
   const ts = t.schedule
@@ -332,6 +335,17 @@ export function ScheduleBands({
                 {/* Removing the last program is allowed: with none saved the app
                     falls back to the built-in day for the age, which is a valid
                     state, not an empty one. */}
+                {/* The nine built-in days are what the axis already shows, so
+                    "start this program again from the researched day for its
+                    age" is an action on the program rather than a second
+                    catalogue of the same nine. */}
+                <Button
+                  variant="ghost"
+                  onClick={() => onUseBuiltIn(current.fromMonths)}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <RotateCcw className="mr-2 size-4" /> {ts.blueprintUse}
+                </Button>
                 {/* Confirmed, like every other destructive action here. With
                     autosave there is no undo, and this erases a hand-built day
                     on one ghost-button click. */}

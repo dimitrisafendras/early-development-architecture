@@ -52,8 +52,8 @@ test('the schedule editor is translated', async ({ page }) => {
   await hideOverlays(page)
 
   await expect(page.getByText('Τι', { exact: true }).first()).toBeVisible()
-  await expect(page.getByRole('button', { name: /Προσθήκη από τη μέρα σας/ })).toBeVisible()
-  await expect(page.getByRole('button', { name: /Πρότυπα ημέρας/ })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Προσθήκη στιγμής/ })).toBeVisible()
+  await expect(page.getByText(/Τα προγράμματα της μέρας σας/)).toBeVisible()
 })
 
 test('both languages use a 24-hour clock', async ({ page }) => {
