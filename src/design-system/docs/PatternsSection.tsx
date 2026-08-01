@@ -15,7 +15,7 @@ const tiers = [
     n: '2',
     name: 'Input — the one thing you came to do',
     slot: 'input',
-    body: 'Start the timer, log the feed, add the measurement. Sits directly under the tiles, reachable without scrolling. Its tier eyebrow names the action, so the card inside carries no title of its own — and a hero visual that belongs with the action (the tracker ring) lives inside this card, beside its control.',
+    body: 'Start the timer, log the feed, add the measurement. Sits directly under the tiles, reachable without scrolling. Its tier eyebrow names the action, so the card inside carries no title of its own — and a hero visual that belongs with the action (the tracker session bar) lives inside this card, with its control.',
   },
   {
     icon: BookOpen,

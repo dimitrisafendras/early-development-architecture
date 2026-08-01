@@ -671,7 +671,18 @@ function TummyWidget() {
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-1 mx-auto size-36 rounded-full bg-success/10 blur-2xl"
       />
-      <ProgressRing progress={total / target} size={140} stroke={11} accent="var(--success)" complete={done}>
+      {/* Same two arcs as `/tracker`: solid is banked, the translucent lead with
+          the dot at its head is the session running now. This widget had the
+          same mismatch — the arc plotted the day while the clock inside it
+          counted the session — and the two screens have to tell one story. */}
+      <ProgressRing
+        progress={tracker.completedMinutes / target}
+        live={total / target}
+        size={140}
+        stroke={11}
+        accent="var(--success)"
+        complete={done}
+      >
         <div className="flex flex-col items-center leading-none">
           {clock ? (
             <>

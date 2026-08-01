@@ -110,6 +110,10 @@ the panel under it. The last one measures the heading row, not the whole panel â
 the summary below wraps to different line counts per program on a phone, which
 is content changing height rather than layout jitter.
 
+One more covers the tracker console: it reads the day program, so it names how
+many sessions the program plans and how many have been logged against them, as
+well as the age-derived target those two can disagree with.
+
 ### `i18n.spec.ts` â€” Greek is first-class
 `Messages = typeof en` makes the two structurally identical at compile time, so
 what is left to test is runtime: every page actually renders Greek rather than

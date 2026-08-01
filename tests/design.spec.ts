@@ -184,3 +184,18 @@ test('the in-use badge does not change the height of the row it sits in', async 
   }
   expect(seen.size, `heading heights: ${[...seen].join(', ')}`).toBe(1)
 })
+
+test('the tracker console draws the sessions the day program plans', async ({ page }) => {
+  // The target is age-derived and the day program is authored by hand, so the
+  // two can disagree — the newborn sample day plans 15 min against a 5 min
+  // target. They used to live on separate pages, where that was invisible.
+  await seedStore(page, {})
+  await page.goto('tracker')
+  await hideOverlays(page)
+
+  const card = page.locator('[data-slot="card"]', { hasText: /Start session|Stop session/ }).first()
+  // Counted in sessions, because the bar is: one section per planned session.
+  await expect(card).toContainText(/of \d+ sessions planned/)
+  await expect(card).toContainText(/Day plans \d+ min/)
+  await expect(card).toContainText(/Daily target: \d+ min/)
+})

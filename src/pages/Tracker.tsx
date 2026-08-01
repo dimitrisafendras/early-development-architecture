@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Play,
   Square,
@@ -21,7 +21,9 @@ import { Label } from '@/components/ui/label'
 import { GlassScrollArea } from '@dimitrisafendras/liquid-glass'
 import { cn } from '@/lib/utils'
 import { Eyebrow } from '../components/Eyebrow'
-import { ProgressRing } from '../components/ProgressRing'
+import { SessionBar } from '../components/SessionBar'
+import { useSchedule } from '../lib/useSchedule'
+import { LiveBadge } from '@/components/ui/live-badge'
 import { StatTile } from '../components/StatTile'
 import { TummyWeekChart } from '../components/charts'
 import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
@@ -55,23 +57,6 @@ function minutesBetween(startISO: string, endISO: string): number {
   return Math.max(0, Math.round((new Date(endISO).getTime() - new Date(startISO).getTime()) / 60000))
 }
 
-/**
- * Live `matchMedia` result. Only needed because `ProgressRing` takes its size as
- * a number, so the console's hero can't grow with a CSS breakpoint alone.
- * Promote to `src/lib` if a second screen needs it.
- */
-function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
-  useEffect(() => {
-    const mq = window.matchMedia(query)
-    const sync = () => setMatches(mq.matches)
-    sync()
-    mq.addEventListener('change', sync)
-    return () => mq.removeEventListener('change', sync)
-  }, [query])
-  return matches
-}
-
 export default function Tracker() {
   const t = useT()
   const locale = useDateLocale()
@@ -79,13 +64,31 @@ export default function Tracker() {
   const tracker = useTummyTracker(currentBaby?.id ?? null, currentBaby?.household_id ?? null)
   const week = useWeeklyMinutes(tracker.sessions, tracker.signedIn)
 
-  // The console's hero ring grows once the page column is wide (Tailwind `lg`).
-  const wideConsole = useMediaQuery('(min-width: 64rem)')
-
   const ageM = currentBaby ? ageInMonths(currentBaby.birth_date) : null
   // Under a year this is the tummy-time ramp; from the first birthday it is the
   // WHO's 180 min/day of movement, and `kind` swaps the page's labels with it.
   const { mins: target, kind: targetKind } = activityTargetForAge(ageM)
+  // Past the first birthday this page is an *active-play* log, not a tummy-time
+  // log: same timer, same target, different thing being timed — and a different
+  // slot type to read out of the day program.
+  const movementKind = targetKind === 'movement'
+  /**
+   * What the day program plans for this activity.
+   *
+   * The target is age-derived and knew nothing about the day the caregiver
+   * actually authored on `/schedule`, so the two sat side by side saying
+   * unrelated things — a program with three five-minute tummy slots under a
+   * sixty-minute target, and no way to see that the plan does not reach it.
+   * `useSchedule` resolves the program in effect for this child's age, which is
+   * the same one `/daily` runs the day from.
+   */
+  const daySchedule = useSchedule()
+  const plannedSlots = useMemo(
+    () => daySchedule.filter((slot) => slot.type === (movementKind ? 'active' : 'tummy')),
+    [daySchedule, movementKind],
+  )
+  const plannedMinutes = plannedSlots.reduce((sum, slot) => sum + slot.mins, 0)
+
   const runningMin = tracker.isRunning ? tracker.elapsedSeconds / 60 : 0
   const totalWithRunning = tracker.completedMinutes + runningMin
   const remaining = Math.max(0, Math.round(target - totalWithRunning))
@@ -138,9 +141,7 @@ export default function Tracker() {
     ? t.tracker.targetForBaby.replace('{name}', currentBaby.name).replace('{age}', String(ageM))
     : t.tracker.targetForNoBaby
 
-  // Past the first birthday this page is an *active-play* log, not a tummy-time
-  // log: same timer, same target ring, different thing being timed.
-  const movement = targetKind === 'movement'
+  const movement = movementKind
 
   return (
     <WidgetPage
@@ -176,121 +177,159 @@ export default function Tracker() {
         </>
       }
       input={
-        /* The timer console. The ring and the one control that drives it are a
-           single centred block — not a left-hugging ring with a `flex-1` column
-           after it, which is what left a void on the right of a wide card. The
-           block keeps a bounded measure at every width, the ring grows from `lg`
-           to carry the extra room, and the target/sync context spans the card as
-           a footer strip so the full width has something to do. No title here:
-           the tier eyebrow already names the action.
+        /* The timer console.
 
-           A plain `Card`, like the input tier on `/feed` and `/baby`. It used to
-           carry a tinted gradient and a `border-primary/20` — the border rendered
-           nothing (Card draws its edge as a ring) and the gradient made this one
-           tier a different surface from the same tier on the other two widget
-           pages. The ring, the recording pill and the primary button carry the
-           "instrument" reading on their own. */
+           It was a ring — a 168px disc growing to 216 — and it was wrong twice
+           over. It said one number, a fraction of the target, drawn round; but
+           the thing a caregiver is actually managing here is the *shape* of the
+           day, because tummy time is guided as short, frequent sessions, and
+           "twelve of sixty" is the same arc whether it arrived in one stretch or
+           six. And being a disc it was as tall as it was wide, so on a card
+           1100px across it either floated in a lake of space or got inflated
+           until it filled one — which is what it had been doing.
+
+           A bar answers both. Segments give the day its shape, minutes map to
+           width against the target so it is a true scale rather than a set of
+           proportions, and it is as wide as the card gives it. That freed the
+           height for the two things worth being big: the clock, and the button
+           that drives it.
+
+           A plain `Card`, like the input tier on `/feed` and `/baby` — no tinted
+           gradient, no `border-primary/20` (Card draws its edge as a ring, so
+           that border rendered nothing). No title: the tier eyebrow names it. */
         <Card>
-          <CardContent>
-            <div className="flex flex-col items-center gap-6 text-center sm:flex-row sm:justify-center sm:gap-12 sm:text-left lg:gap-16">
-              <ProgressRing
-                progress={totalWithRunning / target}
-                complete={metTarget}
-                size={wideConsole ? 216 : 168}
-                stroke={wideConsole ? 14 : 12}
-              >
-                <div>
-                  {tracker.isRunning ? (
-                    <div className="font-heading text-3xl font-semibold tabular-nums text-foreground lg:text-4xl">
-                      {fmtClock(tracker.elapsedSeconds)}
-                    </div>
-                  ) : (
-                    <div className="font-heading text-3xl font-semibold text-foreground lg:text-4xl">
-                      {Math.round(totalWithRunning)}
-                      <span className="text-base text-muted-foreground lg:text-lg"> / {target}</span>
-                    </div>
-                  )}
-                  {/* One eyebrow spelling, and one weight in both states — it used
-                      to thicken from 400 to 600 the moment the target was met, so
-                      the label's stroke changed as the number ticked over. */}
-                  <Eyebrow
-                    className={cn('mt-1', metTarget && 'text-success')}
-                    tone={metTarget ? 'inherit' : 'muted'}
-                  >
-                    {/* Always the distance to target: while running, "Recording…"
-                        is the pill's job and the clock above already says so. */}
-                    {metTarget ? t.tracker.targetMet : `${remaining} ${t.tracker.toGo}`}
-                  </Eyebrow>
-                </div>
-              </ProgressRing>
-
-              {/* The action column keeps a text measure of its own so the pair
-                  stays a compact unit instead of smearing across the card. */}
-              <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:max-w-xs sm:items-start">
-                {/* Fixed-height status slot: reserved in both states so pressing
-                    Start doesn't nudge the button as the pill appears. */}
-                <div className="flex h-7 items-center">
-                  {tracker.isRunning && (
-                    <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary">
-                      <span
-                        aria-hidden
-                        className="size-1.5 rounded-full bg-primary motion-safe:animate-pulse"
-                      />
-                      {t.tracker.running}
-                    </span>
-                  )}
-                </div>
-
+          <CardContent className="flex flex-col gap-7">
+            {/* The readout, on its own line so it can be as big as it deserves
+                — it is the one thing being watched. */}
+            <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+              <div>
                 {tracker.isRunning ? (
-                  <Button
-                    size="lg"
-                    variant="destructive"
-                    className="w-full sm:w-auto sm:min-w-52"
-                    onClick={() => void tracker.stop()}
-                  >
-                    <Square className="mr-2 size-4" /> {t.tracker.stop}
-                  </Button>
+                  <div className="font-heading text-5xl leading-none font-semibold tabular-nums text-foreground sm:text-6xl">
+                    {fmtClock(tracker.elapsedSeconds)}
+                  </div>
                 ) : (
-                  <Button
-                    size="lg"
-                    className="w-full sm:w-auto sm:min-w-52"
-                    onClick={() => void tracker.start()}
-                  >
-                    <Play className="mr-2 size-4" /> {t.tracker.start}
-                  </Button>
+                  <div className="font-heading text-5xl leading-none font-semibold text-foreground sm:text-6xl">
+                    {Math.round(totalWithRunning)}
+                    <span className="text-xl font-medium text-muted-foreground sm:text-2xl">
+                      {' / '}
+                      {target} {t.tracker.minutesShort}
+                    </span>
+                  </div>
                 )}
+                <Eyebrow className="mt-2.5">
+                  {tracker.isRunning
+                    ? movement
+                      ? t.tracker.sessionLabelMovement
+                      : t.tracker.sessionLabel
+                    : t.tracker.todayLabel}
+                </Eyebrow>
+              </div>
 
-                {/* Pacing readout: how many sessions today and when the latest one
-                    ran. Decides whether to press Start now — the tiles only carry
-                    totals, never the clock time of a session. */}
-                <p className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1 rounded-lg bg-muted/50 px-3 py-2 text-xs text-muted-foreground sm:justify-start">
+              {/* The live half of the readout, opposite it: `LiveBadge` while
+                  recording, the distance to target while stopped — so the corner
+                  is never simply empty, which is what the old reserved-height
+                  status slot was for half its life. */}
+              {tracker.isRunning ? (
+                <LiveBadge>{t.tracker.running}</LiveBadge>
+              ) : (
+                <Eyebrow
+                  className={cn('mt-1.5', metTarget && 'text-success')}
+                  tone={metTarget ? 'inherit' : 'muted'}
+                >
+                  {metTarget ? t.tracker.targetMet : `${remaining} ${t.tracker.toGo}`}
+                </Eyebrow>
+              )}
+            </div>
+
+            {/* The day, to scale: one segment per session in the order they
+                happened, the running one translucent with a live dot at its
+                head. This is the part the ring could not draw at all. */}
+            <div className="flex flex-col gap-2.5">
+              {/* Sessions are matched to the plan by order, not by clock: the
+                  program says "three sessions, five minutes each", and which of
+                  them you have done is simply how many you have logged. */}
+              <SessionBar
+                planned={plannedSlots.map((slot) => slot.mins)}
+                done={tracker.todaySessions.map((session) =>
+                  minutesBetween(session.started_at, session.ended_at),
+                )}
+                running={tracker.isRunning ? runningMin : undefined}
+                complete={metTarget}
+              />
+              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                {/* Sessions first, minutes second — the bar is counted in
+                    sessions now, so its caption has to be too. */}
+                <span className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
                   <Timer aria-hidden className="size-3.5 shrink-0 text-primary/70" />
-                  {lastToday ? (
-                    <>
-                      <span>{t.tracker.sessionsToday}:</span>
+                  {plannedSlots.length > 0 ? (
+                    <span className="tabular-nums">
                       <span className="font-semibold text-foreground">
                         {tracker.todaySessions.length}
                       </span>
+                      {' '}
+                      {t.tracker.ofPlanned.replace('{n}', String(plannedSlots.length))}
+                    </span>
+                  ) : (
+                    <span className="tabular-nums">
+                      <span className="font-semibold text-foreground">
+                        {tracker.todaySessions.length}
+                      </span>{' '}
+                      {t.tracker.sessionsToday.toLowerCase()}
+                    </span>
+                  )}
+                  {lastToday && (
+                    <>
                       <span aria-hidden>·</span>
                       <span className="tabular-nums">
                         {fmtTime(lastToday.started_at, locale)}–{fmtTime(lastToday.ended_at, locale)}
                       </span>
-                      <span aria-hidden>·</span>
-                      <span className="tabular-nums">
-                        {minutesBetween(lastToday.started_at, lastToday.ended_at)}{' '}
-                        {t.tracker.minutesShort}
-                      </span>
                     </>
-                  ) : (
-                    <span>{t.tracker.noSessions}</span>
                   )}
-                </p>
+                </span>
+                {/* The scale's far end, and what the day program puts inside it.
+                    Stating both is the point: when the plan falls short of the
+                    target that is a real thing to know, and it was invisible
+                    while the two lived on separate pages. */}
+                <span className="flex flex-wrap items-center gap-x-1.5 tabular-nums">
+                  {plannedSlots.length > 0 && (
+                    <>
+                      <span>
+                        {t.tracker.planned.replace('{mins}', String(plannedMinutes))}
+                      </span>
+                      <span aria-hidden>·</span>
+                    </>
+                  )}
+                  <span>
+                    {t.tracker.targetLabel}: {target} {t.tracker.minutesShort}
+                  </span>
+                </span>
               </div>
             </div>
 
+            {/* The action. Full width on a phone, and wide enough on a desktop
+                to stay the obvious thing to press. */}
+            {tracker.isRunning ? (
+              <Button
+                size="lg"
+                variant="destructive"
+                className="w-full sm:w-auto sm:min-w-64 sm:self-start"
+                onClick={() => void tracker.stop()}
+              >
+                <Square className="mr-2 size-4" /> {t.tracker.stop}
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                className="w-full sm:w-auto sm:min-w-64 sm:self-start"
+                onClick={() => void tracker.start()}
+              >
+                <Play className="mr-2 size-4" /> {t.tracker.start}
+              </Button>
+            )}
+
             {/* Footer strip — the context that used to crowd the action, now
                 spanning the card so its width is used at every breakpoint. */}
-            <div className="mt-6 flex flex-col gap-1.5 border-t border-border/70 pt-4 text-xs text-muted-foreground sm:mt-8 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+            <div className="flex flex-col gap-1.5 border-t border-border/70 pt-4 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:gap-4">
               <span className="flex items-center gap-1.5">
                 <Target aria-hidden className="size-3.5 shrink-0 text-primary/70" />
                 {targetContext}
