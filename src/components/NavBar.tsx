@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { BookOpen, FileDown } from 'lucide-react'
+import { BookOpen, CalendarRange, FileDown } from 'lucide-react'
 import { GlassNav } from '@dimitrisafendras/liquid-glass'
 import { cn } from '@/lib/utils'
 import { AccountControl } from './AccountControl'
@@ -75,6 +75,10 @@ function MobileActions({ activeHref }: { activeHref: string }) {
   // Day + the tool areas, plus the Wiki, as labelled dropdown rows.
   const destinations = [
     ...appAreas.map((a) => ({ to: a.to, Icon: a.Icon, label: a.label(t) })),
+    // The day programs sit with the tools they shape rather than in `appAreas`:
+    // that list drives the five-column mobile tab bar, and editing the day is
+    // something you do occasionally, not many times a day.
+    { to: '/schedule', Icon: CalendarRange, label: t.nav.programs },
     { to: '/wiki', Icon: BookOpen, label: t.nav.wiki },
     // Same reasoning as the rail: not a bottom-tab area — see SideNav.
     { to: '/export', Icon: FileDown, label: t.report.title },

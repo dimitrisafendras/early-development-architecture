@@ -22,6 +22,10 @@ const en = {
     designSystem: 'Design System',
     today: 'Today',
     day: 'Day',
+    // The /schedule route. Named for what it holds — the age-banded day
+    // programs — rather than for the act of editing, which is what the page
+    // title says once you are there.
+    programs: 'Day programs',
     wiki: 'Wiki',
     tracker: 'Tracker',
     feed: 'Feed log',
@@ -1349,6 +1353,7 @@ const el: Messages = {
     designSystem: 'Σύστημα Σχεδίασης',
     today: 'Σήμερα',
     day: 'Μέρα',
+    programs: 'Προγράμματα ημέρας',
     wiki: 'Wiki',
     tracker: 'Παρακολούθηση',
     feed: 'Καταγραφή Ταΐσματος',

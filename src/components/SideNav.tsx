@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom'
-import { BookOpen, FileDown, PanelLeftClose, PanelLeftOpen, type LucideIcon } from 'lucide-react'
+import { BookOpen, CalendarRange, FileDown, PanelLeftClose, PanelLeftOpen, type LucideIcon } from 'lucide-react'
 import { GlassSurface } from '@dimitrisafendras/liquid-glass'
 import { cn } from '@/lib/utils'
 import { AccountControl } from './AccountControl'
@@ -13,8 +13,9 @@ import { useT } from '../i18n'
  * The desktop navigation: a full-height glass rail on the left, so vertical space
  * belongs to the page instead of a top bar. Slim by default — icons only, labels
  * as tooltips — and expandable to labelled rows with the toggle at its head; the
- * choice persists. Destinations are `appAreas` plus the Wiki, the same set (and
- * order) the mobile dropdown and bottom tab bar offer.
+ * choice persists. Destinations are `appAreas` plus the day programs, the Wiki
+ * and the report — the same set, in the same order, as the mobile dropdown. The
+ * bottom tab bar carries `appAreas` alone; see the note beside the extras.
  *
  * Shown from `xl` up only; below that the floating `NavBar` (collapsed to a
  * hamburger) and the `BottomNav` tab bar take over.
@@ -27,6 +28,10 @@ export function SideNav() {
 
   const destinations: { to: string; Icon: LucideIcon; label: string }[] = [
     ...appAreas.map((a) => ({ to: a.to, Icon: a.Icon, label: a.label(t) })),
+    // The day programs sit with the tools they shape rather than in `appAreas`:
+    // that list drives the five-column mobile tab bar, and editing the day is
+    // something you do occasionally, not many times a day.
+    { to: '/schedule', Icon: CalendarRange, label: t.nav.programs },
     { to: '/wiki', Icon: BookOpen, label: t.nav.wiki },
     // Beside the Wiki rather than in `appAreas`: that list drives the mobile
     // bottom tab bar, which is a five-column grid of the things you reach many

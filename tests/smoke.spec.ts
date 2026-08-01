@@ -62,3 +62,26 @@ test('the page frame is identical across routes', async ({ page }) => {
   }
   expect(new Set(lefts).size, `h1 left edges: ${lefts.join(', ')}`).toBe(1)
 })
+
+test('both navigations reach the day programs and the report', async ({ page }) => {
+  // /schedule was reachable only from a single link on the Day page, and
+  // /export only from the rail. Neither is an `appAreas` entry — that list is
+  // the five-column mobile tab bar — so they are easy to drop by accident.
+  await seedStore(page, {})
+  await page.goto('')
+
+  const openNavIfCollapsed = async () => {
+    const menu = page.getByLabel('Open menu').locator('visible=true')
+    if ((await menu.count()) > 0) await menu.first().click()
+  }
+  await openNavIfCollapsed()
+
+  for (const href of ['/schedule', '/export']) {
+    const link = page.locator(`a[href$="${href}"]`).locator('visible=true')
+    await expect(link.first(), `no visible nav link to ${href}`).toBeVisible()
+  }
+
+  await page.locator('a[href$="/schedule"]').locator('visible=true').first().click()
+  await expect(page).toHaveURL(/\/schedule$/)
+  await expect(page.locator('h1')).toBeVisible()
+})
