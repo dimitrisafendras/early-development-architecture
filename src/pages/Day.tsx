@@ -213,7 +213,12 @@ function MomentCard({
                     and the one thing the caregiver needs is the way out of that.
                     `secondary` rather than `default`: the loudest button in this
                     card belongs to the tool below, whatever the tool is. */}
-                <Button variant="secondary" size="sm" onClick={onJumpToNow}>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={onJumpToNow}
+                  className="travelling-ring"
+                >
                   <LocateFixed className="mr-1.5 size-3.5" /> {t.day.jumpToNow}
                 </Button>
               </>
@@ -500,7 +505,7 @@ function Timeline({
               <GlassButton
                 size="sm"
                 onClick={recenter}
-                className="pointer-events-auto text-xs font-semibold"
+                className="travelling-ring pointer-events-auto text-xs font-semibold"
               >
                 <LocateFixed className="size-3.5 text-primary" /> {t.day.jumpToNow}
               </GlassButton>
