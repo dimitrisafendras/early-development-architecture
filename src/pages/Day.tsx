@@ -568,7 +568,7 @@ function Timeline({
                         Which is why the dot now carries an opaque `bg-card`
                         backing — the activity tints are translucent, and the rail
                         used to show straight through them. */}
-                    <div className="relative flex w-14 shrink-0 items-center justify-center self-stretch">
+                    <div className="relative flex w-16 shrink-0 items-center justify-center self-stretch">
                       {!last && (
                         <span
                           aria-hidden
@@ -592,6 +592,15 @@ function Timeline({
                           />
                         </span>
                       )}
+                      {/* A ring of card colour around every mark, so the rail
+                          always breaks against it. Below a mark the rail already
+                          started 4px clear; *above* one it did not — the previous
+                          row's rail deliberately overshoots and passes underneath,
+                          which hid it but left the line running flush into the
+                          circle's top edge. An opaque halo gives the same 4px of
+                          air on both sides without either row needing to know the
+                          other's height. */}
+                      <span className="relative z-10 rounded-full bg-card p-1">
                       {isNow ? (
                         // Identity + live progress in one 48px mark: the arc is how
                         // far through this slot we are. Static by request — the
@@ -654,6 +663,7 @@ function Timeline({
                           )}
                         </span>
                       )}
+                      </span>
                     </div>
                     <div
                       className={cn(
@@ -740,14 +750,26 @@ function Timeline({
                       {isSelected && wikiTopicFor(slot.type) && (
                         <Link
                           to={wikiPath(a.wiki)}
-                          className="pointer-events-auto relative z-10 mt-2 inline-flex items-center gap-1.5 text-[13px] font-medium text-primary hover:underline"
+                          // A chip in the moment's own hue rather than a line of
+                          // blue text. Underlined primary made it the one thing
+                          // on the card that belonged to the app's accent instead
+                          // of to the activity — a feed card tinted teal with a
+                          // blue link in it. In the hue it reads as part of the
+                          // card, and as something to press rather than something
+                          // to read.
+                          style={{
+                            color: a.accent,
+                            borderColor: `${a.accent}59`,
+                            backgroundColor: `${a.accent}14`,
+                          }}
+                          className="group/wiki pointer-events-auto relative z-10 mt-2.5 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[13px] font-semibold transition-shadow hover:shadow-sm"
                         >
-                          <BookOpen className="size-3.5" />
+                          <BookOpen className="size-3.5 shrink-0" />
                           {t.day.learnAbout.replace(
                             '{topic}',
                             wikiTopicFor(slot.type)!.label(t),
                           )}
-                          <ArrowRight className="size-3" />
+                          <ArrowRight className="size-3 shrink-0 transition-transform group-hover/wiki:translate-x-0.5" />
                         </Link>
                       )}
                     </div>
