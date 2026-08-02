@@ -811,7 +811,13 @@ function Timeline({
                       <span
                         aria-hidden
                         className={cn(
-                          'pointer-events-none absolute',
+                          // Same stroke as the rail, and the same rule: the
+                          // `bg-border` track is the default and the accent is
+                          // what *lit* looks like. A faint accent everywhere made
+                          // this the one line in the column with a third colour
+                          // state, so it read as a different kind of mark rather
+                          // than as more of the same one.
+                          'pointer-events-none absolute bg-border',
                           // Measured from the mark's own edge, exactly as the
                           // rail is: the column is wider than the halo, so
                           // starting at the column's edge left the stub floating
@@ -826,10 +832,15 @@ function Timeline({
                               ? 'top-1/2 left-[calc(50%+2rem)] h-[3px] w-[1.125rem] -translate-y-1/2'
                               : 'top-1/2 left-[calc(50%+1.75rem)] h-[3px] w-[1.375rem] -translate-y-1/2',
                         )}
-                        style={{
-                          backgroundColor:
-                            isSelected || isNow ? a.accent : `${a.accent}40`,
-                        }}
+                        // Lit exactly where the rail beside it is: the segments
+                        // through and behind NOW carry the day's accent, the ones
+                        // ahead of it stay track-coloured. The focused row lights
+                        // too, because that is the row the column is about.
+                        style={
+                          isPast || isNow || isSelected
+                            ? { backgroundColor: a.accent }
+                            : undefined
+                        }
                       />
                       {/* A ring of card colour around the mark: the 4px of air
                           that stops the rail's two halves from running flush into
