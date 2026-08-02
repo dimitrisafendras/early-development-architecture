@@ -205,8 +205,15 @@ function MomentCard({
                 >
                   <Clock className="size-3.5" /> {t.day.panelSelectedTag}
                 </Eyebrow>
-                <Button variant="link" size="sm" onClick={onJumpToNow} className="h-auto p-0">
-                  {t.day.jumpToNow}
+                {/* The way back to live, and the only control in this state —
+                    so it is a button, not a link. As bare link text beside a
+                    grey chip it was the quietest thing in the card, which is
+                    backwards: the card is showing a moment that is *not* now,
+                    and the one thing the caregiver needs is the way out of that.
+                    `secondary` rather than `default`: the loudest button in this
+                    card belongs to the tool below, whatever the tool is. */}
+                <Button variant="secondary" size="sm" onClick={onJumpToNow}>
+                  <LocateFixed className="mr-1.5 size-3.5" /> {t.day.jumpToNow}
                 </Button>
               </>
             )}
@@ -590,45 +597,47 @@ function Timeline({
                           : undefined
                       }
                     >
-                      {/* Time chip + title only. The activity *type* used to sit
-                          here as a third item, but this column is ~290px wide: on
-                          any slot with a longer title the eyebrow wrapped onto its
-                          own line and every row ended up a different height. The
-                          dot's icon and hue already say which activity it is, and
-                          the moment card beside this one names the selected slot's
-                          type in words — so the rows stay two lines, uniform.
-                          `gap-y-1` still matters in Greek, where the title itself
-                          can wrap. */}
-                      {/* The duration rides *inside* the time chip rather than
-                          beside it: a third flex item is what used to wrap this
-                          ~290px column onto a ragged extra line. */}
-                      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-                        <span
-                          className={cn(
-                            'rounded-md px-1.5 py-0.5 font-heading text-[13px] font-bold tabular-nums transition-colors',
-                            isNow || isSelected ? a.text : 'text-muted-foreground',
-                          )}
-                          style={
-                            isNow || isSelected
-                              ? { backgroundColor: `${a.accent}1f` }
-                              : { backgroundColor: 'color-mix(in oklab, var(--muted) 70%, transparent)' }
-                          }
-                        >
-                          {slot.time}
-                          <span className="font-medium opacity-70">
-                            {' · '}
-                            {formatDuration(slot.mins, tl.hour, tl.minute)}
-                          </span>
+                      {/* **Title first, then when.** Side by side the chip won
+                          the row — it is bold, tabular and sitting in a tinted
+                          field, against a title in plain semibold — so the eye
+                          walked a column of times looking for the thing each one
+                          names. The name is what you are scanning for; the clock
+                          is how you place it once you have found it.
+
+                          The activity *type* used to sit on this line as a third
+                          item, but this column is ~290px wide: on any slot with a
+                          longer title the eyebrow wrapped and every row ended up
+                          a different height. The dot's icon and hue already say
+                          which activity it is, and the moment card beside this
+                          one names the selected slot's type in words. */}
+                      <span
+                        className={cn(
+                          'block font-semibold text-foreground',
+                          isPast && !isSelected && 'text-muted-foreground',
+                        )}
+                      >
+                        {slot.title}
+                      </span>
+                      {/* The duration rides *inside* the chip rather than beside
+                          it: a second element on this line is what used to wrap
+                          the ~290px column onto a ragged extra line. */}
+                      <span
+                        className={cn(
+                          'mt-1 inline-block rounded-md px-1.5 py-0.5 font-heading text-[13px] font-bold tabular-nums transition-colors',
+                          isNow || isSelected ? a.text : 'text-muted-foreground',
+                        )}
+                        style={
+                          isNow || isSelected
+                            ? { backgroundColor: `${a.accent}1f` }
+                            : { backgroundColor: 'color-mix(in oklab, var(--muted) 70%, transparent)' }
+                        }
+                      >
+                        {slot.time}
+                        <span className="font-medium opacity-70">
+                          {' · '}
+                          {formatDuration(slot.mins, tl.hour, tl.minute)}
                         </span>
-                        <span
-                          className={cn(
-                            'font-semibold text-foreground',
-                            isPast && !isSelected && 'text-muted-foreground',
-                          )}
-                        >
-                          {slot.title}
-                        </span>
-                      </div>
+                      </span>
                       {/* **The detail belongs to the row you picked, and only to
                           it.** Every row used to carry a two-line clamp of the
                           same prose, so a twenty-eight moment day was twenty-eight
