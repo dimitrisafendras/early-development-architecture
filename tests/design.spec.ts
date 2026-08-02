@@ -659,11 +659,41 @@ test('every activity kind offers tips, not only sleep', async ({ page }) => {
   await page.goto('daily')
   await hideOverlays(page)
 
+  // The tips wear the moment's hue, like every other mark on the card — the
+  // icon and the bullet dots both. They were `--primary`, which is the *palette*
+  // (one of two colours for the whole app) on the one card whose every other
+  // element tracks the *activity*, so the same two colours turned up under nine
+  // different headings. Eight kinds must therefore give eight hues; if this ever
+  // collapses to one or two, they have gone back to the accent.
+  const hues: number[] = []
   for (const type of kinds) {
     await page.getByRole('button', { name: `Kind ${type}`, exact: false }).first().click()
     await expect(
       page.getByText(TIP_HEADINGS[type], { exact: false }).first(),
       `${type} has no tips`,
     ).toBeVisible()
+
+    const paint = await page.evaluate((heading) => {
+      const head = [...document.querySelectorAll('p')].find((p) =>
+        p.textContent?.includes(heading),
+      )
+      const icon = head?.querySelector('svg')
+      const dot = head?.parentElement?.querySelector('li span[aria-hidden]')
+      return {
+        icon: icon ? getComputedStyle(icon).color : null,
+        dot: dot ? getComputedStyle(dot).backgroundColor : null,
+      }
+    }, TIP_HEADINGS[type])
+
+    const iconHue = hueOf(paint.icon ?? '')
+    const dotHue = hueOf(paint.dot ?? '')
+    expect(iconHue, `${type}: no icon hue (${paint.icon})`).not.toBeNull()
+    expect(dotHue, `${type}: no dot hue (${paint.dot})`).not.toBeNull()
+    // One hue per section: the shield/lamp and the dots are the same colour,
+    // and `text-…-700 dark:…-400` vs `bg-…-500` are steps of one ramp, so they
+    // differ in lightness and chroma but not in hue.
+    expect(hueGap(iconHue!, dotHue!), `${type}: icon and dots disagree`).toBeLessThan(12)
+    hues.push(dotHue!)
   }
+  expect(new Set(hues.map((h) => Math.round(h))).size, JSON.stringify(hues)).toBe(kinds.length)
 })

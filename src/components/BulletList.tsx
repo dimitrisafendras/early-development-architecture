@@ -17,11 +17,13 @@ import { cn } from '@/lib/utils'
  * rather than its baseline, so it reads as aligned with the text beside it at
  * any size, and it takes a token colour that a `::marker` cannot.
  *
- * `dotClassName` is for a list whose colour is **semantic** — the hunger cues
- * are `success` and the full cues are `warning`, and that pairing is the point
- * of showing them side by side. Everything else takes the default and should:
- * a colour used decoratively is the thing that hides the colours that mean
- * something.
+ * `dotClassName` is for a list whose colour **carries meaning** — either
+ * semantic (the hunger cues are `success` and the full cues are `warning`, and
+ * that pairing is the point of showing them side by side) or the identity of
+ * the thing the list belongs to (a moment card's tips take that activity's hue,
+ * like every other mark on the card). Everything else takes the default and
+ * should: a colour used decoratively is the thing that hides the colours that
+ * mean something.
  */
 export function BulletList({
   items,

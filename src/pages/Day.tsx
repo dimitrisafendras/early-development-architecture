@@ -1328,18 +1328,22 @@ const momentTips: Record<DayActivity, (t: Messages) => MomentTipSet> = {
 function MomentTips({ type }: { type: DayActivity }) {
   const t = useT()
   const { title, safety, items } = momentTips[type](t)
+  // The moment's own hue, not the accent. Everything else in this card is
+  // already the activity's colour — the timeline mark, the rail, the halo, the
+  // Wiki chip and the tool link — so a tips block in `--primary` was the one
+  // element that changed colour with the *palette* while its card changed with
+  // the *activity*, on the one screen where those two never agree.
+  const hue = dayActivityMeta[type]
+  const Icon = safety ? ShieldCheck : Lightbulb
   return (
     <div className="border-t border-border pt-4">
       <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        {safety ? (
-          <ShieldCheck className="size-4 shrink-0 text-primary" />
-        ) : (
-          <Lightbulb className="size-4 shrink-0 text-primary" />
-        )}
+        <Icon className={cn('size-4 shrink-0', hue.text)} />
         {title}
       </p>
       <BulletList
         className="mt-3"
+        dotClassName={hue.bar}
         items={items.map((item) => (
           <>
             <span className="font-medium text-foreground">{stripColon(item.title)}.</span>{' '}
