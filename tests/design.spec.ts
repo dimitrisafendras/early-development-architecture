@@ -545,3 +545,69 @@ test('sessions are scoped to one baby', async ({ page }) => {
   const history = page.locator('[data-slot="card"]', { hasText: /Log a past session/ }).first()
   await expect(history).toContainText(/No tummy sessions logged yet/)
 })
+
+test('selecting a step animates colour, never geometry', async ({ page }) => {
+  // **One animation at a time.** Selecting a step grows the cell (288px to 416px
+  // in the strip), its padding and its mark, and at the same moment the timeline
+  // starts a smooth scroll to centre it. While that geometry was transitioned the
+  // scroll was chasing a target still moving under it — and the mark, which has
+  // never been transitioned, snapped while the card glided. Geometry settles in
+  // the frame the scroll starts now, so there is one animation and it lands where
+  // it aimed.
+  //
+  // Asserted on computed style rather than on motion, because headless Chromium
+  // does not animate `scrollIntoView` and so cannot see the jank this prevents.
+  // Two filters matter: a zero duration is not an animation (`all` is the CSS
+  // default and inert), and an out-of-flow element cannot reflow its siblings —
+  // the rail's fill is absolutely positioned and animates its own height on
+  // purpose.
+  const GEOMETRY = /\b(width|height|padding|margin|font-size|inset|top|left|bottom|right|all)\b/
+  for (const timelineLayout of ['side', 'top'] as const) {
+    await seedStore(page, { timelineLayout })
+    await page.goto('daily')
+    await hideOverlays(page)
+    await expect(page.locator('ol > li').first()).toBeVisible()
+
+    const bad = await page.evaluate((pattern) => {
+      const re = new RegExp(pattern)
+      const out: { where: string; props: string; dur: string }[] = []
+      for (const li of Array.from(document.querySelectorAll('ol > li'))) {
+        for (const el of [li, ...Array.from(li.querySelectorAll('*'))]) {
+          const cs = getComputedStyle(el as Element)
+          // A transition with no duration is not an animation.
+          if (cs.transitionDuration.split(',').every((d) => parseFloat(d) === 0)) continue
+          // Contained — out of flow, or clipped inside a fixed-size box — so it
+          // cannot move anything the scroll is aiming at. This is what exempts
+          // the rail's own fill, which animates over 700ms on purpose: down the
+          // column its track is absolutely positioned, and across the strip the
+          // track is a fixed `w-6` with `overflow-hidden`, so in both layouts the
+          // fill is clipped rather than pushing the row around.
+          let n: HTMLElement | null = el as HTMLElement
+          let contained = false
+          while (n && n !== li) {
+            const s = getComputedStyle(n)
+            if (s.position === 'absolute' || s.position === 'fixed') {
+              contained = true
+              break
+            }
+            if (n !== el && s.overflow === 'hidden') {
+              contained = true
+              break
+            }
+            n = n.parentElement
+          }
+          if (contained) continue
+          if (!re.test(cs.transitionProperty)) continue
+          out.push({
+            where: String((el as HTMLElement).className ?? '').slice(0, 50),
+            props: cs.transitionProperty,
+            dur: cs.transitionDuration,
+          })
+        }
+      }
+      return out
+    }, GEOMETRY.source)
+
+    expect(bad, `${timelineLayout}: ${JSON.stringify(bad)}`).toEqual([])
+  }
+})

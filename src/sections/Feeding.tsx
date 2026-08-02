@@ -14,6 +14,7 @@ import { useBabyAge } from '../components/AgeBadge'
 import { bandIndex } from '../lib/schedule'
 import { cn } from '@/lib/utils'
 import { statusTone } from '../lib/tone'
+import { BulletList } from '@/components/BulletList'
 import { useT } from '../i18n'
 
 export function Feeding() {
@@ -108,13 +109,13 @@ export function Feeding() {
             >
               <CheckCircle2 className="size-4" /> {tf.hungerLabel}
             </p>
-            <ul className="space-y-1.5 text-[13px] leading-relaxed text-muted-foreground">
-              {tf.hungerCues.map((c) => (
-                <li key={c} className="flex gap-2">
-                  <span className={statusTone.success.icon}>•</span> {c}
-                </li>
-              ))}
-            </ul>
+            {/* Tone-coloured on purpose: hunger cues against fullness cues is
+                the one place on this page where the colour *is* the meaning. */}
+            <BulletList
+              className="text-muted-foreground"
+              dotClassName={statusTone.success.bar}
+              items={tf.hungerCues.map((c) => c)}
+            />
           </CardContent>
         </Card>
         <Card>
@@ -127,13 +128,11 @@ export function Feeding() {
             >
               <MinusCircle className="size-4" /> {tf.fullLabel}
             </p>
-            <ul className="space-y-1.5 text-[13px] leading-relaxed text-muted-foreground">
-              {tf.fullCues.map((c) => (
-                <li key={c} className="flex gap-2">
-                  <span className={statusTone.warning.icon}>•</span> {c}
-                </li>
-              ))}
-            </ul>
+            <BulletList
+              className="text-muted-foreground"
+              dotClassName={statusTone.warning.bar}
+              items={tf.fullCues.map((c) => c)}
+            />
           </CardContent>
         </Card>
       </div>

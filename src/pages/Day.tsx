@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { PageFrame } from '../components/PageFrame'
 import { Eyebrow } from '../components/Eyebrow'
+import { BulletList } from '../components/BulletList'
 import { ProgressRing } from '../components/ProgressRing'
 import { TummyConsole } from '../components/TummyConsole'
 import { SleepConsole } from '../components/SleepConsole'
@@ -761,7 +762,15 @@ function Timeline({
                           // its content the whole strip, and the page under it,
                           // grew and shrank by ~40px on every tap. The cell is
                           // fixed and the card fills it.
-                          'h-32 transition-[width] duration-300',
+                          // **No width transition.** The cell grows 288px to
+                          // 416px on selection, and animating that put a moving
+                          // target under a `scrollIntoView` that was already
+                          // animating toward it — two 300ms animations fighting,
+                          // which is what read as klunky. The geometry settles in
+                          // the same frame the scroll starts, so there is one
+                          // animation and it glides to a stationary point. Same
+                          // reasoning the mark's size already followed.
+                          'h-32',
                           // The focused cell is the only one carrying a Wiki chip,
                           // and a chip that has to wrap is a chip that has failed.
                           isSelected ? 'w-[26rem]' : 'w-72',
@@ -1073,7 +1082,11 @@ function Timeline({
                         // `gap-2.5`, not `gap-1.5`: three lines 6px apart in a card with 14px of
                         // padding read as one block of text with the padding around it
                         // rather than as a title, a window and a link.
-                        'flex min-w-0 flex-1 flex-col items-start justify-center gap-2.5 rounded-xl border transition-[background-color,border-color,box-shadow,padding,margin] duration-300',
+                        // Colour and lift animate; **geometry does not**. Padding
+                        // and margin were in this list, so selecting a row
+                        // reflowed the whole column for 300ms underneath a scroll
+                        // that was trying to centre it.
+                        'flex min-w-0 flex-1 flex-col items-start justify-center gap-2.5 rounded-xl border transition-[background-color,border-color,box-shadow] duration-300',
                         // In the strip the card fills the cell's fixed height, so
                         // selecting one cannot change how tall the strip is.
                         horizontal && 'h-full',
@@ -1143,7 +1156,9 @@ function Timeline({
                           one names the selected slot's type in words. */}
                       <span
                         className={cn(
-                          'block font-semibold text-foreground transition-[color,font-size] duration-300',
+                          // `font-size` reflows the card, and the card is what
+                          // the scroll is aiming at — colour only.
+                          'block font-semibold text-foreground transition-colors duration-300',
                           isSelected && 'font-heading text-[17px] leading-tight',
                           isPast && !isSelected && 'text-muted-foreground',
                         )}
@@ -1251,17 +1266,15 @@ function SafeSleepInfo() {
       <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
         <ShieldCheck className="size-4 text-primary" /> {t.sleep.safeTitle}
       </p>
-      <ul className="mt-3 flex flex-col gap-2.5">
-        {t.sleep.safe.map((rule, i) => (
-          <li key={i} className="flex gap-2 text-[13px] leading-relaxed">
-            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" aria-hidden />
-            <span>
-              <span className="font-medium text-foreground">{rule.title}.</span>{' '}
-              <span className="text-muted-foreground">{rule.text}</span>
-            </span>
-          </li>
+      <BulletList
+        className="mt-3"
+        items={t.sleep.safe.map((rule) => (
+          <>
+            <span className="font-medium text-foreground">{rule.title}.</span>{' '}
+            <span className="text-muted-foreground">{rule.text}</span>
+          </>
         ))}
-      </ul>
+      />
     </div>
   )
 }

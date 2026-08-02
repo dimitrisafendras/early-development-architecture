@@ -8,6 +8,7 @@ import { statusTone } from '../lib/tone'
 import { TummyTimeChart } from '../components/charts'
 import { useBabyAge } from '../components/AgeBadge'
 import { activityTargetForAge } from '../lib/schedule'
+import { BulletList } from '@/components/BulletList'
 import { useT } from '../i18n'
 
 export function TummyTime() {
@@ -55,11 +56,10 @@ export function TummyTime() {
           <Card>
             <CardContent>
               <p className="m-0 text-[15px] font-semibold text-foreground">{tt.benefitsTitle}</p>
-              <ul className="mt-2 list-disc pl-[18px] text-[13px] leading-relaxed text-muted-foreground">
-                {tt.benefits.map((b) => (
-                  <li key={b}>{b}</li>
-                ))}
-              </ul>
+              {/* The shared dot, not `list-disc`: a `::marker` takes its size,
+                  colour and indent from the user agent and matched neither of
+                  the app's other two bullet spellings. */}
+              <BulletList className="mt-3 text-muted-foreground" items={tt.benefits.map((b) => b)} />
             </CardContent>
           </Card>
 
