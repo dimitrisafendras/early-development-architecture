@@ -131,7 +131,8 @@ export function SideNav() {
             className={cn(row, 'text-foreground/70 hover:bg-foreground/5 hover:text-foreground')}
           />
           <SettingsMenu
-            align="start"
+            align="end"
+            side="right"
             withLabel={!collapsed}
             triggerClassName={cn(row, 'text-foreground/70 hover:bg-foreground/5 hover:text-foreground')}
           />

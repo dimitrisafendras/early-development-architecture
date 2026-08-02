@@ -296,6 +296,37 @@ test('a planned session that filled goes green, and the caption dates it', async
   await expect(console_).not.toContainText(/\d\d:\d\d[–-]\d\d:\d\d/)
 })
 
+test('the day layout setting moves the schedule from the side to the top', async ({ page }) => {
+  // Two layouts of the same two things. The strip is not a second component —
+  // same steps, same rail, same content — so the thing worth asserting is that
+  // the axis actually changes and that the day is still all there.
+  await seedStore(page, {})
+  await page.goto('')
+  await hideOverlays(page)
+
+  const list = page.locator('ol').filter({ has: page.locator('li') }).first()
+  await expect(list).toBeVisible()
+  const steps = await list.locator('> li').count()
+  expect(steps).toBeGreaterThan(5)
+  // Side by side: the list stacks, so it is not a flex row.
+  expect(await list.evaluate((el) => getComputedStyle(el).flexDirection === 'row' && getComputedStyle(el).display === 'flex')).toBe(false)
+
+  await seedStore(page, { timelineLayout: 'top' })
+  await page.goto('')
+  await hideOverlays(page)
+
+  const strip = page.locator('ol').filter({ has: page.locator('li') }).first()
+  await expect(strip).toBeVisible()
+  // Across the top: a flex row, the same number of moments, and a viewport that
+  // scrolls sideways rather than down.
+  expect(await strip.evaluate((el) => getComputedStyle(el).display)).toBe('flex')
+  expect(await strip.evaluate((el) => getComputedStyle(el).flexDirection)).toBe('row')
+  expect(await strip.locator('> li').count()).toBe(steps)
+  expect(
+    await strip.evaluate((el) => getComputedStyle(el.parentElement!).overflowX),
+  ).toBe('auto')
+})
+
 test('the running clock reads elapsed against the planned session length', async ({ page }) => {
   // The plan already says how long this sitting should be; a bare elapsed time
   // gave the number nothing to measure itself against.

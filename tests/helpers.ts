@@ -24,6 +24,7 @@ export interface SeedState {
   weatherCoords?: { lat: number; lon: number } | null
   customSchedules?: unknown[]
   navCollapsed?: boolean
+  timelineLayout?: 'side' | 'top'
 }
 
 /** Seed the store before the app boots. Call before `page.goto`. */

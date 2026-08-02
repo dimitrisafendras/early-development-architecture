@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
@@ -40,6 +40,7 @@ import { wikiPath, findTopic } from '../sections/registry'
 import { useBabies } from '../lib/useBabies'
 import { useTummyTracker } from '../lib/useTummyTracker'
 import { useFeedLog } from '../lib/useFeedLog'
+import { useAppStore } from '../store'
 import { useT } from '../i18n'
 
 /** Wiki topic each activity maps to, for the panel's "learn more" link + info. */
@@ -57,6 +58,7 @@ export default function Day() {
   )
   const [selected, setSelected] = useState<number | null>(null)
   const activeIdx = selected ?? currentSlot
+  const timelineLayout = useAppStore((s) => s.timelineLayout)
   // Selecting the live slot clears the override so the panel resumes following
   // the clock; any other slot is a sticky preview.
   const selectSlot = (i: number) => setSelected(i === currentSlot ? null : i)
@@ -88,27 +90,60 @@ export default function Day() {
           for the window where `lg` laid out two columns but the column had no
           fixed height yet — it would now fight the viewport on a short landscape
           tablet and push the row past the fold. */}
-      <div className="grid grid-cols-1 gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,23rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)]">
-        <div className="min-h-0 lg:order-2">
-          <MomentCard
-            schedule={schedule}
-            slot={activeIdx}
-            isNow={activeIdx === currentSlot}
-            now={now}
-            onSelectSlot={selectSlot}
-            onJumpToNow={() => setSelected(null)}
-          />
+      {/* Two layouts of the same two things, chosen in Settings.
+          `side` gives every moment a full row and fits eight or nine on screen;
+          `top` trades that for width, handing the moment card and its tool the
+          whole page while the day becomes a ribbon you scrub. Neither is better,
+          which is exactly why it is a setting and not a breakpoint. */}
+      {timelineLayout === 'top' ? (
+        <div className="flex flex-col gap-6 lg:min-h-0 lg:flex-1">
+          {/* `shrink-0`: the strip is content-height and must stay it, or the
+              column's shared height would squeeze the day rather than the tool
+              that has a scroll area to give. */}
+          <div className="shrink-0">
+            <Timeline
+              horizontal
+              schedule={schedule}
+              currentSlot={currentSlot}
+              activeIdx={activeIdx}
+              now={now}
+              onSelect={selectSlot}
+            />
+          </div>
+          <div className="min-h-0 lg:flex-1">
+            <MomentCard
+              schedule={schedule}
+              slot={activeIdx}
+              isNow={activeIdx === currentSlot}
+              now={now}
+              onSelectSlot={selectSlot}
+              onJumpToNow={() => setSelected(null)}
+            />
+          </div>
         </div>
-        <div className="min-h-0 lg:order-1">
-          <Timeline
-            schedule={schedule}
-            currentSlot={currentSlot}
-            activeIdx={activeIdx}
-            now={now}
-            onSelect={selectSlot}
-          />
+      ) : (
+        <div className="grid grid-cols-1 gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,23rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)]">
+          <div className="min-h-0 lg:order-2">
+            <MomentCard
+              schedule={schedule}
+              slot={activeIdx}
+              isNow={activeIdx === currentSlot}
+              now={now}
+              onSelectSlot={selectSlot}
+              onJumpToNow={() => setSelected(null)}
+            />
+          </div>
+          <div className="min-h-0 lg:order-1">
+            <Timeline
+              schedule={schedule}
+              currentSlot={currentSlot}
+              activeIdx={activeIdx}
+              now={now}
+              onSelect={selectSlot}
+            />
+          </div>
         </div>
-      </div>
+      )}
     </PageFrame>
   )
 }
@@ -416,20 +451,69 @@ function wikiTopicFor(type: DayActivity) {
   return findTopic(dayActivityMeta[type].wiki)
 }
 
+/**
+ * The timeline's viewport, in whichever axis the layout asked for.
+ *
+ * Kept out of `Timeline` so the axis is chosen once rather than at every element
+ * that cares — and so the vertical case keeps the glass scroll area (edge fades,
+ * frosted self-hiding bar) it has always had, untouched.
+ */
+function Scroller({
+  horizontal,
+  areaRef,
+  stripRef,
+  children,
+}: {
+  horizontal: boolean
+  areaRef: React.RefObject<GlassScrollAreaHandle>
+  stripRef: React.RefObject<HTMLDivElement>
+  children: React.ReactNode
+}) {
+  if (horizontal) {
+    return (
+      <div
+        ref={stripRef}
+        className="-mx-1 snap-x snap-proximity overflow-x-auto overflow-y-hidden px-1 pb-2 [scrollbar-color:var(--border)_transparent] [scrollbar-width:thin]"
+      >
+        {children}
+      </div>
+    )
+  }
+  return (
+    <GlassScrollArea ref={areaRef} className="max-h-[21rem] snap-y snap-proximity lg:max-h-none">
+      {children}
+    </GlassScrollArea>
+  )
+}
+
 /* ------------------------------------------------------------------ timeline */
 
+/**
+ * The day, as a list of moments you can step through.
+ *
+ * **Two orientations, one component.** `side` is a column beside the moment
+ * card; `top` is a strip across the page above it. They are the same steps with
+ * the same content and the same rail — only the axis differs — so they are one
+ * component with an orientation rather than two that would drift the way the
+ * tummy widget and the tracker page once did. Everything that changes between
+ * them is a class or the axis a length is measured on, and it is picked once
+ * here rather than branched per element.
+ */
 function Timeline({
   schedule,
   currentSlot,
   activeIdx,
   now,
   onSelect,
+  horizontal = false,
 }: {
   schedule: ScheduleSlot[]
   currentSlot: number
   activeIdx: number
   now: Date
   onSelect: (i: number) => void
+  /** The `top` layout — a scrubbable ribbon instead of a scrollable column. */
+  horizontal?: boolean
 }) {
   const t = useT()
   // How far through the live slot we are — drives both the ring around the NOW
@@ -437,23 +521,36 @@ function Timeline({
   // against the slot's own length, so the arc completes when the activity is
   // done rather than when the next one happens to start.
   const livePct = slotTiming(schedule, currentSlot, now).pct
-  const areaRef = useRef<GlassScrollAreaHandle>(null)
+  const areaRef = useRef<GlassScrollAreaHandle>(null!)
+  // `GlassScrollArea` is a y-scroller with its own centring, so the strip keeps
+  // its own viewport and does the same job with `scrollIntoView`.
+  const stripRef = useRef<HTMLDivElement>(null!)
   const itemRefs = useRef<(HTMLLIElement | null)[]>([])
   const didCenter = useRef(false)
   const [nowInView, setNowInView] = useState(true)
 
-  // Keep the active slot vertically centered, so the current moment always shows
-  // with the slot before and after it in view (instant on first paint, smooth
-  // after). The GlassScrollArea contains the scroll to itself — the page never
-  // jumps.
+  const centerOn = useCallback(
+    (i: number, behavior: ScrollBehavior) => {
+      const el = itemRefs.current[i]
+      if (!el) return
+      if (horizontal) el.scrollIntoView({ behavior, inline: 'center', block: 'nearest' })
+      else areaRef.current?.centerChild(el, behavior)
+    },
+    [horizontal],
+  )
+
+  // Keep the active slot centred on the scroll axis, so the current moment
+  // always shows with the slot before and after it in view (instant on first
+  // paint, smooth after). Either viewport contains the scroll to itself — the
+  // page never jumps.
   useEffect(() => {
-    areaRef.current?.centerChild(itemRefs.current[activeIdx], didCenter.current ? 'smooth' : 'auto')
+    centerOn(activeIdx, didCenter.current ? 'smooth' : 'auto')
     didCenter.current = true
-  }, [activeIdx])
+  }, [activeIdx, centerOn])
 
   // Reveal the "jump to now" control only while the NOW slot is scrolled away.
   useEffect(() => {
-    const root = areaRef.current?.getViewport()
+    const root = horizontal ? stripRef.current : areaRef.current?.getViewport()
     const el = itemRefs.current[currentSlot]
     if (!root || !el) return
     const io = new IntersectionObserver(([e]) => setNowInView(e.intersectionRatio >= 0.75), {
@@ -462,11 +559,11 @@ function Timeline({
     })
     io.observe(el)
     return () => io.disconnect()
-  }, [currentSlot])
+  }, [currentSlot, horizontal])
 
   const recenter = () => {
     onSelect(currentSlot)
-    areaRef.current?.centerChild(itemRefs.current[currentSlot], 'smooth')
+    centerOn(currentSlot, 'smooth')
   }
 
   return (
@@ -511,14 +608,17 @@ function Timeline({
               </GlassButton>
             </div>
           )}
-        {/* `proximity`, never `mandatory`: rows settle onto the centre line when
-            you let go — the carousel dial — but browsing the day freely, and the
-            programmatic `centerChild` behind "jump to now", are both left alone. */}
-        <GlassScrollArea
-          ref={areaRef}
-          className="max-h-[21rem] snap-y snap-proximity lg:max-h-none"
-        >
-          <ol className="relative px-1.5">
+        {/* `proximity`, never `mandatory`: steps settle onto the centre line
+            when you let go — the carousel dial — but browsing the day freely,
+            and the programmatic centring behind "jump to now", are both left
+            alone.
+
+            The strip is a plain scroller rather than a `GlassScrollArea`: that
+            component is a y-scroller with its own centring and edge fades, and
+            wrapping it sideways would be borrowing a shape for the axis it does
+            not have. */}
+        <Scroller horizontal={horizontal} areaRef={areaRef} stripRef={stripRef}>
+          <ol className={cn('relative', horizontal ? 'flex px-1 py-1' : 'px-1.5')}>
             {schedule.map((slot, i) => {
               const a = dayActivityMeta[slot.type]
               const Icon = a.icon
@@ -565,7 +665,21 @@ function Timeline({
                   ref={(el) => {
                     itemRefs.current[i] = el
                   }}
-                  className="group relative flex snap-center gap-3.5 pb-8 last:pb-1"
+                  className={cn(
+                    'group relative flex snap-center',
+                    // The gap between two steps *is* the rail, so it lives on the
+                    // scroll axis in both layouts — `pb-8` down the column,
+                    // `pr-8` along the strip — and the rail's two halves split it
+                    // the same way either way.
+                    horizontal
+                      ? cn(
+                          'shrink-0 flex-col items-center gap-2.5 pr-8 last:pr-1',
+                          // The focused cell is the only one carrying a Wiki chip,
+                          // and a chip that has to wrap is a chip that has failed.
+                          isSelected ? 'w-60' : 'w-44',
+                        )
+                      : 'gap-3.5 pb-8 last:pb-1',
+                  )}
                 >
                   {/* **The row's control is an overlay, not a wrapper.** The
                       focused card carries a real `<Link>` into the Wiki now, and
@@ -590,7 +704,17 @@ function Timeline({
                   >
                     <span className="sr-only">{slot.title}</span>
                   </button>
-                  <div className="pointer-events-none flex flex-1 items-stretch gap-3.5">
+                  {/* The step's two parts, stacked along whichever axis is the
+                      cross axis of the layout: mark beside card down the column,
+                      mark above card along the strip. */}
+                  <div
+                    className={cn(
+                      'pointer-events-none flex flex-1',
+                      horizontal
+                        ? 'w-full flex-col items-center gap-2'
+                        : 'items-stretch gap-3.5',
+                    )}
+                  >
                     {/* **Each row owns half of the segment above it and half of
                         the segment below it.** The rail used to be one span per
                         row that started at the mark's bottom edge and deliberately
@@ -620,7 +744,12 @@ function Timeline({
                         a different fraction on every row, since it depended on the
                         height of whatever came next. Here 100% lands exactly on
                         the next mark. */}
-                    <div className="relative flex w-18 shrink-0 flex-col items-center self-stretch">
+                    <div
+                      className={cn(
+                        'relative flex shrink-0 items-center self-stretch',
+                        horizontal ? 'h-18 w-full flex-row' : 'w-18 flex-col',
+                      )}
+                    >
                       {/* The tail of the segment arriving from the row above. It
                           mirrors the bottom half exactly — same overhang, fill
                           growing the same way — because it is the same segment.
@@ -628,14 +757,27 @@ function Timeline({
                           from the mark, so the second half of every slot drew a
                           lit stub sitting on the arriving mark with an unlit gap
                           above it: progress running backwards up the day. */}
-                      <span aria-hidden className="relative w-[3px] flex-1">
+                      <span
+                        aria-hidden
+                        className={cn('relative flex-1', horizontal ? 'h-[3px]' : 'w-[3px]')}
+                      >
                         {i > 0 && (
-                          <span className="absolute inset-x-0 -top-4 bottom-0 overflow-hidden bg-border">
+                          <span
+                            className={cn(
+                              'absolute overflow-hidden bg-border',
+                              horizontal ? 'inset-y-0 -left-4 right-0' : 'inset-x-0 -top-4 bottom-0',
+                            )}
+                          >
                             <span
-                              className="block w-full transition-[height] duration-700 ease-out"
+                              className={cn(
+                                'block transition-[height,width] duration-700 ease-out',
+                                horizontal ? 'h-full' : 'w-full',
+                              )}
                               style={{
-                                height: `${topFill}%`,
-                                backgroundImage: `linear-gradient(180deg, ${midAbove}, ${a.accent})`,
+                                [horizontal ? 'width' : 'height']: `${topFill}%`,
+                                backgroundImage: `linear-gradient(${
+                                  horizontal ? '90deg' : '180deg'
+                                }, ${midAbove}, ${a.accent})`,
                               }}
                             />
                           </span>
@@ -730,14 +872,27 @@ function Timeline({
                           reserves scrollable overflow, so an invisible track
                           hanging past the final moment left 28px of dead scroll
                           into nothing at the bottom of the day. */}
-                      <span aria-hidden className="relative w-[3px] flex-1">
+                      <span
+                        aria-hidden
+                        className={cn('relative flex-1', horizontal ? 'h-[3px]' : 'w-[3px]')}
+                      >
                         {!last && (
-                          <span className="absolute inset-x-0 top-0 -bottom-4 overflow-hidden bg-border">
+                          <span
+                            className={cn(
+                              'absolute overflow-hidden bg-border',
+                              horizontal ? 'inset-y-0 left-0 -right-4' : 'inset-x-0 top-0 -bottom-4',
+                            )}
+                          >
                             <span
-                              className="block w-full transition-[height] duration-700 ease-out"
+                              className={cn(
+                                'block transition-[height,width] duration-700 ease-out',
+                                horizontal ? 'h-full' : 'w-full',
+                              )}
                               style={{
-                                height: `${bottomFill}%`,
-                                backgroundImage: `linear-gradient(180deg, ${a.accent}, ${midBelow})`,
+                                [horizontal ? 'width' : 'height']: `${bottomFill}%`,
+                                backgroundImage: `linear-gradient(${
+                                  horizontal ? '90deg' : '180deg'
+                                }, ${a.accent}, ${midBelow})`,
                               }}
                             />
                           </span>
@@ -746,7 +901,11 @@ function Timeline({
                     </div>
                     <div
                       className={cn(
-                        'min-w-0 flex-1 rounded-xl transition-[background-color,box-shadow,padding,margin] duration-300',
+                        'min-w-0 rounded-xl transition-[background-color,box-shadow,padding,margin] duration-300',
+                        // In the strip the card sits *under* its mark and owns the
+                        // cell's width; in the column it sits beside the mark and
+                        // takes what is left.
+                        horizontal ? 'w-full text-center' : 'flex-1',
                         // The focused card is bigger, and it pushes its
                         // neighbours away: a picker's centre cell, not a list
                         // row that happens to be tinted. The tint and the ring
@@ -755,7 +914,9 @@ function Timeline({
                         // eight hues, one per kind — so the selected row read as
                         // "another blue thing" rather than as the one in focus.
                         // Size and air are the axes nothing else here uses.
-                        isSelected ? 'my-2 bg-card px-4 py-3.5' : 'px-3 py-2 group-hover:bg-muted/70',
+                        isSelected
+                          ? cn('bg-card px-4 py-3.5', !horizontal && 'my-2')
+                          : 'px-3 py-2 group-hover:bg-muted/70',
                       )}
                       // **The focused row is the only card in the list that is
                       // materially raised.** It was a translucent wash in the
@@ -807,7 +968,7 @@ function Timeline({
                           the ~290px column onto a ragged extra line. */}
                       <span
                         className={cn(
-                          'mt-1 inline-block rounded-md px-1.5 py-0.5 font-heading text-[13px] font-bold tabular-nums transition-colors',
+                          'mt-1 inline-block rounded-md px-1.5 py-0.5 font-heading text-[13px] font-bold whitespace-nowrap tabular-nums transition-colors',
                           isNow || isSelected ? a.text : 'text-muted-foreground',
                         )}
                         style={
@@ -856,7 +1017,7 @@ function Timeline({
                             borderColor: `${a.accent}59`,
                             backgroundColor: `${a.accent}14`,
                           }}
-                          className="group/wiki pointer-events-auto relative z-10 mt-2.5 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[13px] font-semibold transition-shadow hover:shadow-sm"
+                          className="group/wiki pointer-events-auto relative z-10 mt-2.5 inline-flex max-w-full items-center gap-1.5 truncate rounded-lg border px-2.5 py-1 text-[13px] font-semibold whitespace-nowrap transition-shadow hover:shadow-sm"
                         >
                           <BookOpen className="size-3.5 shrink-0" />
                           {t.day.learnAbout.replace(
@@ -872,7 +1033,7 @@ function Timeline({
               )
             })}
           </ol>
-        </GlassScrollArea>
+        </Scroller>
         </div>
     </WidgetCard>
   )

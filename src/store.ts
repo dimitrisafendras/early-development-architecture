@@ -26,6 +26,8 @@ export function sortSchedules(list: AgeSchedule[]): AgeSchedule[] {
 
 export type Palette = 'blue' | 'red'
 export type Locale = 'en' | 'el'
+/** Where the Day dashboard puts the day — beside the moment, or above it. */
+export type TimelineLayout = 'side' | 'top'
 
 interface AppState {
   dark: boolean
@@ -65,6 +67,19 @@ interface AppState {
    *  page gets the width; expanded state persists across sessions. */
   navCollapsed: boolean
   toggleNav: () => void
+  /**
+   * Where the Day dashboard puts the day.
+   *
+   * `side` is the default: the schedule as a column beside the moment, which
+   * gives every moment a full row and fits eight or nine of them on screen.
+   * `top` lays the same day out as a horizontal strip above the moment, which
+   * trades that for width — the moment card and its tool then get the whole
+   * page instead of two thirds of it, and the day reads as a ribbon you scrub
+   * rather than a list you scroll. Neither is better; it is what the caregiver
+   * wants to be looking at, so it is a setting rather than a breakpoint.
+   */
+  timelineLayout: TimelineLayout
+  setTimelineLayout: (layout: TimelineLayout) => void
   /**
    * Which folding sections on /schedule are open, by key.
    *
@@ -169,6 +184,8 @@ export const useAppStore = create<AppState>()(
       setCustomSchedules: (list) => set({ customSchedules: sortSchedules(list) }),
       navCollapsed: true,
       toggleNav: () => set((state) => ({ navCollapsed: !state.navCollapsed })),
+      timelineLayout: 'side',
+      setTimelineLayout: (timelineLayout) => set({ timelineLayout }),
       openSections: {},
       setSectionOpen: (key, open) =>
         set((state) => ({ openSections: { ...state.openSections, [key]: open } })),
@@ -230,6 +247,7 @@ export const useAppStore = create<AppState>()(
         cardOrder: state.cardOrder,
         customSchedules: state.customSchedules,
         navCollapsed: state.navCollapsed,
+        timelineLayout: state.timelineLayout,
         openSections: state.openSections,
         notifSeen: state.notifSeen,
         notifDismissed: state.notifDismissed,

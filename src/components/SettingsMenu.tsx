@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Sun, Moon, Palette, SlidersHorizontal, Download } from 'lucide-react'
+import { Sun, Moon, Palette, PanelLeft, PanelTop, SlidersHorizontal, Download } from 'lucide-react'
 import { GlassToggleGroup } from '@dimitrisafendras/liquid-glass'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
@@ -24,10 +24,16 @@ export function SettingsMenu({
   triggerClassName,
   withLabel = false,
   align = 'end',
+  side = 'bottom',
 }: {
   triggerClassName: string
   withLabel?: boolean
   align?: 'start' | 'center' | 'end'
+  /** Which edge of the trigger the panel opens from. The desktop rail passes
+   *  `right`, so the settings sit *beside* the navigation rather than over it —
+   *  at `bottom` the panel covered the rail it was opened from, which reads as
+   *  the nav having been replaced rather than as a panel having opened. */
+  side?: 'top' | 'right' | 'bottom' | 'left'
 }) {
   const t = useT()
   const dark = useAppStore((s) => s.dark)
@@ -35,6 +41,8 @@ export function SettingsMenu({
   const palette = useAppStore((s) => s.palette)
   const setPalette = useAppStore((s) => s.setPalette)
   const locale = useAppStore((s) => s.locale)
+  const timelineLayout = useAppStore((s) => s.timelineLayout)
+  const setTimelineLayout = useAppStore((s) => s.setTimelineLayout)
   const setLocale = useAppStore((s) => s.setLocale)
   const { canInstall, installed, ios, promptInstall } = useInstall()
   const [iosHint, setIosHint] = useState(false)
@@ -92,7 +100,7 @@ export function SettingsMenu({
         <SlidersHorizontal className="size-4 shrink-0" aria-hidden />
         {withLabel && <span>{t.nav.settings}</span>}
       </PopoverTrigger>
-      <PopoverContent align={align} className="w-60 space-y-4">
+      <PopoverContent align={align} side={side} sideOffset={10} className="w-60 space-y-4">
         <Field label={t.nav.theme}>
           <GlassToggleGroup
             ariaLabel={t.nav.theme}
@@ -116,6 +124,30 @@ export function SettingsMenu({
             options={[
               { value: 'blue', label: t.nav.boy },
               { value: 'red', label: t.nav.girl },
+            ]}
+          />
+        </Field>
+        {/* Where the Day dashboard puts the day. A choice rather than a
+            breakpoint: neither layout is better, it is which of the two things
+            the caregiver wants to be looking at — the whole day at once, or the
+            moment and its tool with the page to themselves. */}
+        <Field label={t.nav.dayLayout}>
+          <GlassToggleGroup
+            ariaLabel={t.nav.dayLayout}
+            size="sm"
+            value={timelineLayout}
+            onChange={setTimelineLayout}
+            options={[
+              {
+                value: 'side',
+                label: <PanelLeft className="size-3.5" />,
+                ariaLabel: t.nav.dayLayoutSide,
+              },
+              {
+                value: 'top',
+                label: <PanelTop className="size-3.5" />,
+                ariaLabel: t.nav.dayLayoutTop,
+              },
             ]}
           />
         </Field>
