@@ -36,7 +36,19 @@ export function BottomNav() {
           GlassSurface's `radius` prop: that prop writes an inline style, which a
           `sm:` utility could never override. */}
       <GlassSurface className="border-t border-border/50 px-1.5 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] [--ds-glass-radius:0px] sm:mx-auto sm:max-w-md sm:border-t-0 sm:p-1.5 sm:pb-1.5 sm:[--ds-glass-radius:26px]">
-        <ul className="relative grid grid-cols-5">
+        {/* **The column count comes from the list, not from a literal.**
+            It was `grid-cols-5` against six areas, so the sixth tab (Family)
+            dropped onto a second row the moment the sleep log added itself to
+            `appAreas` — half a bar's worth of glass below the other five, with
+            the sliding indicator still measuring itself in sixths and landing
+            on nothing. A tab bar's whole job is to be one row of equal targets.
+            An inline `gridTemplateColumns` rather than a `grid-cols-${n}` class
+            because Tailwind generates from source text and cannot see a value
+            computed at runtime. */}
+        <ul
+          className="relative grid"
+          style={{ gridTemplateColumns: `repeat(${appAreas.length}, minmax(0, 1fr))` }}
+        >
           {/* The selected-tab indicator is one sliding element rather than a
               background on each tab, so switching tabs glides the way the
               segmented control's thumb does — same `.ds-seg-thumb` easing, so

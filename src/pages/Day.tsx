@@ -296,7 +296,21 @@ function MomentCard({
               {/* Type, then the moment's *time*: how long it takes and — live —
                   how much of that is left. The two facts the schedule used to
                   leave out, side by side with the name of the activity. */}
-              <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+              {/* **Stacked on a phone, inline from `sm` — never wrapped.**
+                  These two are a wrapping row, which on a phone made the card's
+                  header a different height for every activity: "CARE" leaves
+                  room for the time chip beside it, "TUMMY & FLOOR TIME" does
+                  not, so moving through the day nudged the title, the detail and
+                  everything under them up and down by a line. Wrapping also put
+                  the break wherever the label happened to end, which reads as a
+                  layout that ran out of room rather than one that was designed.
+                  Below `sm` they are two rows for every kind; from `sm` the
+                  column is wide enough that the longest label still fits beside
+                  its chip. */}
+              <div
+                id="moment-head"
+                className="flex flex-col items-start gap-y-1 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-2.5"
+              >
                 <Eyebrow as="span" tone="inherit" className={meta.text}>
                   {t.fullDay.types[type]}
                 </Eyebrow>
@@ -305,7 +319,9 @@ function MomentCard({
                   // means something against the length it is a remainder of.
                   <span
                     className={cn(
-                      'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums',
+                      // The chip is one fact and breaks into nonsense — "left of
+                      // 3h" over "30m" — so it never wraps inside itself.
+                      'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums',
                       meta.text,
                     )}
                     style={{ backgroundColor: `${a}1f` }}
@@ -317,12 +333,12 @@ function MomentCard({
                 ) : isNow ? (
                   // The activity's window has passed but the next one hasn't
                   // started: say when it does rather than freeze a spent countdown.
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold tabular-nums text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold tabular-nums text-muted-foreground">
                     <Timer className="size-3.5" />
                     {t.day.nextIn} {formatDuration(untilNext, tl.hour, tl.minute)}
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold tabular-nums text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold tabular-nums text-muted-foreground">
                     <Clock className="size-3.5" />
                     <span className="sr-only">{t.day.durationLabel}: </span>
                     {cur.time} – {endTime} · {formatDuration(mins, tl.hour, tl.minute)}

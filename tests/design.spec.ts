@@ -697,3 +697,80 @@ test('every activity kind offers tips, not only sleep', async ({ page }) => {
   }
   expect(new Set(hues.map((h) => Math.round(h))).size, JSON.stringify(hues)).toBe(kinds.length)
 })
+
+test('the moment card head stacks on a phone and sits inline on a desktop', async ({ page }) => {
+  // The activity label and the time chip were a wrapping row. On a phone that
+  // made the card's header a different height for every activity — "CARE"
+  // leaves room for the chip beside it, "TUMMY & FLOOR TIME" does not — so
+  // moving through the day nudged the title and everything under it by a line,
+  // and the break landed wherever the label happened to end. Two rows for every
+  // kind below `sm`; one row from `sm`, where the longest label still fits.
+  await seedStore(page, {
+    customSchedules: [
+      {
+        id: 'head',
+        fromMonths: 0,
+        slots: [{ time: '07:00', type: 'tummy', mins: 30, title: 'Kind tummy', detail: 'A moment' }],
+      },
+    ],
+  })
+  await page.goto('daily')
+  await hideOverlays(page)
+
+  // The two boxes, read off the row itself rather than by text, so the assertion
+  // does not depend on which label or which of the three chip states is showing.
+  const head = () =>
+    page.evaluate(() => {
+      const row = document.getElementById('moment-head')
+      const [label, chip] = [...(row?.children ?? [])] as HTMLElement[]
+      if (!label || !chip) return null
+      const a = label.getBoundingClientRect()
+      const b = chip.getBoundingClientRect()
+      return { labelBottom: a.bottom, labelTop: a.top, chipTop: b.top, chipLeft: b.left, labelLeft: a.left }
+    })
+
+  await page.setViewportSize({ width: 390, height: 844 })
+  const phone = await head()
+  expect(phone, 'no moment head').not.toBeNull()
+  // Stacked: the chip starts below the label, and both begin at the same edge.
+  expect(phone!.chipTop).toBeGreaterThanOrEqual(phone!.labelBottom - 1)
+  expect(Math.abs(phone!.chipLeft - phone!.labelLeft)).toBeLessThan(2)
+
+  await page.setViewportSize({ width: 1024, height: 900 })
+  const desk = await head()
+  // Inline: they share a line, so the chip is to the right and vertically
+  // overlapping — not below.
+  expect(desk!.chipTop).toBeLessThan(desk!.labelBottom)
+  expect(desk!.chipLeft).toBeGreaterThan(desk!.labelLeft)
+})
+
+test('the bottom tab bar is one row of equal tabs', async ({ page }) => {
+  // It was `grid-cols-5` against six areas, so the sixth tab dropped onto a
+  // second row the moment the sleep log added itself to `appAreas` — and the
+  // sliding indicator, which measures itself in `100 / appAreas.length`, was
+  // left pointing at a column the grid did not have. The count now comes from
+  // the list, so the two cannot disagree again; this asserts the shape rather
+  // than the number, which is what has to hold when a seventh area arrives.
+  await seedStore(page, {})
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('sleep')
+
+  const tabs = await page.evaluate(() => {
+    const bar = document.querySelector('nav ul.grid')
+    return [...(bar?.querySelectorAll('a') ?? [])].map((a) => {
+      const r = a.getBoundingClientRect()
+      return { top: Math.round(r.top), width: Math.round(r.width), label: a.textContent }
+    })
+  })
+
+  expect(tabs.length).toBeGreaterThanOrEqual(5)
+  expect(new Set(tabs.map((t) => t.top)).size, JSON.stringify(tabs)).toBe(1)
+  // Equal targets: the widest and narrowest differ only by sub-pixel rounding.
+  const widths = tabs.map((t) => t.width)
+  expect(Math.max(...widths) - Math.min(...widths), JSON.stringify(widths)).toBeLessThanOrEqual(1)
+  // The tap target stays above the 44px minimum even at six across.
+  const height = await page.evaluate(
+    () => Math.round(document.querySelector('nav ul.grid a')!.getBoundingClientRect().height),
+  )
+  expect(height).toBeGreaterThanOrEqual(44)
+})
