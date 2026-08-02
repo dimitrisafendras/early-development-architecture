@@ -721,7 +721,11 @@ function Timeline({
                       mark above card along the strip. */}
                   <div
                     className={cn(
-                      'pointer-events-none flex flex-1',
+                      // `min-w-0`: a flex item's automatic minimum is its
+                      // content, so this wrapper refused to shrink and carried
+                      // the whole card past the column's right edge whenever a
+                      // moment's Wiki topic had a long name.
+                      'pointer-events-none flex min-w-0 flex-1',
                       horizontal
                         ? 'w-full flex-col items-center gap-2'
                         : 'items-stretch gap-3.5',
@@ -1029,13 +1033,23 @@ function Timeline({
                             borderColor: `${a.accent}59`,
                             backgroundColor: `${a.accent}14`,
                           }}
-                          className="group/wiki pointer-events-auto relative z-10 mt-2.5 inline-flex max-w-full items-center gap-1.5 truncate rounded-lg border px-2.5 py-1 text-[13px] font-semibold whitespace-nowrap transition-shadow hover:shadow-sm"
+                          className="group/wiki pointer-events-auto relative z-10 mt-2.5 flex max-w-full items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-semibold transition-shadow hover:shadow-sm"
                         >
                           <BookOpen className="size-3.5 shrink-0" />
-                          {t.day.learnAbout.replace(
-                            '{topic}',
-                            wikiTopicFor(slot.type)!.label(t),
-                          )}
+                          {/* The label truncates, the chip does not. `truncate` on
+                              the chip itself did nothing — it is a flex container,
+                              so its text is an anonymous flex item that overflow
+                              cannot clip, and a long topic name ("Serve & Return")
+                              pushed the card straight out of the 23rem column.
+                              `min-w-0` is the other half: a flex item's automatic
+                              minimum is its content, so without it the span
+                              refuses to shrink and there is nothing to truncate. */}
+                          <span className="min-w-0 truncate">
+                            {t.day.learnAbout.replace(
+                              '{topic}',
+                              wikiTopicFor(slot.type)!.label(t),
+                            )}
+                          </span>
                           <ArrowRight className="size-3 shrink-0 transition-transform group-hover/wiki:translate-x-0.5" />
                         </Link>
                       )}
