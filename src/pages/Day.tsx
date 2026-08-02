@@ -1054,7 +1054,11 @@ function Timeline({
                           carries the state; it does not need a field behind it. */}
                       <span
                         className={cn(
-                          'font-heading text-sm font-bold whitespace-nowrap tabular-nums transition-colors',
+                          // `leading-none`: the heading face at its default 1.5 line-height
+                          // gave this one line a box half again as tall as its
+                          // glyphs, so the text sat against the top of it and the
+                          // card's even `gap-1.5` came out looking uneven.
+                          'font-heading text-sm leading-none font-bold whitespace-nowrap tabular-nums transition-colors',
                           isNow || isSelected ? a.text : 'text-muted-foreground',
                         )}
                       >
