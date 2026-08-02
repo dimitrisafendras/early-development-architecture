@@ -137,7 +137,14 @@ export function SegmentedGroup<T extends string>({
         // scale promises everything in a row is the same height. Sizing the
         // items instead made the group its padding taller than the stepper
         // beside it — 40px against 32.
-        'relative isolate inline-flex max-w-full items-stretch gap-0.5 overflow-x-auto rounded-full bg-muted p-1 align-middle',
+        //
+        // The corner is the scale's too, not `rounded-full`. A capsule beside a
+        // `rounded-lg` field and a `rounded-lg` button was the one control in the
+        // row with a different corner — the shared scale is about shape as much
+        // as height, and a pill next to two rounded squares reads as a different
+        // family of control rather than as the same one holding a choice.
+        'relative isolate inline-flex max-w-full items-stretch gap-0.5 overflow-x-auto bg-muted p-1 align-middle',
+        dims.radius,
         dims.height,
         '[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
         className,
@@ -150,7 +157,11 @@ export function SegmentedGroup<T extends string>({
           aria-hidden
           style={{ transform: `translateX(${thumb.x}px)`, width: thumb.w }}
           className={cn(
-            'pointer-events-none absolute inset-y-1 left-0 -z-10 rounded-full bg-primary shadow-sm',
+            // Concentric with the track, not merely "also round": the track's
+            // radius less its own 1-unit padding, which is exactly `--radius-sm`.
+            // Matching the outer radius instead leaves a visibly fatter corner
+            // sitting inside a tighter one.
+            'pointer-events-none absolute inset-y-1 left-0 -z-10 rounded-sm bg-primary shadow-sm',
             'transition-[transform,width] duration-300 ease-[cubic-bezier(0.34,1.4,0.64,1)]',
             'motion-reduce:transition-none',
           )}
@@ -177,7 +188,7 @@ export function SegmentedGroup<T extends string>({
             tabIndex={selected ? 0 : -1}
             onClick={() => onValueChange(option.value)}
             className={cn(
-              'relative inline-flex h-full shrink-0 items-center justify-center rounded-full px-3 font-medium whitespace-nowrap',
+              'relative inline-flex h-full shrink-0 items-center justify-center rounded-sm px-3 font-medium whitespace-nowrap',
               'outline-none transition-colors select-none',
               'focus-visible:ring-3 focus-visible:ring-ring/50',
               'disabled:pointer-events-none disabled:opacity-50',

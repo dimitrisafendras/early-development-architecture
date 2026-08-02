@@ -566,6 +566,22 @@ function Timeline({
     centerOn(currentSlot, 'smooth')
   }
 
+  const jump = nowInView ? null : (
+    <GlassButton
+      size="sm"
+      tone="primary"
+      onClick={recenter}
+      // The material's radius, not a utility: `.ds-glass` sets `border-radius`
+      // from `--ds-glass-radius` in an unlayered stylesheet, which a Tailwind
+      // class cannot outrank — the knob is the variable, and 0.5rem is
+      // `rounded-lg`. Every other chip and control on this card is a rounded
+      // square; the one floating above them was the only pill.
+      className="travelling-ring pointer-events-auto [--ds-glass-radius:0.5rem] text-xs font-semibold"
+    >
+      <LocateFixed className="size-3.5" /> {t.day.jumpToNow}
+    </GlassButton>
+  )
+
   return (
     // `WidgetCard` rather than a hand-rolled Card + title: this card's title used
     // to be an *eyebrow* (12px, 0.16em tracking) while the MomentCard beside it
@@ -576,12 +592,21 @@ function Timeline({
       contentClassName="flex min-h-0 flex-1 flex-col"
       title={t.day.scheduleTitle}
       meta={
-        <Link
-          to="/schedule"
-          className="inline-flex items-center gap-1 font-medium text-primary transition-colors hover:text-primary/80"
-        >
-          <Pencil className="size-3.5" /> {t.day.editSchedule}
-        </Link>
+        <div className="flex items-center gap-3">
+          {/* Sideways the control leaves the list and joins the header. A column
+              is 21rem tall and its rows are 56px, so a floating chip over it
+              covers a slot you are not reading; the strip is 112px tall and every
+              one of its cells is a card, so *anywhere* over it covers something —
+              and the one place it could sit, the centre, is exactly where the
+              carousel puts the moment you came to look at. */}
+          {horizontal && jump}
+          <Link
+            to="/schedule"
+            className="inline-flex items-center gap-1 font-medium text-primary transition-colors hover:text-primary/80"
+          >
+            <Pencil className="size-3.5" /> {t.day.editSchedule}
+          </Link>
+        </div>
       }
     >
         {/* The recentre control rides at the *top* of the list, not the bottom.
@@ -597,22 +622,9 @@ function Timeline({
             floating glass control the Liquid Glass guidance sanctions — the same
             component, over content, in the one place on this page that qualifies. */}
         <div className="relative flex min-h-0 flex-1 flex-col">
-          {!nowInView && (
+          {!horizontal && jump && (
             <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center pt-1">
-              <GlassButton
-                size="sm"
-                tone="primary"
-                onClick={recenter}
-                // The material's radius, not a utility: `.ds-glass` sets
-                // `border-radius` from `--ds-glass-radius` in an unlayered
-                // stylesheet, which a Tailwind class cannot outrank — the knob
-                // is the variable, and 0.5rem is `rounded-lg`. Every other chip
-                // and control on this card is a rounded square; the one floating
-                // above them was the only pill.
-                className="travelling-ring pointer-events-auto [--ds-glass-radius:0.5rem] text-xs font-semibold"
-              >
-                <LocateFixed className="size-3.5" /> {t.day.jumpToNow}
-              </GlassButton>
+              {jump}
             </div>
           )}
         {/* `proximity`, never `mandatory`: steps settle onto the centre line
@@ -689,7 +701,20 @@ function Timeline({
                           // that happened to hold the same words. So the whole day
                           // reads as one line — ○ card ○ card ○ — with the rail
                           // running between each card and the next mark.
-                          'shrink-0 items-center gap-2.5 pr-6 last:pr-1',
+                          //
+                          // No padding and no gap: every space in the strip is a
+                          // *rail*, and the rail is an element. Spacing the cells
+                          // apart instead left the day's connecting line missing
+                          // between one card and the next mark, which is the one
+                          // stretch the eye follows.
+                          'shrink-0 items-center',
+                          // **One height for every cell, selected or not.** The
+                          // focused card is taller — bigger padding, and a Wiki
+                          // chip nothing else carries — so with the row sized to
+                          // its content the whole strip, and the page under it,
+                          // grew and shrank by ~40px on every tap. The cell is
+                          // fixed and the card fills it.
+                          'h-28 transition-[width] duration-300',
                           // The focused cell is the only one carrying a Wiki chip,
                           // and a chip that has to wrap is a chip that has failed.
                           isSelected ? 'w-[26rem]' : 'w-72',
@@ -730,9 +755,45 @@ function Timeline({
                       // the whole card past the column's right edge whenever a
                       // moment's Wiki topic had a long name.
                       'pointer-events-none flex min-w-0 flex-1',
-                      horizontal ? 'w-full items-center gap-3' : 'items-stretch gap-3.5',
+                      // `h-full` in the strip so the card can fill the cell's
+                      // fixed height instead of sitting at its own.
+                      horizontal ? 'h-full w-full items-center gap-0' : 'items-stretch gap-3.5',
                     )}
                   >
+                    {/* **In the strip the rail runs outside the step, not through
+                        it.** Down the column a step is [rail | mark | rail] beside
+                        its card, and the rail is continuous because nothing is in
+                        its way. Turned on its side that same structure puts both
+                        halves of the rail *between the mark and its own card* and
+                        leaves the stretch from one card to the next mark — the
+                        only place a connecting line is actually needed — empty.
+                        So sideways the two halves become the step's first and last
+                        children, and card-to-next-mark is `24px + 24px` of
+                        contiguous rail, split at the exact midpoint the fill maths
+                        already assumes.
+
+                        The track is always the same width, drawn or not: hiding it
+                        on the first and last steps by not rendering it would move
+                        every card in the strip by 24px. */}
+                    {horizontal && (
+                      <span
+                        aria-hidden
+                        className={cn(
+                          'relative h-[3px] w-6 shrink-0 overflow-hidden',
+                          i > 0 && 'bg-border',
+                        )}
+                      >
+                        {i > 0 && (
+                          <span
+                            className="block h-full transition-[width] duration-700 ease-out"
+                            style={{
+                              width: `${topFill}%`,
+                              backgroundImage: `linear-gradient(90deg, ${midAbove}, ${a.accent})`,
+                            }}
+                          />
+                        )}
+                      </span>
+                    )}
                     {/* **Each row owns half of the segment above it and half of
                         the segment below it.** The rail used to be one span per
                         row that started at the mark's bottom edge and deliberately
@@ -765,7 +826,10 @@ function Timeline({
                     <div
                       className={cn(
                         'relative flex shrink-0 items-center',
-                        horizontal ? 'h-18 flex-row' : 'w-18 flex-col self-stretch',
+                        // Sideways the column is just the mark: its rail halves
+                        // have moved out to the ends of the step, and the only
+                        // fixed length left is the stub's own gap to the card.
+                        horizontal ? 'mr-3.5' : 'w-18 flex-col self-stretch',
                       )}
                     >
                       {/* The tail of the segment arriving from the row above. It
@@ -775,32 +839,21 @@ function Timeline({
                           from the mark, so the second half of every slot drew a
                           lit stub sitting on the arriving mark with an unlit gap
                           above it: progress running backwards up the day. */}
-                      <span
-                        aria-hidden
-                        className={cn('relative flex-1', horizontal ? 'h-[3px]' : 'w-[3px]')}
-                      >
-                        {i > 0 && (
-                          <span
-                            className={cn(
-                              'absolute overflow-hidden bg-border',
-                              horizontal ? 'inset-y-0 -left-4 right-0' : 'inset-x-0 -top-4 bottom-0',
-                            )}
-                          >
-                            <span
-                              className={cn(
-                                'block transition-[height,width] duration-700 ease-out',
-                                horizontal ? 'h-full' : 'w-full',
-                              )}
-                              style={{
-                                [horizontal ? 'width' : 'height']: `${topFill}%`,
-                                backgroundImage: `linear-gradient(${
-                                  horizontal ? '90deg' : '180deg'
-                                }, ${midAbove}, ${a.accent})`,
-                              }}
-                            />
-                          </span>
-                        )}
-                      </span>
+                      {!horizontal && (
+                        <span aria-hidden className="relative w-[3px] flex-1">
+                          {i > 0 && (
+                            <span className="absolute inset-x-0 -top-4 bottom-0 overflow-hidden bg-border">
+                              <span
+                                className="block w-full transition-[height] duration-700 ease-out"
+                                style={{
+                                  height: `${topFill}%`,
+                                  backgroundImage: `linear-gradient(180deg, ${midAbove}, ${a.accent})`,
+                                }}
+                              />
+                            </span>
+                          )}
+                        </span>
+                      )}
                       {/* The stub that hands the row's mark to its card. Without
                           it the two sat either side of a 14px void and read as a
                           rail and a list that merely happened to line up; a
@@ -826,9 +879,15 @@ function Timeline({
                           // in the gap with air on the side it was meant to be
                           // joining. Half the column is 2.25rem; the halo's own
                           // half is 1.75rem, or 2rem once the focused mark grows.
-                          isSelected
-                            ? 'top-1/2 left-[calc(50%+2rem)] h-[3px] w-[1.125rem] -translate-y-1/2'
-                            : 'top-1/2 left-[calc(50%+1.75rem)] h-[3px] w-[1.375rem] -translate-y-1/2',
+                          // Sideways the column *is* the halo, so there is no
+                          // column edge to measure from and none to cross: the
+                          // stub starts at the mark's own right edge and spans the
+                          // one gap between it and the card.
+                          horizontal
+                            ? 'top-1/2 left-full h-[3px] w-3.5 -translate-y-1/2'
+                            : isSelected
+                              ? 'top-1/2 left-[calc(50%+2rem)] h-[3px] w-[1.125rem] -translate-y-1/2'
+                              : 'top-1/2 left-[calc(50%+1.75rem)] h-[3px] w-[1.375rem] -translate-y-1/2',
                         )}
                         // Lit exactly where the rail beside it is: the segments
                         // through and behind NOW carry the day's accent, the ones
@@ -929,32 +988,21 @@ function Timeline({
                           reserves scrollable overflow, so an invisible track
                           hanging past the final moment left 28px of dead scroll
                           into nothing at the bottom of the day. */}
-                      <span
-                        aria-hidden
-                        className={cn('relative flex-1', horizontal ? 'h-[3px]' : 'w-[3px]')}
-                      >
-                        {!last && (
-                          <span
-                            className={cn(
-                              'absolute overflow-hidden bg-border',
-                              horizontal ? 'inset-y-0 left-0 -right-4' : 'inset-x-0 top-0 -bottom-4',
-                            )}
-                          >
-                            <span
-                              className={cn(
-                                'block transition-[height,width] duration-700 ease-out',
-                                horizontal ? 'h-full' : 'w-full',
-                              )}
-                              style={{
-                                [horizontal ? 'width' : 'height']: `${bottomFill}%`,
-                                backgroundImage: `linear-gradient(${
-                                  horizontal ? '90deg' : '180deg'
-                                }, ${a.accent}, ${midBelow})`,
-                              }}
-                            />
-                          </span>
-                        )}
-                      </span>
+                      {!horizontal && (
+                        <span aria-hidden className="relative w-[3px] flex-1">
+                          {!last && (
+                            <span className="absolute inset-x-0 top-0 -bottom-4 overflow-hidden bg-border">
+                              <span
+                                className="block w-full transition-[height] duration-700 ease-out"
+                                style={{
+                                  height: `${bottomFill}%`,
+                                  backgroundImage: `linear-gradient(180deg, ${a.accent}, ${midBelow})`,
+                                }}
+                              />
+                            </span>
+                          )}
+                        </span>
+                      )}
                     </div>
                     <div
                       className={cn(
@@ -969,11 +1017,16 @@ function Timeline({
                         // hand-set `mt-1` and `mt-2.5`, so the gap under the title
                         // and the gap under the time were different sizes for no
                         // reason anyone could have named.
-                        'flex min-w-0 flex-col gap-1.5 rounded-xl border transition-[background-color,border-color,box-shadow,padding,margin] duration-300',
-                        // In the strip the card sits *under* its mark and owns the
-                        // cell's width; in the column it sits beside the mark and
-                        // takes what is left.
-                        horizontal ? 'flex-1 items-start' : 'flex-1 items-start',
+                        // `justify-center`: the card is stretched by its row, not
+                        // sized by its contents — the mark beside it is 64px tall
+                        // and most cards' two lines are not, and sideways the cell
+                        // has a fixed height on purpose. Left at the default the
+                        // contents packed against the top edge and every card had
+                        // more air under its time than over its title.
+                        'flex min-w-0 flex-1 flex-col items-start justify-center gap-1.5 rounded-xl border transition-[background-color,border-color,box-shadow,padding,margin] duration-300',
+                        // In the strip the card fills the cell's fixed height, so
+                        // selecting one cannot change how tall the strip is.
+                        horizontal && 'h-full',
                         // The focused card is bigger, and it pushes its
                         // neighbours away: a picker's centre cell, not a list
                         // row that happens to be tinted. The tint and the ring
@@ -1131,6 +1184,28 @@ function Timeline({
                         </Link>
                       )}
                     </div>
+                    {/* The other half of the same segment — see the arriving half
+                        at the top of this step. Together they are the 48px of rail
+                        that carries the day from this card to the next mark. */}
+                    {horizontal && (
+                      <span
+                        aria-hidden
+                        className={cn(
+                          'relative h-[3px] w-6 shrink-0 overflow-hidden',
+                          !last && 'bg-border',
+                        )}
+                      >
+                        {!last && (
+                          <span
+                            className="block h-full transition-[width] duration-700 ease-out"
+                            style={{
+                              width: `${bottomFill}%`,
+                              backgroundImage: `linear-gradient(90deg, ${a.accent}, ${midBelow})`,
+                            }}
+                          />
+                        )}
+                      </span>
+                    )}
                   </div>
                 </li>
               )

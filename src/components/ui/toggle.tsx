@@ -13,9 +13,15 @@ const toggleVariants = cva(
       variant: {
         default: "bg-transparent",
         outline: "border border-input bg-transparent hover:bg-muted",
-        // Capsule choice chip. The pressed state takes the palette fill rather
+        // Filled choice chip. The pressed state takes the palette fill rather
         // than `bg-muted`, so which option is active reads at a glance.
-        pill: "rounded-full bg-muted px-4 font-medium text-muted-foreground hover:bg-accent hover:text-foreground aria-pressed:bg-primary aria-pressed:text-primary-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground",
+        //
+        // It carries no radius of its own: a capsule standing in a row beside a
+        // `rounded-lg` field, button and segmented track was the one control
+        // with a different corner, and the shared scale is about shape as much
+        // as height. So the corner comes from the base and from the size, like
+        // every other control's.
+        pill: "bg-muted px-4 font-medium text-muted-foreground hover:bg-accent hover:text-foreground aria-pressed:bg-primary aria-pressed:text-primary-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground",
       },
       // Heights come from the one control scale in `control-size.ts`: a toggle
       // is exactly as tall as the `Input` or `Button` beside it, and it clears
