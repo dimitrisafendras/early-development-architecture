@@ -1173,13 +1173,21 @@ function Timeline({
                             borderColor: `${a.accent}59`,
                             backgroundColor: `${a.accent}14`,
                           }}
-                          // Pulled left by its own padding and border, so the chip's
-                          // *text* starts on the same line as the title and the
-                          // window above it. Aligning the chip's box instead left
-                          // its label indented by 11px against two lines that were
-                          // not — three left edges where the card has one.
+                          // **The chip's box aligns, not its text.** It was pulled
+                          // left by its own padding so the *label* would start on
+                          // the title's line — right for a bare link, wrong the
+                          // moment the chip grew a visible border and fill. A
+                          // bordered box is read by its edge, so hanging that edge
+                          // 11px into the card's left margin put the one framed
+                          // thing on the card outside the column everything else
+                          // sits in.
+                          //
+                          // No `mt-1` either: the card sets one `gap-1.5` for its
+                          // three lines, and a hand-added margin on the last of
+                          // them made the gap under the time half again the gap
+                          // under the title.
                           className={cn(
-                            'group/wiki pointer-events-auto relative z-10 -ml-[11px] mt-1 flex max-w-[calc(100%+11px)] items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-semibold transition-shadow hover:shadow-sm',
+                            'group/wiki pointer-events-auto relative z-10 flex max-w-full items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-semibold transition-shadow hover:shadow-sm',
                             a.text,
                           )}
                         >
