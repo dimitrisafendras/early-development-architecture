@@ -18,8 +18,10 @@ test:ui` opens the watch UI; `npm run test:report` shows the last HTML report.
 - **The network is stubbed, never called.** Open-Meteo is fulfilled with a fixed
   reading. A test that hit the real service would be testing someone else's
   uptime and would report a different temperature every run.
-- **Signed out throughout.** Supabase is not configured in tests, so the
-  local-first paths are what run — which is also the state a new user is in.
+- **Signed out by default.** With no Supabase configured, the local-first paths
+  are what run — which is also the state a new user is in. The one exception is
+  `signed-in.spec.ts`, which needs the local stack and skips itself without it
+  (see below).
 
 ## What is covered, and why that thing
 
@@ -131,11 +133,48 @@ including table headers, both languages stay on a 24-hour clock (CLDR resolves
 `el` to π.μ./μ.μ., which the app deliberately overrides), and no imperial unit
 appears in either language.
 
+### `signed-in.spec.ts` — the server half
+
+The only spec that needs a database. Run it with **`./scripts/dev-stack.sh
+test`**, which brings up Docker and a local Supabase seeded by
+`supabase/seed.sql`; without a local stack it skips itself. The gate is *"is the
+URL localhost"*, not *"is Supabase configured"* — pointed at the hosted project
+these would either fail loudly or, far worse, quietly pass by reading a real
+family's data.
+
+The fixture is two parents sharing one household and two children **straddling
+the first birthday** (Iris at 4 months, Theo at 16), because twelve months is
+where the app changes what it measures. Every worst bug this app has had was
+invisible with one child: reads that ignored `baby_id` while writes carried it,
+so a second child's sessions counted as the first's.
+
+Covers: a session survives a reload (the storage adapter routes tokens to local-
+or sessionStorage, and getting it wrong reads as "the app forgot my data"); both
+children are on file with their own growth history; **their totals differ**, so
+the wrong child's data is a visible number rather than a subtle one; the older
+child's page logs *active play* and the younger's *tummy time*; a session
+started and stopped in the browser comes back from the server after a reload;
+the feed log renders all three row shapes; the family page lists the household,
+both parents and the open invite; and the **invited co-parent sees the same two
+children** — the `owner OR member` half of the RLS policy that the owner's own
+session never exercises.
+
+Two things this spec has to do that the local-first ones do not. Waits on server
+data use `NET` (20s) rather than Playwright's five-second default, because
+signing in, listing children and loading sessions are three real round trips run
+seven workers wide beside a Docker VM — at the default they fail as "this child
+has no sessions", which is an alarming sentence for a slow machine. And because
+all of it shares **one** database, the writing test runs in a single project and
+every tracker test calls `ensureStopped` first: one aborted run left a session
+running, and every later test then read a `mm:ss` clock where it expected a
+day's total.
+
 ## Deliberately not covered
 
-- **Supabase-backed flows** (sign-in, households, growth measurements). They
-  need a live project or a stubbed PostgREST; the local-first paths that every
-  signed-out user hits are covered instead.
+- **Sign-up and password reset.** They are GoTrue's, they send mail, and the
+  fixtures exist precisely so nothing has to create an account to run.
+- **The hosted project.** Nothing in this suite ever touches it — see the gate
+  on `signed-in.spec.ts`.
 - **Push notifications.** Permission and delivery are the browser's, and the
   app's own half is a stored flag already asserted through the settings panel.
 - **The service worker.** Its caching is what made a stale build run for a week;
@@ -152,3 +191,8 @@ Seed with `seedStore` / `seedFeeds` / `seedSessions` **before** `page.goto`. Cal
 click — they are real UI, but a schedule test should fail on the schedule.
 Use `openSettings(page)` rather than clicking the trigger directly: both
 navigations are in the DOM at every width and only one is visible.
+
+For a signed-in test, use `signIn` / `selectBaby` / `ensureStopped` and the
+`FIXTURES` constants from `helpers.ts`, and put it in `signed-in.spec.ts` so it
+inherits the local-stack gate. Never hard-code a fixture id or a count that the
+seed could change — assert on what the screen says.

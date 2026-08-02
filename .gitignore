@@ -10,8 +10,13 @@ dist
 /test-results/
 /playwright-report/
 
-# Claude Code local session state (contains full git worktrees)
-.claude/
+# Claude Code local session state (contains full git worktrees).
+# `.claude/*` rather than `.claude/`: git will not descend into an excluded
+# directory, so a blanket ignore makes the negation below impossible. Skills are
+# repo knowledge — they name this project's ports, fixtures and commands — so
+# they belong in version control with everything else that describes the repo.
+.claude/*
+!.claude/skills/
 
 # Playwright MCP scratch output
 .playwright-mcp/

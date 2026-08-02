@@ -149,12 +149,40 @@ npm run build     # tsc -b && vite build — this is the verification gate; run 
 npm run preview   # preview the production build
 npm test          # Playwright end-to-end suite (chromium + mobile); starts the dev server itself
 npm run test:ui   # the same suite in Playwright's watch UI
+
+./scripts/dev-stack.sh up     # Docker + local Supabase, seeded (idempotent)
+./scripts/dev-stack.sh test   # the same, then the whole suite incl. the signed-in specs
+./scripts/dev-stack.sh reset  # wipe the local database, re-apply migrations + seed
 ```
 
 Tests live in `tests/`; **`tests/README.md` is the test plan** — what each spec
 covers, what is deliberately not covered, and the conventions for adding one
 (seed state before `goto`, `hideOverlays` for the fixed banners, `openSettings`
 because both navigations are in the DOM at every width).
+
+### The local stack
+
+`npm test` runs signed out, which is most of the app but not the half where its
+worst bugs have lived. `tests/signed-in.spec.ts` covers that half and needs a
+database: **`./scripts/dev-stack.sh test`** brings up Docker and a local
+Supabase seeded from `supabase/seed.sql`, and points the dev server at it by
+exporting `VITE_*` inline — Vite gives inline vars priority over `.env.local`,
+so the hosted credentials on disk are never touched or overwritten. Without a
+local stack those specs skip themselves, and the gate is *"is the URL
+localhost"* rather than *"is Supabase configured"*, so they can never run
+against the hosted project.
+
+The fixture is two parents sharing a household and two children straddling the
+first birthday — the age where the app changes what it measures. The stack
+listens on **544xx**, not the Supabase defaults, because another local project
+on this machine holds those; the offsets live in `supabase/config.toml` and are
+read back with `supabase status -o env`, never re-typed.
+
+`.claude/skills/dev-stack/SKILL.md` documents the rest, including how to tell a
+load flake from a regression — this machine turns a 30-second suite into 45
+minutes under load and fails a *different* handful of tests every run, always on
+timeouts rather than assertions. `dev-stack.sh test` re-runs failures serially
+and says which of the two it was.
 
 ## Deployment
 

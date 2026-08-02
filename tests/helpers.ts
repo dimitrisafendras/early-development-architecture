@@ -116,6 +116,87 @@ export async function openSettings(page: Page) {
 }
 
 /**
+ * The fixture accounts and children `supabase/seed.sql` creates.
+ *
+ * Ages are offsets from today in the seed, so these are the *bands* they sit in
+ * rather than dates: one child under a year, one over, because twelve months is
+ * where the app changes what it measures.
+ */
+export const FIXTURES = {
+  parent: { email: 'parent@example.test', password: 'devpassword' },
+  partner: { email: 'partner@example.test', password: 'devpassword' },
+  /** 4 months — tummy time, AAP ramp. */
+  younger: 'Iris',
+  /** 16 months — active play, WHO 180 minutes. */
+  older: 'Theo',
+  family: 'Test Family',
+} as const
+
+/**
+ * Whether a local Supabase stack is configured for this run.
+ *
+ * The signed-in specs are the only ones that need a database, and they must
+ * never run against the hosted project: they read the seeded fixtures and would
+ * either fail loudly or — far worse — pass by reading somebody's real data. So
+ * the gate is not "is Supabase configured" but "is it *local*".
+ */
+export function localSupabase(): boolean {
+  const url = process.env.VITE_SUPABASE_URL ?? ''
+  return /^https?:\/\/(127\.0\.0\.1|localhost)[:/]/.test(url)
+}
+
+/**
+ * Sign in as a fixture account and wait for the app to be signed in.
+ *
+ * Waits on the app's own reaction — the header stops offering "Sign in" — not
+ * on the network call, because the session lands in storage before React has
+ * re-rendered anything a test can see.
+ */
+export async function signIn(
+  page: Page,
+  who: { email: string; password: string } = FIXTURES.parent,
+) {
+  await page.goto('signin')
+  await page.locator('#auth-email').fill(who.email)
+  await page.locator('#auth-password').fill(who.password)
+  await page.getByRole('button', { name: /^Sign in$/ }).click()
+  // The route redirects home on success; an error renders in the form instead.
+  await expect(page.locator('#auth-email')).toHaveCount(0, { timeout: 15_000 })
+}
+
+/**
+ * Leave `/tracker` with no session running.
+ *
+ * The signed-in specs share one database, so a *running* session is state that
+ * outlives the test that started it — and one aborted run left the console
+ * reading `09:42 / 10:00` for every later test, which is not a number any
+ * assertion about the day's total can parse. Stopping it is also what a person
+ * would do, so this is not a fixture reaching behind the app.
+ */
+export async function ensureStopped(page: Page) {
+  const stop = page.getByRole('button', { name: /Stop session/ })
+  if (await stop.isVisible().catch(() => false)) {
+    await stop.click()
+    await expect(page.getByRole('button', { name: /Start session/ })).toBeVisible()
+  }
+}
+
+/** Switch the active child on `/baby`, which is where the picker lives. */
+export async function selectBaby(page: Page, name: string) {
+  await page.goto('baby')
+  await hideOverlays(page)
+  // `ChoiceGroup` is a Base UI ToggleGroup — a `group` of pressed-state buttons,
+  // not a radiogroup — so the state to wait on is `aria-pressed`, not `checked`.
+  const picker = page.getByRole('group', { name: 'Baby' })
+  // The picker only exists once the children have come back from the server, so
+  // this is a network wait, not a render wait — see `NET` in signed-in.spec.ts.
+  await expect(picker).toBeVisible({ timeout: 20_000 })
+  const pill = picker.getByRole('button', { name })
+  await pill.click()
+  await expect(pill).toHaveAttribute('aria-pressed', 'true')
+}
+
+/**
  * Set a `NumberInput` the way a person does.
  *
  * `locator.fill()` does not drive it: Base UI's `NumberField` keeps the typed
