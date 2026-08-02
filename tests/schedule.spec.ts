@@ -80,9 +80,15 @@ test.describe('the What field', () => {
     await page.getByRole('button', { name: 'Tummy & floor time', exact: true }).click()
     await expect(row.getByRole('link', { name: /Logs in/ })).toHaveAttribute('href', /\/tracker$/)
 
-    // Sleep has no logger; the app must not invent one.
+    // Sleep has one now, and the mapping is exhaustive by type, so a kind with a
+    // logging page cannot be left unwired — see `momentWidgets` in `Day.tsx`.
     await row.locator('[aria-label="Type"]').click()
     await page.getByRole('button', { name: 'Sleep / nap', exact: true }).click()
+    await expect(row.getByRole('link', { name: /Logs in/ })).toHaveAttribute('href', /\/sleep$/)
+
+    // Play & connect still has none, and the app must not invent one.
+    await row.locator('[aria-label="Type"]').click()
+    await page.getByRole('button', { name: 'Play & connect', exact: true }).click()
     await expect(row.getByRole('link', { name: /Logs in/ })).toHaveCount(0)
   })
 })

@@ -65,7 +65,17 @@ export const dayActivityMeta: Record<
     accent: string
     /** Wiki topic slug explaining this activity. */
     wiki: string
-    /** The widget page that logs it, or `null` when nothing does. */
+    /**
+     * The widget page that logs it, or `null` when nothing does.
+     *
+     * **If a kind has a logger, it must be named here.** This is what the Day
+     * dashboard's tool zone reads to offer "your tool for right now", so an
+     * activity whose `tool` is `null` while a logging page for it exists is a
+     * page the caregiver can only reach by navigating away from the moment it
+     * belongs to. `momentWidgets` in `Day.tsx` is the other half and is
+     * exhaustive by type, so adding a `DayActivity` fails the build until both
+     * are answered.
+     */
     tool: { to: string; label: (t: Messages) => string } | null
   }
 > = {
@@ -74,11 +84,13 @@ export const dayActivityMeta: Record<
   // meals a day are not milk feeds and must not read as bottles on the timeline.
   // Still logged in the feed log — it takes a `solid` method.
   meal: { icon: Utensils, dot: 'bg-orange-500/15 text-orange-600 dark:text-orange-400', text: 'text-orange-700 dark:text-orange-400', bar: 'bg-orange-500', accent: '#f97316', wiki: 'feeding', tool: { to: '/feed', label: (t) => t.nav.feed } },
-  sleep: { icon: Moon, dot: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400', text: 'text-indigo-700 dark:text-indigo-400', bar: 'bg-indigo-500', accent: '#6366f1', wiki: 'sleep', tool: null },
+  sleep: { icon: Moon, dot: 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400', text: 'text-indigo-700 dark:text-indigo-400', bar: 'bg-indigo-500', accent: '#6366f1', wiki: 'sleep', tool: { to: '/sleep', label: (t) => t.nav.sleep } },
   play: { icon: ToyBrick, dot: 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400', text: 'text-yellow-700 dark:text-yellow-400', bar: 'bg-yellow-500', accent: '#eab308', wiki: 'serve-return', tool: null },
   tummy: { icon: Baby, dot: 'bg-lime-500/15 text-lime-600 dark:text-lime-400', text: 'text-lime-700 dark:text-lime-400', bar: 'bg-lime-500', accent: '#84cc16', wiki: 'tummy-time', tool: { to: '/tracker', label: (t) => t.nav.tracker } },
   care: { icon: Bath, dot: 'bg-teal-500/15 text-teal-600 dark:text-teal-400', text: 'text-teal-700 dark:text-teal-400', bar: 'bg-teal-500', accent: '#14b8a6', wiki: 'bathing', tool: null },
-  wind: { icon: Sparkles, dot: 'bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400', text: 'text-fuchsia-700 dark:text-fuchsia-400', bar: 'bg-fuchsia-500', accent: '#d946ef', wiki: 'soothing', tool: null },
+  // Wind-down ends in a sleep, and the sleep log is what records it — the
+  // caregiver settling a baby at 18:55 is minutes away from pressing start.
+  wind: { icon: Sparkles, dot: 'bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400', text: 'text-fuchsia-700 dark:text-fuchsia-400', bar: 'bg-fuchsia-500', accent: '#d946ef', wiki: 'soothing', tool: { to: '/sleep', label: (t) => t.nav.sleep } },
   // Logged by the same timer as tummy time: past the first birthday `/tracker`
   // *is* the active-play tracker (see `activityTargetForAge`), so pointing this
   // at a second page would be inventing a tool the app doesn't have.

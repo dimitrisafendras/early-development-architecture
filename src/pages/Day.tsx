@@ -15,6 +15,8 @@ import { PageFrame } from '../components/PageFrame'
 import { Eyebrow } from '../components/Eyebrow'
 import { ProgressRing } from '../components/ProgressRing'
 import { TummyConsole } from '../components/TummyConsole'
+import { SleepConsole } from '../components/SleepConsole'
+import { AddSleepForm } from '../components/AddSleepForm'
 import { dayActivityMeta } from '../components/dayActivity'
 import { ActivityLink } from '../components/ActivityLink'
 import { AddFeedForm } from '../components/AddFeedForm'
@@ -40,6 +42,8 @@ import { wikiPath, findTopic } from '../sections/registry'
 import { useBabies } from '../lib/useBabies'
 import { useTummyTracker } from '../lib/useTummyTracker'
 import { useFeedLog } from '../lib/useFeedLog'
+import { useSleepLog } from '../lib/useSleepLog'
+import { useDateLocale } from '../lib/dates'
 import { useAppStore } from '../store'
 import { useT } from '../i18n'
 
@@ -411,6 +415,36 @@ function MomentCard({
  *  thing to read when there's no timer), plus the hand-off into the Wiki. Its own
  *  sub-surface below the moment strip, filling the rest of the card and scrolling
  *  internally so a tall tool never stretches it. */
+/**
+ * **Every activity's logger, keyed by the activity.**
+ *
+ * The Day dashboard's tool zone is the app's promise that the thing you need is
+ * where the moment is: at 12:30 the moment card shows the feed, and the feed
+ * form is inside it. That promise is only kept if a kind with a logging page is
+ * actually wired to it — the sleep log shipped as a route nobody could reach
+ * from the moment it belongs to, because this mapping was a chain of ternaries
+ * that simply had no branch for it and no way to notice.
+ *
+ * A `Record<DayActivity, …>` instead, so it is exhaustive by type: adding a
+ * `DayActivity` fails the build until this says what logs it, and `null` is a
+ * decision rather than an omission. `dayActivityMeta[type].tool` is the other
+ * half — the link out to the full page — and the two must agree.
+ */
+const momentWidgets: Record<DayActivity, (() => JSX.Element) | null> = {
+  feed: FeedWidget,
+  // A meal is logged in the same place, with the `solid` method.
+  meal: FeedWidget,
+  sleep: SleepWidget,
+  // Wind-down ends in a sleep, and this is what records it.
+  wind: SleepWidget,
+  tummy: TummyWidget,
+  // Past the first birthday `/tracker` *is* the active-play tracker.
+  active: TummyWidget,
+  // Nothing logs these. The topic's own guidance stands in.
+  play: null,
+  care: null,
+}
+
 function MomentTool({ type, isNow, accent }: { type: DayActivity; isNow: boolean; accent: string }) {
   const t = useT()
   return (
@@ -431,15 +465,10 @@ function MomentTool({ type, isNow, accent }: { type: DayActivity; isNow: boolean
         {/* Capped measure — the tool zone is now full card width, and a stretched
             form/paragraph reads worse than one that keeps a comfortable column. */}
         <GlassScrollArea className="-mx-1 max-w-2xl px-1">
-          {type === 'feed' ? (
-            <FeedWidget />
-          ) : type === 'tummy' || type === 'active' ? (
-            <TummyWidget />
-          ) : type === 'sleep' ? (
-            <SafeSleepInfo />
-          ) : (
-            <TopicInfo type={type} />
-          )}
+          {(() => {
+            const Widget = momentWidgets[type]
+            return Widget ? <Widget /> : <TopicInfo type={type} />
+          })()}
         </GlassScrollArea>
       </CardContent>
     </Card>
@@ -1279,6 +1308,54 @@ function TummyWidget() {
       <ActivityLink to="/tracker" activity={kind === 'movement' ? 'active' : 'tummy'} touch>
         {t.daily.openTracker}
       </ActivityLink>
+    </div>
+  )
+}
+
+/**
+ * The sleep log, at dashboard density.
+ *
+ * Both halves, because both are the reason you are here: the start/stop console
+ * for the sleep beginning right now, and the two-times form for the one that has
+ * already finished. The safe-sleep rules sit under them rather than instead of
+ * them — this slot used to render *only* the rules, so the one moment of the day
+ * with a running timer to start offered nothing to press.
+ */
+function SleepWidget() {
+  const t = useT()
+  const tsl = t.sleepLog
+  const { currentBaby } = useBabies()
+  const locale = useDateLocale()
+  const log = useSleepLog(currentBaby?.id ?? null, currentBaby?.household_id ?? null)
+
+  return (
+    <div className="flex flex-col gap-4">
+      {/* The same console `/sleep` runs, at dashboard density — see
+          `SleepConsole` for why `compact` is a density switch and nothing more. */}
+      <SleepConsole log={log} locale={locale} compact />
+
+      <p className="text-sm text-muted-foreground">
+        <span className="font-semibold text-foreground">
+          {formatDuration(log.todayMinutes, t.feed.hourShort, t.feed.minShort)}
+        </span>{' '}
+        {tsl.totalToday.toLowerCase()}
+        {log.todaySleeps.length > 0 && ` · ${log.todaySleeps.length} ${tsl.countToday.toLowerCase()}`}
+      </p>
+
+      {/* `idPrefix`, because `/sleep` can be mounted a route away and two
+          `<label for="sleep-start">` in one document bind to whichever input the
+          browser reaches first. */}
+      <AddSleepForm onAdd={log.add} compact idPrefix="day-sleep" />
+
+      <ActivityLink to="/sleep" activity="sleep" touch>
+        {tsl.title}
+      </ActivityLink>
+
+      {/* The rules stay: they are the one piece of guidance in this app that is a
+          safety directive, and the moment they apply to is this one. */}
+      <div className="border-t border-border pt-4">
+        <SafeSleepInfo />
+      </div>
     </div>
   )
 }

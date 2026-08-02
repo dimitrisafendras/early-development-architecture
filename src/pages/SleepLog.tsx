@@ -1,16 +1,16 @@
 import { useState } from 'react'
-import { Moon, MoonStar, Sun, Timer, Trash2, Pencil, Hourglass } from 'lucide-react'
+import { Moon, MoonStar, Sun, Trash2, Pencil, Hourglass } from 'lucide-react'
 import { useBabyAge } from '../components/AgeBadge'
 import { StatTile } from '../components/StatTile'
+import { SleepConsole } from '../components/SleepConsole'
+import { AddSleepForm } from '../components/AddSleepForm'
 import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
 import { TummyWeekChart } from '../components/charts'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { DateTimePicker } from '@/components/ui/date-time-picker'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { LiveBadge } from '@/components/ui/live-badge'
 import { useBabies } from '../lib/useBabies'
 import { useSleepLog, sleepMinutes, type SleepEntry } from '../lib/useSleepLog'
 import { useFieldLabels } from '../lib/useFieldLabels'
@@ -170,146 +170,6 @@ export default function SleepLog() {
         )
       }
     />
-  )
-}
-
-/**
- * Start / stop, and the running clock.
- *
- * One button, two states: a sleep is either running or it is not, and the page
- * cannot offer both at once — which is also why `start` and `stop` in the hook
- * both refuse to act against the wrong state rather than trusting this button.
- */
-function SleepConsole({
-  log,
-  locale,
-}: {
-  log: ReturnType<typeof useSleepLog>
-  locale: string
-}) {
-  const t = useT()
-  const tsl = t.sleepLog
-  const [busy, setBusy] = useState(false)
-
-  const run = async (fn: () => Promise<void>) => {
-    setBusy(true)
-    try {
-      await fn()
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <div className="flex flex-wrap items-center gap-3">
-      <Button
-        size="lg"
-        variant={log.running ? 'outline' : 'default'}
-        disabled={busy}
-        onClick={() => void run(log.running ? () => log.stop() : () => log.start())}
-      >
-        {log.running ? <Sun /> : <Moon />}
-        {log.running ? tsl.stop : tsl.start}
-      </Button>
-      {log.running && (
-        <span className="flex items-center gap-3">
-          <LiveBadge>{tsl.running}</LiveBadge>
-          <span className="font-heading text-2xl font-semibold tabular-nums text-foreground">
-            {formatDuration(log.runningMinutes, t.feed.hourShort, t.feed.minShort)}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {tsl.startedAt.replace('{time}', fmtTime(log.running.started_at, locale))}
-          </span>
-        </span>
-      )}
-    </div>
-  )
-}
-
-/**
- * Log a sleep that has already finished.
- *
- * The other half of the page, and the one that gets used more: nobody is awake
- * at 05:40 to press "they woke up", so a night is nearly always entered
- * afterwards with both ends known. Both times are full date-and-time pickers
- * rather than clock times — a night starts on one date and ends on another, and
- * a picker that only edits the clock cannot express that at all.
- */
-function AddSleepForm({
-  onAdd,
-}: {
-  onAdd: (input: { started_at: string; ended_at: string; note: string | null }) => Promise<void>
-}) {
-  const t = useT()
-  const tsl = t.sleepLog
-  const fields = useFieldLabels()
-  // An hour ago to now, not now to now: the form opens on a *valid* sleep, so
-  // it does not greet the caregiver with its own validation error, and an hour
-  // is the shape of the thing being logged.
-  const [start, setStart] = useState(() =>
-    dateTimeKeyFromISO(new Date(Date.now() - 60 * 60_000).toISOString()),
-  )
-  const [end, setEnd] = useState(() => dateTimeKeyFromISO(new Date().toISOString()))
-  const [note, setNote] = useState('')
-  const [busy, setBusy] = useState(false)
-
-  const startISO = isoFromDateTimeKey(start)
-  const endISO = isoFromDateTimeKey(end)
-  // Both checks refuse rather than clamp: a wrong time is a fact about the
-  // night, and silently moving it would file a sleep the caregiver never had.
-  const error =
-    new Date(endISO).getTime() > Date.now()
-      ? tsl.endInFuture
-      : new Date(endISO).getTime() <= new Date(startISO).getTime()
-        ? tsl.endBeforeStart
-        : null
-
-  async function submit() {
-    if (error) return
-    setBusy(true)
-    try {
-      await onAdd({ started_at: startISO, ended_at: endISO, note: note.trim() || null })
-      setNote('')
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <div className="flex flex-col gap-3 border-t border-border pt-4">
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="min-w-[12rem] space-y-1.5">
-          <Label htmlFor="sleep-start">{tsl.startLabel}</Label>
-          <DateTimePicker id="sleep-start" size="md" value={start} onValueChange={setStart} {...fields.dateTimePicker} />
-        </div>
-        <div className="min-w-[12rem] space-y-1.5">
-          <Label htmlFor="sleep-end">{tsl.endLabel}</Label>
-          {/* The *end* is what is wrong in both cases — it is either before the
-              start or in the future — so that is the field that carries the
-              invalid state, not both of them. */}
-          <DateTimePicker
-            id="sleep-end"
-            size="md"
-            value={end}
-            onValueChange={setEnd}
-            invalid={Boolean(error)}
-            {...fields.dateTimePicker}
-          />
-        </div>
-        <div className="min-w-[10rem] flex-1 space-y-1.5">
-          <Label htmlFor="sleep-note">{tsl.noteLabel}</Label>
-          <Input id="sleep-note" size="md" value={note} onChange={(e) => setNote(e.target.value)} />
-        </div>
-        <Button size="md" disabled={busy || Boolean(error)} onClick={() => void submit()}>
-          <Timer /> {tsl.save}
-        </Button>
-      </div>
-      {error && (
-        <p role="alert" className="text-xs font-medium text-destructive">
-          {error}
-        </p>
-      )}
-    </div>
   )
 }
 

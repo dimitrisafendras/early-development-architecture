@@ -143,3 +143,56 @@ test('sleep is scoped to the selected child', async ({ page }) => {
   await expect(page.locator('#sleep-today li')).toHaveCount(1)
   await expect(page.locator('#sleep-today')).toContainText('09:00')
 })
+
+test('the sleep moment offers the sleep log, not just its rules', async ({ page }) => {
+  // The Day dashboard's tool zone is the promise that the thing you need is
+  // where the moment is. A sleep moment used to render the safe-sleep rules and
+  // nothing else — the one moment of the day with a timer to start offered
+  // nothing to press, because the mapping from activity kind to widget had no
+  // branch for it. `momentWidgets` is exhaustive by type now, so a kind with a
+  // logger cannot be left unwired.
+  await seedStore(page, {
+    customSchedules: [
+      {
+        id: 'a',
+        fromMonths: 0,
+        slots: [{ time: '00:00', type: 'sleep', mins: 1439, title: 'Night', detail: '' }],
+      },
+    ],
+  })
+  await page.goto('daily')
+  await hideOverlays(page)
+
+  // Both halves of the logger, and the way to the full page.
+  await expect(page.getByRole('button', { name: 'Start sleep' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Log sleep' })).toBeVisible()
+  await expect(page.getByRole('link', { name: /Sleep Log/ })).toBeVisible()
+  // The rules stay — they are a safety directive, and this is the moment they
+  // apply to.
+  await expect(page.getByText(/Back to sleep/i).first()).toBeVisible()
+})
+
+test('the dashboard and /sleep run the same console', async ({ page }) => {
+  // The rule that stopped the tummy widget being two different instruments: a
+  // widget on both a page and the dashboard is one component, so both screens
+  // offer the same control with the same name.
+  await seedStore(page, {
+    customSchedules: [
+      {
+        id: 'a',
+        fromMonths: 0,
+        slots: [{ time: '00:00', type: 'sleep', mins: 1439, title: 'Night', detail: '' }],
+      },
+    ],
+  })
+  await page.goto('daily')
+  await hideOverlays(page)
+  await page.getByRole('button', { name: 'Start sleep' }).click()
+  await expect(page.getByRole('button', { name: 'They woke up' })).toBeVisible()
+
+  // The same running sleep, seen from the page.
+  await page.goto('sleep')
+  await hideOverlays(page)
+  await expect(page.getByRole('button', { name: 'They woke up' })).toBeVisible()
+  await expect(page.getByText('Asleep now').first()).toBeVisible()
+})
