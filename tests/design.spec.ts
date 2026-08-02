@@ -489,6 +489,37 @@ test('every label on the day timeline clears 4.5:1', async ({ page }) => {
   }
 })
 
+test('both halves of the dashboard offer the way back to now', async ({ page }) => {
+  // The timeline's control appeared only once the live step had scrolled out of
+  // view. But scrolling is not the only way to stop looking at now: tapping the
+  // step directly above it puts the whole moment card on something that is not
+  // happening while the live step stays perfectly visible — so the one control
+  // that undoes what you just did was hidden precisely when you had just done
+  // it. Both halves are showing one moment, so both offer the way out of it.
+  for (const timelineLayout of ['side', 'top'] as const) {
+    await seedStore(page, { timelineLayout })
+    await page.goto('daily')
+    await hideOverlays(page)
+
+    const jump = page.getByRole('button', { name: /Jump to now/ })
+    const steps = page.locator('ol li button[aria-pressed]')
+    await expect(steps.first()).toBeVisible()
+    // Following the clock, with the live step centred: nothing to go back to.
+    await expect(jump).toHaveCount(0)
+
+    // Its own neighbour — deliberately a step that is still on screen, which is
+    // the case the old "is it in view" test got wrong.
+    const nowIdx = await steps.evaluateAll((els) =>
+      els.findIndex((b) => b.getAttribute('aria-current') === 'step'),
+    )
+    await steps.nth(nowIdx > 0 ? nowIdx - 1 : 1).click()
+    await expect(jump).toHaveCount(2)
+
+    await jump.first().click()
+    await expect(jump).toHaveCount(0)
+  }
+})
+
 test('sessions are scoped to one baby', async ({ page }) => {
   // Reads had no baby filter while writes carried one, so a second child's
   // tummy time filled the first's bar and was judged against the first's age.

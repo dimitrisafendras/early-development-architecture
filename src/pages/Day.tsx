@@ -566,7 +566,19 @@ function Timeline({
     centerOn(currentSlot, 'smooth')
   }
 
-  const jump = nowInView ? null : (
+  /**
+   * **Two reasons to offer the way back, not one.**
+   *
+   * It appeared only when the live step had been scrolled out of view. But
+   * scrolling is not the only way to stop looking at now: tapping any other step
+   * puts the whole right-hand card on a moment that is not happening, and the
+   * live one can easily still be two rows up and perfectly visible — so the one
+   * control that undoes what you just did was hidden precisely when you had just
+   * done it. The moment card beside this one has always shown its copy on
+   * exactly that condition; this one now agrees.
+   */
+  const previewing = activeIdx !== currentSlot
+  const jump = nowInView && !previewing ? null : (
     <GlassButton
       size="sm"
       tone="primary"
