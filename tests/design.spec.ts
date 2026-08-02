@@ -611,3 +611,59 @@ test('selecting a step animates colour, never geometry', async ({ page }) => {
     expect(bad, `${timelineLayout}: ${JSON.stringify(bad)}`).toEqual([])
   }
 })
+
+/**
+ * Every activity kind carries tips.
+ *
+ * The safe-sleep rules were the only guidance any moment card offered: the
+ * other eight kinds ended at their logger, or at a one-line blurb. `momentTips`
+ * is a `Record<DayActivity, …>` so a new kind cannot compile without one — but
+ * the type only guarantees an *entry*, not that it reaches the screen, and the
+ * whole tips block hung off `SleepWidget` before this. So the test drives one
+ * moment per kind and reads the heading back.
+ *
+ * The headings are the Wiki's own, verbatim: the tips are that guidance
+ * surfaced where it applies, and if this list ever has to be edited to match new
+ * dashboard-only copy, the two have started to drift.
+ */
+const TIP_HEADINGS: Record<string, string> = {
+  feed: 'Read the cues',
+  meal: 'Solids, first birthday, and what to avoid',
+  sleep: 'Safe sleep — every sleep, every time',
+  wind: "The 5 S's — recreate the womb",
+  tummy: 'Pro-Tips for Content Tummy Time',
+  active: 'After six months: it becomes movement',
+  play: 'Serve & Return',
+  care: 'Bath safety — every single time',
+}
+
+test('every activity kind offers tips, not only sleep', async ({ page }) => {
+  const kinds = Object.keys(TIP_HEADINGS)
+  await seedStore(page, {
+    customSchedules: [
+      {
+        id: 'tips',
+        fromMonths: 0,
+        slots: kinds.map((type, i) => ({
+          // One slot per kind, an hour apart from 06:00 so they sort in this
+          // order and each has a name no other row shares.
+          time: `${String(6 + i).padStart(2, '0')}:00`,
+          type,
+          mins: 30,
+          title: `Kind ${type}`,
+          detail: '',
+        })),
+      },
+    ],
+  })
+  await page.goto('daily')
+  await hideOverlays(page)
+
+  for (const type of kinds) {
+    await page.getByRole('button', { name: `Kind ${type}`, exact: false }).first().click()
+    await expect(
+      page.getByText(TIP_HEADINGS[type], { exact: false }).first(),
+      `${type} has no tips`,
+    ).toBeVisible()
+  }
+})

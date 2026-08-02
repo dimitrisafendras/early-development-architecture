@@ -7,6 +7,7 @@ import {
   Clock,
   Timer,
   ShieldCheck,
+  Lightbulb,
   LocateFixed,
   Pencil,
   Check,
@@ -46,7 +47,7 @@ import { useFeedLog } from '../lib/useFeedLog'
 import { useSleepLog } from '../lib/useSleepLog'
 import { useDateLocale } from '../lib/dates'
 import { useAppStore } from '../store'
-import { useT } from '../i18n'
+import { useT, type Messages } from '../i18n'
 
 /** Wiki topic each activity maps to, for the panel's "learn more" link + info. */
 
@@ -466,10 +467,17 @@ function MomentTool({ type, isNow, accent }: { type: DayActivity; isNow: boolean
         {/* Capped measure — the tool zone is now full card width, and a stretched
             form/paragraph reads worse than one that keeps a comfortable column. */}
         <GlassScrollArea className="-mx-1 max-w-2xl px-1">
-          {(() => {
-            const Widget = momentWidgets[type]
-            return Widget ? <Widget /> : <TopicInfo type={type} />
-          })()}
+          {/* Tool then tips, in that order and with that gap, for every kind —
+              the rhythm used to be the widget's own business, so eight of the
+              nine activities ended at their logger and only sleep read as a
+              finished card. */}
+          <div className="flex flex-col gap-4">
+            {(() => {
+              const Widget = momentWidgets[type]
+              return Widget ? <Widget /> : <TopicInfo type={type} />
+            })()}
+            <MomentTips type={type} />
+          </div>
         </GlassScrollArea>
       </CardContent>
     </Card>
@@ -618,7 +626,7 @@ function Timeline({
       // class cannot outrank — the knob is the variable, and 0.5rem is
       // `rounded-lg`. Every other chip and control on this card is a rounded
       // square; the one floating above them was the only pill.
-      className="travelling-ring pointer-events-auto [--ds-glass-radius:0.5rem] text-xs font-semibold"
+      className="travelling-ring [--ds-glass-radius:0.5rem] text-xs font-semibold"
     >
       <LocateFixed className="size-3.5" /> {t.day.jumpToNow}
     </GlassButton>
@@ -637,13 +645,16 @@ function Timeline({
         // A `span`, because `WidgetCard` renders `meta` inside one — a `div`
         // here was a block box inside an inline one.
         <span className="flex items-center gap-3">
-          {/* Sideways the control leaves the list and joins the header. A column
-              is 21rem tall and its rows are 56px, so a floating chip over it
-              covers a slot you are not reading; the strip is 112px tall and every
-              one of its cells is a card, so *anywhere* over it covers something —
-              and the one place it could sit, the centre, is exactly where the
-              carousel puts the moment you came to look at. */}
-          {horizontal && jump}
+          {/* **The control lives in the header, in both layouts.**
+              It used to float over the top of the column and join the header only
+              sideways, on the reasoning that a 21rem column of 56px rows has room
+              to spare. It does not: the list is scrolled to the *live* moment, so
+              the chip's fixed perch at the top of the viewport lands on whichever
+              row happens to be first — and being glass, it left that row's title
+              legible-ish underneath rather than hidden, which is worse. The
+              header is the top of the list too, it is the same distance from the
+              thumb, and it covers nothing. */}
+          {jump}
           {/* The padding is the tap target, and the negative margin gives it
               back to the layout: at its own size this link is 43×16px on a
               phone — a third of the 44px minimum — and it is the only way from
@@ -657,24 +668,7 @@ function Timeline({
         </span>
       }
     >
-        {/* The recentre control rides at the *top* of the list, not the bottom.
-            `GlassScrollArea`'s own `overlay` prop pins it to the bottom edge,
-            which is where you look for "more below" — but this button means "you
-            have scrolled away from now", and the day runs downward, so it is
-            almost always sitting above you. Hanging it off the bottom put the
-            way back at the far end of the direction you would have to travel.
-
-            Anchored here rather than by changing the package: the prop is one
-            fixed position in an external, tagged dependency, and this is one
-            absolutely-positioned child of a `relative` wrapper. It is still the
-            floating glass control the Liquid Glass guidance sanctions — the same
-            component, over content, in the one place on this page that qualifies. */}
-        <div className="relative flex min-h-0 flex-1 flex-col">
-          {!horizontal && jump && (
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center pt-1">
-              {jump}
-            </div>
-          )}
+        <div className="flex min-h-0 flex-1 flex-col">
         {/* `proximity`, never `mandatory`: steps settle onto the centre line
             when you let go — the carousel dial — but browsing the day freely,
             and the programmatic centring behind "jump to now", are both left
@@ -1257,21 +1251,99 @@ function Timeline({
 
 /* ------------------------------------------------------------------- info */
 
-/** For sleep / wind-down slots: the non-negotiable safe-sleep rules. Flat — the
- *  tool zone around it already provides the surface. */
-function SafeSleepInfo() {
+/** A tip list: a heading and a set of title-then-sentence points. */
+type MomentTipSet = {
+  title: string
+  /** A safety directive rather than advice — shown with the shield. */
+  safety?: boolean
+  items: { title: string; text: string }[]
+}
+
+/** The Wiki writes its emphasis as `'Chest-to-Chest:'`; a bullet supplies its own
+ *  full stop, so the trailing colon has to come off (either alphabet's). */
+const stripColon = (s: string) => s.replace(/\s*[:·]\s*$/, '')
+
+/**
+ * **Every activity's tips, keyed by the activity.**
+ *
+ * The sleep moment carried the safe-sleep rules from the day it shipped, and it
+ * was the only one that carried anything: every other moment card ended at its
+ * logger, so the app's one piece of "while you are doing this, here is what
+ * matters" lived on exactly one of nine activities. This is that, generalised —
+ * a `Record<DayActivity, …>` for the same reason `momentWidgets` is one, so a
+ * new activity cannot ship with nothing to read.
+ *
+ * **No new strings.** Every list here is already written, sourced and
+ * translated in `i18n.ts` for the Wiki topic the activity maps to
+ * (`dayActivityMeta[type].wiki`) — the tips are that guidance surfaced at the
+ * moment it applies, not a second copy of it that can drift or be translated
+ * into only one locale.
+ */
+const momentTips: Record<DayActivity, (t: Messages) => MomentTipSet> = {
+  // Mid-feed the useful thing is not the volume table, it is whether they are
+  // still hungry — so the cues, one bullet each way round.
+  feed: (t) => ({
+    title: t.feeding.cuesTitle,
+    items: [
+      { title: t.feeding.hungerLabel, text: t.feeding.hungerCues.join(' · ') },
+      { title: t.feeding.fullLabel, text: t.feeding.fullCues.join(' · ') },
+    ],
+  }),
+  meal: (t) => ({ title: t.feeding.solidsTitle, safety: true, items: t.feeding.solids }),
+  sleep: (t) => ({ title: t.sleep.safeTitle, safety: true, items: t.sleep.safe }),
+  // Wind-down maps to the soothing topic, not the sleep one — so it gets the
+  // 5 S's, which is what the caregiver is actually doing in that half hour.
+  wind: (t) => ({ title: t.soothing.howTitle, items: t.soothing.practices }),
+  tummy: (t) => ({
+    title: t.tummyTime.tipsTitle,
+    safety: true,
+    items: [
+      // The supervision rule leads, because it is the one directive on this
+      // page that is not advice.
+      {
+        title: t.tummyTime.alertTitle,
+        text: `${t.tummyTime.alertBefore}${t.tummyTime.alertEm}${t.tummyTime.alertAfter}`,
+      },
+      ...t.tummyTime.tips.map((p) => ({ title: stripColon(p.strong), text: p.text })),
+    ],
+  }),
+  active: (t) => ({
+    title: t.tummyTime.afterTitle,
+    items: t.tummyTime.after.map((p) => ({ title: stripColon(p.strong), text: p.text })),
+  }),
+  play: (t) => ({
+    title: t.serveReturn.title,
+    items: t.serveReturn.steps.map((s) => ({ title: s.title, text: s.desc })),
+  }),
+  care: (t) => ({ title: t.bathing.safetyTitle, safety: true, items: t.bathing.safety }),
+}
+
+/**
+ * The tips under a moment's tool.
+ *
+ * Flat, with only a rule above it: the tool zone around it already provides the
+ * surface, and stacking a card in a card here is what made the sleep rules read
+ * as a separate widget rather than as the note under the one above.
+ */
+function MomentTips({ type }: { type: DayActivity }) {
   const t = useT()
+  const { title, safety, items } = momentTips[type](t)
   return (
-    <div>
+    <div className="border-t border-border pt-4">
       <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <ShieldCheck className="size-4 text-primary" /> {t.sleep.safeTitle}
+        {safety ? (
+          <ShieldCheck className="size-4 shrink-0 text-primary" />
+        ) : (
+          <Lightbulb className="size-4 shrink-0 text-primary" />
+        )}
+        {title}
       </p>
       <BulletList
         className="mt-3"
-        items={t.sleep.safe.map((rule) => (
+        items={items.map((item) => (
           <>
-            <span className="font-medium text-foreground">{rule.title}.</span>{' '}
-            <span className="text-muted-foreground">{rule.text}</span>
+            <span className="font-medium text-foreground">{stripColon(item.title)}.</span>{' '}
+            <span className="text-muted-foreground">{item.text}</span>
           </>
         ))}
       />
@@ -1330,9 +1402,9 @@ function TummyWidget() {
  *
  * Both halves, because both are the reason you are here: the start/stop console
  * for the sleep beginning right now, and the two-times form for the one that has
- * already finished. The safe-sleep rules sit under them rather than instead of
- * them — this slot used to render *only* the rules, so the one moment of the day
- * with a running timer to start offered nothing to press.
+ * already finished. This slot used to render *only* the safe-sleep rules, so the
+ * one moment of the day with a running timer to start offered nothing to press;
+ * the rules are still under it, but as `MomentTips`, which every activity gets.
  */
 function SleepWidget() {
   const t = useT()
@@ -1363,12 +1435,6 @@ function SleepWidget() {
       <ActivityLink to="/sleep" activity="sleep" touch>
         {tsl.title}
       </ActivityLink>
-
-      {/* The rules stay: they are the one piece of guidance in this app that is a
-          safety directive, and the moment they apply to is this one. */}
-      <div className="border-t border-border pt-4">
-        <SafeSleepInfo />
-      </div>
     </div>
   )
 }
