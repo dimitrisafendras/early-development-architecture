@@ -27,6 +27,19 @@ export function NavBar() {
 
   return (
     <GlassNav
+      // **Remounted per route, which is how the dropdown closes.**
+      //
+      // `GlassNav` owns `open` and closes it on the two things it can see: an
+      // outside tap, and the `onNavigate` it hands to `renderLink`. The
+      // destinations grid is `mobileActions` — an opaque `ReactNode`, so those
+      // rows get no `onNavigate` — and every one of them is *inside* the panel,
+      // so the outside-tap guard does not fire either. Tapping "Sleep" therefore
+      // navigated and left the menu sitting open over the page you had just
+      // asked for. Keying on the path makes arriving somewhere new a fresh nav,
+      // which is closed. Anything that opens *without* changing the route — the
+      // settings popover, the account menu — keeps the panel open, which is the
+      // behaviour those need.
+      key={pathname}
       className="xl:hidden"
       activeHref={pathname}
       menuLabelOpen={t.nav.menuOpen}

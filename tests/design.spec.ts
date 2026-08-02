@@ -729,19 +729,28 @@ test('the moment card head stacks on a phone and sits inline on a desktop', asyn
       return { labelBottom: a.bottom, labelTop: a.top, chipTop: b.top, chipLeft: b.left, labelLeft: a.left }
     })
 
+  // Polled, not read once: `setViewportSize` resolves before the page has
+  // necessarily relaid out, and reading the rects on the next tick caught the
+  // old width often enough under load to fail a correct build.
+  const stacked = async () => {
+    const h = await head()
+    if (!h) return null
+    // Stacked: the chip starts below the label, and both begin at the same edge.
+    return h.chipTop >= h.labelBottom - 1 && Math.abs(h.chipLeft - h.labelLeft) < 2
+  }
+  const inline = async () => {
+    const h = await head()
+    if (!h) return null
+    // Inline: they share a line, so the chip is to the right and vertically
+    // overlapping — not below.
+    return h.chipTop < h.labelBottom && h.chipLeft > h.labelLeft
+  }
+
   await page.setViewportSize({ width: 390, height: 844 })
-  const phone = await head()
-  expect(phone, 'no moment head').not.toBeNull()
-  // Stacked: the chip starts below the label, and both begin at the same edge.
-  expect(phone!.chipTop).toBeGreaterThanOrEqual(phone!.labelBottom - 1)
-  expect(Math.abs(phone!.chipLeft - phone!.labelLeft)).toBeLessThan(2)
+  await expect.poll(stacked, { message: 'phone: label and chip not stacked' }).toBe(true)
 
   await page.setViewportSize({ width: 1024, height: 900 })
-  const desk = await head()
-  // Inline: they share a line, so the chip is to the right and vertically
-  // overlapping — not below.
-  expect(desk!.chipTop).toBeLessThan(desk!.labelBottom)
-  expect(desk!.chipLeft).toBeGreaterThan(desk!.labelLeft)
+  await expect.poll(inline, { message: 'desktop: label and chip not inline' }).toBe(true)
 })
 
 test('the bottom tab bar is one row of equal tabs', async ({ page }) => {
@@ -773,4 +782,48 @@ test('the bottom tab bar is one row of equal tabs', async ({ page }) => {
     () => Math.round(document.querySelector('nav ul.grid a')!.getBoundingClientRect().height),
   )
   expect(height).toBeGreaterThanOrEqual(44)
+})
+
+test('the hamburger closes when you pick a destination', async ({ page }) => {
+  // `GlassNav` owns the dropdown's open state and closes it on the two things
+  // it can see: an outside tap, and the `onNavigate` it hands to `renderLink`.
+  // The destinations grid is passed as `mobileActions` — an opaque node, so
+  // those rows get neither — and every one of them is inside the panel, so the
+  // outside-tap guard never fires. Tapping "Sleep" navigated and left the menu
+  // sitting open over the page it had just fetched.
+  await seedStore(page, {})
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('')
+
+  const burger = page.getByLabel('Open menu').locator('visible=true').first()
+  await burger.click()
+
+  const panel = page.getByRole('link', { name: 'Sleep Log', exact: false }).locator('visible=true')
+  await expect(panel.first()).toBeVisible()
+  await panel.first().click()
+
+  await expect(page).toHaveURL(/\/sleep$/)
+  // The panel is gone, not merely scrolled past: the destination rows go with it.
+  await expect(page.getByRole('link', { name: 'Sleep Log', exact: false })).toHaveCount(0)
+  await expect(page.getByLabel('Open menu').locator('visible=true').first()).toBeVisible()
+})
+
+test('Family keeps a home outside the bottom bar', async ({ page }) => {
+  // It came off the bar because six tabs left each one ~65px on the narrowest
+  // phone and the longest Greek label filled one edge to edge. Off the bar is
+  // not off the app: `appAreas` still holds it whole, so the rail, the
+  // hamburger and the header's title lookup all still know it.
+  await seedStore(page, {})
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto('')
+
+  const tabLabels = await page.evaluate(() =>
+    [...document.querySelectorAll('nav ul.grid a')].map((a) => a.textContent),
+  )
+  expect(tabLabels).not.toContain('Family')
+  expect(tabLabels.length).toBe(5)
+
+  await page.getByLabel('Open menu').locator('visible=true').first().click()
+  await page.getByRole('link', { name: 'Family', exact: false }).locator('visible=true').first().click()
+  await expect(page).toHaveURL(/\/family$/)
 })

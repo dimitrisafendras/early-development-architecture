@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { GlassSurface } from '@dimitrisafendras/liquid-glass'
 import { cn } from '@/lib/utils'
-import { appAreas } from '../lib/appAreas'
+import { bottomTabs } from '../lib/appAreas'
 import { useT } from '../i18n'
 
 /**
@@ -20,7 +20,7 @@ export function BottomNav() {
   const { pathname } = useLocation()
   // -1 on the routes that aren't tabs (`/wiki`, `/design-system`, the auth
   // pages), where no tab is lit and the indicator stays out of the way.
-  const activeIndex = appAreas.findIndex((a) => a.to === pathname)
+  const activeIndex = bottomTabs.findIndex((a) => a.to === pathname)
 
   return (
     <nav
@@ -37,17 +37,17 @@ export function BottomNav() {
           `sm:` utility could never override. */}
       <GlassSurface className="border-t border-border/50 px-1.5 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] [--ds-glass-radius:0px] sm:mx-auto sm:max-w-md sm:border-t-0 sm:p-1.5 sm:pb-1.5 sm:[--ds-glass-radius:26px]">
         {/* **The column count comes from the list, not from a literal.**
-            It was `grid-cols-5` against six areas, so the sixth tab (Family)
-            dropped onto a second row the moment the sleep log added itself to
-            `appAreas` — half a bar's worth of glass below the other five, with
-            the sliding indicator still measuring itself in sixths and landing
-            on nothing. A tab bar's whole job is to be one row of equal targets.
-            An inline `gridTemplateColumns` rather than a `grid-cols-${n}` class
-            because Tailwind generates from source text and cannot see a value
-            computed at runtime. */}
+            It was `grid-cols-5` against six areas, so the sixth tab dropped onto
+            a second row the moment the sleep log added itself to `appAreas` —
+            half a bar's worth of glass below the other five, with the sliding
+            indicator still measuring itself in sixths and landing on nothing. A
+            tab bar's whole job is to be one row of equal targets. An inline
+            `gridTemplateColumns` rather than a `grid-cols-${n}` class because
+            Tailwind generates from source text and cannot see a value computed
+            at runtime. */}
         <ul
           className="relative grid"
-          style={{ gridTemplateColumns: `repeat(${appAreas.length}, minmax(0, 1fr))` }}
+          style={{ gridTemplateColumns: `repeat(${bottomTabs.length}, minmax(0, 1fr))` }}
         >
           {/* The selected-tab indicator is one sliding element rather than a
               background on each tab, so switching tabs glides the way the
@@ -60,12 +60,12 @@ export function BottomNav() {
               aria-hidden="true"
               className="ds-seg-thumb pointer-events-none absolute inset-y-0 left-0 rounded-[20px] bg-primary/15"
               style={{
-                width: `${100 / appAreas.length}%`,
+                width: `${100 / bottomTabs.length}%`,
                 transform: `translateX(${activeIndex * 100}%)`,
               }}
             />
           )}
-          {appAreas.map(({ to, Icon, tabLabel }) => {
+          {bottomTabs.map(({ to, Icon, tabLabel }) => {
             const active = pathname === to
             return (
               <li key={to}>
