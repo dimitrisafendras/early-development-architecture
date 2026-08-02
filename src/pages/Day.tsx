@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
+  ChevronRight,
   Milk,
   BookOpen,
   Clock,
@@ -279,24 +280,72 @@ function MomentCard({
             </div>
           </div>
 
-          {/* Up-next hand-off, condensed to a square on the title's line: the
-              next activity's mark over its time. The full title rides along as
-              the accessible name / tooltip, since a square has no room for it. */}
-          <button
-            type="button"
-            onClick={() => onSelectSlot(nextIdx)}
-            title={`${tl.upNext}: ${next.title} · ${next.time}`}
-            aria-label={`${tl.upNext}: ${next.title}, ${next.time}`}
-            className="group flex size-14 shrink-0 flex-col items-center justify-center gap-1 rounded-2xl bg-card/80 outline-none ring-1 ring-foreground/10 transition-[transform,box-shadow,background-color] hover:-translate-y-0.5 hover:bg-card hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring/70"
-          >
-            <span className={cn('inline-flex size-7 items-center justify-center rounded-lg', nextMeta.dot)}>
-              <NextIcon className="size-4" />
-            </span>
-            <span className="text-[10px] font-semibold tabular-nums leading-none text-muted-foreground">
-              {next.time}
-            </span>
-          </button>
         </div>
+
+        {/* The hand-off to what comes next, on its own line.
+            It was a 56px square at the far right of the title's row: an icon
+            over a 10px time, with the moment's actual *name* only in a tooltip.
+            Four things made it read as decoration rather than as the second most
+            important fact on the card — no visible name, the far-right position
+            where chrome lives, the same rounded-chip shape as the status pills
+            beside it, and an affordance that only appeared on hover, which on a
+            phone is never. "Next" is also a *relation*, and a square holds an
+            identity, not a relation.
+
+            So: a full-width row that says what is next in words. It gets
+            position and one hue chip; it does not get a ring, a display size, a
+            colour field or motion, because the current moment owns all four and
+            "what's now" is the card's whole purpose. A `text-sm` title under a
+            muted eyebrow cannot be mistaken for the 2xl display title above it.
+            Moving it off the title's line also gives that title back the width
+            it was losing to a square. */}
+        <button
+          type="button"
+          onClick={() => onSelectSlot(nextIdx)}
+          className="group -mx-2 flex items-center gap-3 rounded-xl px-2 py-2 text-left outline-none transition-colors hover:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring/70"
+        >
+          <span
+            aria-hidden
+            className={cn(
+              'inline-flex size-8 shrink-0 items-center justify-center rounded-lg',
+              nextMeta.dot,
+            )}
+          >
+            <NextIcon className="size-4" />
+          </span>
+          <span className="min-w-0 flex-1">
+            {/* Muted, not the activity's hue: two hue-coloured eyebrows in one
+                card would make now and next peers. */}
+            <Eyebrow as="span" tone="muted" className="block">
+              {tl.upNext}
+              {/* The accessible name is computed from this row's own text, so
+                  without a separator it runs "Up next Midday feed" together. */}
+              <span className="sr-only">:</span>
+            </Eyebrow>
+            <span className="mt-0.5 flex items-baseline gap-x-2">
+              <span className="truncate text-sm font-semibold text-foreground">{next.title}</span>
+              <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                {next.time}
+                {/* Only while live: `untilNext` is measured against the wall
+                    clock, so on a previewed slot it would be counting down to
+                    something other than what the card is showing. The absolute
+                    time is always true. */}
+                {isNow && (
+                  <>
+                    {' · '}
+                    {t.day.nextIn} {formatDuration(untilNext, tl.hour, tl.minute)}
+                  </>
+                )}
+              </span>
+            </span>
+          </span>
+          {/* Rest-state affordance. Without it the row still read as a badge on
+              touch, where the hover lift never happens. */}
+          <ChevronRight
+            aria-hidden
+            className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+          />
+        </button>
 
         <MomentTool type={type} isNow={isNow} accent={a} />
       </CardContent>
@@ -580,18 +629,26 @@ function Timeline({
                           {slot.title}
                         </span>
                       </div>
-                      {/* Two lines is enough to recognise a slot; the one you pick
-                          opens to its full detail, which is what the schedule is
-                          for. Cheaper than a second card and it keeps ten slots
-                          reachable without scrolling past prose. */}
-                      <p
-                        className={cn(
-                          'mt-1 text-[13px] leading-relaxed text-muted-foreground',
-                          !isSelected && 'line-clamp-2',
-                        )}
-                      >
-                        {slot.detail}
-                      </p>
+                      {/* **The detail belongs to the row you picked, and only to
+                          it.** Every row used to carry a two-line clamp of the
+                          same prose, so a twenty-eight moment day was twenty-eight
+                          half-sentences — "Copy any…", "same order,…", "after a
+                          bi…" — none of them finishable, each ending at whatever
+                          word the 290px column ran out on. A preview you have to
+                          tap to complete is not a preview; it is the tap, plus
+                          two lines of noise between every pair of moments you
+                          were actually scanning for.
+
+                          Without it a moment is one line — its time and its name
+                          — which is what a day read as a rhythm is made of, and
+                          three times as many of them fit before the column
+                          scrolls. The detail is one tap away, in the row that
+                          expands to hold it whole. */}
+                      {isSelected && (
+                        <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+                          {slot.detail}
+                        </p>
+                      )}
                     </div>
                   </button>
                 </li>
