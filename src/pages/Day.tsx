@@ -231,16 +231,11 @@ function MomentCard({
               </Eyebrow>
             ) : (
               <>
-                {/* Same eyebrow size/tracking as the live branch above, so the
-                    label doesn't change weight or letterspacing as you select a
-                    different slot. */}
-                <Eyebrow
-                  as="span"
-                  tone="muted"
-                  className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1"
-                >
-                  <Clock className="size-3.5" /> {t.day.panelSelectedTag}
-                </Eyebrow>
+                {/* No "selected" label. It was a grey pill beside a filled
+                    primary button — the loudest possible company for the quietest
+                    possible word — and it said nothing the button did not: a
+                    visible "jump to now" *is* the statement that you are not
+                    looking at now. */}
                 {/* The way back to live, and the only control in this state —
                     so it is a button, not a link. As bare link text beside a
                     grey chip it was the quietest thing in the card, which is
@@ -967,11 +962,15 @@ function Timeline({
                         // focused card used to carry, so both states are the same
                         // box and selecting one cannot nudge its contents by a
                         // pixel.
-                        'min-w-0 rounded-xl border transition-[background-color,border-color,box-shadow,padding,margin] duration-300',
+                        // One rhythm for the card's three lines. They carried
+                        // hand-set `mt-1` and `mt-2.5`, so the gap under the title
+                        // and the gap under the time were different sizes for no
+                        // reason anyone could have named.
+                        'flex min-w-0 flex-col gap-1.5 rounded-xl border transition-[background-color,border-color,box-shadow,padding,margin] duration-300',
                         // In the strip the card sits *under* its mark and owns the
                         // cell's width; in the column it sits beside the mark and
                         // takes what is left.
-                        horizontal ? 'w-full text-center' : 'flex-1',
+                        horizontal ? 'w-full items-center text-center' : 'flex-1 items-start',
                         // The focused card is bigger, and it pushes its
                         // neighbours away: a picker's centre cell, not a list
                         // row that happens to be tinted. The tint and the ring
@@ -982,12 +981,7 @@ function Timeline({
                         // Size and air are the axes nothing else here uses.
                         isSelected
                           ? cn('bg-card px-4 py-3.5', !horizontal && 'my-2')
-                          : // The same `border` token the rail's track is painted
-                            // in, at full strength — at 70% the card edges sat a
-                            // shade lighter than the lines running into them,
-                            // which is the kind of near-match that reads as a
-                            // mistake rather than as a hierarchy.
-                            'border-border px-3 py-2 group-hover:bg-muted/70',
+                          : 'px-3 py-2 group-hover:bg-muted/70',
                       )}
                       // **The focused row is the only card in the list that is
                       // materially raised.** It was a translucent wash in the
@@ -1005,12 +999,27 @@ function Timeline({
                       // transform it rasterised the text at a fractional scale for
                       // the whole 300ms and softened every selection.
                       style={
+                        // **The edge is lit exactly where the rail is.** A card
+                        // for a moment you have already had, or are having, wears
+                        // that moment's hue; the ones still ahead stay in the
+                        // `border` token the unlit rail is painted in. So the
+                        // column reads as one thing that fades out in front of
+                        // you rather than as coloured lines threaded past grey
+                        // boxes.
+                        //
+                        // The focused card's lift is a halo, not a drop shadow:
+                        // `0 12px 32px -12px` put all of it under the bottom edge,
+                        // which reads as the card resting on the row below it
+                        // instead of floating above the whole list.
                         isSelected
                           ? {
-                              borderColor: `${a.accent}59`,
-                              boxShadow: `0 12px 32px -12px ${a.accent}66`,
+                              borderColor: `${a.accent}8c`,
+                              boxShadow: `0 0 28px -6px ${a.accent}73`,
                             }
-                          : undefined
+                          : {
+                              borderColor:
+                                isPast || isNow ? `${a.accent}59` : 'var(--border)',
+                            }
                       }
                     >
                       {/* **Title first, then when.** Side by side the chip won
@@ -1038,16 +1047,16 @@ function Timeline({
                       {/* The duration rides *inside* the chip rather than beside
                           it: a second element on this line is what used to wrap
                           the ~290px column onto a ragged extra line. */}
+                      {/* Plain text, not a chip. Every row is a bordered card
+                          now, so a filled pill inside one was a second surface
+                          inside a surface — and the whole column read as chips in
+                          boxes rather than as a list of moments. The hue still
+                          carries the state; it does not need a field behind it. */}
                       <span
                         className={cn(
-                          'mt-1 inline-block rounded-md px-1.5 py-0.5 font-heading text-[13px] font-bold whitespace-nowrap tabular-nums transition-colors',
+                          'font-heading text-sm font-bold whitespace-nowrap tabular-nums transition-colors',
                           isNow || isSelected ? a.text : 'text-muted-foreground',
                         )}
-                        style={
-                          isNow || isSelected
-                            ? { backgroundColor: `${a.accent}1f` }
-                            : { backgroundColor: 'color-mix(in oklab, var(--muted) 70%, transparent)' }
-                        }
                       >
                         {/* The window, not a start time and a length. "11:55 ·
                             30m" put two numbers on one line with a separator and
@@ -1089,7 +1098,7 @@ function Timeline({
                             borderColor: `${a.accent}59`,
                             backgroundColor: `${a.accent}14`,
                           }}
-                          className="group/wiki pointer-events-auto relative z-10 mt-2.5 flex max-w-full items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-semibold transition-shadow hover:shadow-sm"
+                          className="group/wiki pointer-events-auto relative z-10 mt-1 flex max-w-full items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-semibold transition-shadow hover:shadow-sm"
                         >
                           <BookOpen className="size-3.5 shrink-0" />
                           {/* The label truncates, the chip does not. `truncate` on
