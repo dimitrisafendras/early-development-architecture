@@ -537,11 +537,21 @@ function Timeline({
                * after. The rail says the one thing the old flat line never did —
                * how much of the day is done.
                */
-              const segFill = (j: number) => (j < currentSlot ? 100 : j === currentSlot ? livePct : 0)
+              const segFill = (j: number) =>
+                j < 0 ? 0 : j < currentSlot ? 100 : j === currentSlot ? livePct : 0
               // A segment spans two rows: the bottom half of the row it leaves and
               // the top half of the row it arrives at. So each half fills over its
               // own half of the segment's range — the first 50% drains into the
               // bottom half, the rest into the next row's top half.
+              //
+              // Which is only honest if the halves are the same length, and they
+              // are not for free: the gap between two rows is the `<li>`'s own
+              // `pb-8`, and giving all 32px of it to the bottom half made a normal
+              // pair 91/9 and a pair below the live mark 95/5 — so the rail read
+              // ~95% done at the halfway point of the slot, by a different amount
+              // on every row. The two halves overhang 16px each into the gap
+              // instead, which sums to the same `pb-8` (so the joins stay exact)
+              // and makes a uniform pair exactly 50/50.
               const bottomFill = Math.min(100, segFill(i) * 2)
               const topFill = Math.max(0, segFill(i - 1) * 2 - 100)
               // The hue at a segment's midpoint, which is where the two halves
@@ -600,9 +610,9 @@ function Timeline({
                         Two flex halves instead. The bottom half ends at this row's
                         bottom, which *is* the next row's top, which is where its
                         top half begins — so every join is exact for any pair of
-                        row heights, for ever. The one fixed number left is the
-                        `-bottom-8` that carries the bottom half across the row's
-                        own `pb-8`, and it sits next to the padding it mirrors.
+                        row heights, for ever. The only fixed numbers left are the two
+                        ±4 overhangs that sum to the row's own `pb-8`, and they sit
+                        next to the padding they split.
 
                         It also makes the fill honest. Only ~45% of the old rail
                         was ever visible, the rest hidden behind the next mark, so
@@ -611,21 +621,25 @@ function Timeline({
                         height of whatever came next. Here 100% lands exactly on
                         the next mark. */}
                     <div className="relative flex w-18 shrink-0 flex-col items-center self-stretch">
-                      {/* The tail of the segment arriving from the row above. */}
-                      <span
-                        aria-hidden
-                        className={cn(
-                          'relative w-[3px] flex-1 overflow-hidden bg-border',
-                          i === 0 && 'invisible',
+                      {/* The tail of the segment arriving from the row above. It
+                          mirrors the bottom half exactly — same overhang, fill
+                          growing the same way — because it is the same segment.
+                          Its fill was anchored to `bottom-0` and grew *upward*
+                          from the mark, so the second half of every slot drew a
+                          lit stub sitting on the arriving mark with an unlit gap
+                          above it: progress running backwards up the day. */}
+                      <span aria-hidden className="relative w-[3px] flex-1">
+                        {i > 0 && (
+                          <span className="absolute inset-x-0 -top-4 bottom-0 overflow-hidden bg-border">
+                            <span
+                              className="block w-full transition-[height] duration-700 ease-out"
+                              style={{
+                                height: `${topFill}%`,
+                                backgroundImage: `linear-gradient(180deg, ${midAbove}, ${a.accent})`,
+                              }}
+                            />
+                          </span>
                         )}
-                      >
-                        <span
-                          className="absolute inset-x-0 bottom-0 transition-[height] duration-700 ease-out"
-                          style={{
-                            height: `${topFill}%`,
-                            backgroundImage: `linear-gradient(180deg, ${midAbove}, ${a.accent})`,
-                          }}
-                        />
                       </span>
                       {/* A ring of card colour around the mark: the 4px of air
                           that stops the rail's two halves from running flush into
@@ -711,23 +725,23 @@ function Timeline({
                         </span>
                       )}
                       </span>
-                      {/* The head of the segment leaving this row. The inner span
-                          is absolute so it can reach `-bottom-8` — exactly the
-                          `<li>`'s own `pb-8` — and meet the next row's top half
-                          with no seam. */}
-                      <span
-                        aria-hidden
-                        className={cn('relative w-[3px] flex-1', last && 'invisible')}
-                      >
-                        <span className="absolute inset-x-0 top-0 -bottom-8 overflow-hidden bg-border">
-                          <span
-                            className="block w-full transition-[height] duration-700 ease-out"
-                            style={{
-                              height: `${bottomFill}%`,
-                              backgroundImage: `linear-gradient(180deg, ${a.accent}, ${midBelow})`,
-                            }}
-                          />
-                        </span>
+                      {/* The head of the segment leaving this row. Rendered, not
+                          merely hidden, on the last row — `visibility` still
+                          reserves scrollable overflow, so an invisible track
+                          hanging past the final moment left 28px of dead scroll
+                          into nothing at the bottom of the day. */}
+                      <span aria-hidden className="relative w-[3px] flex-1">
+                        {!last && (
+                          <span className="absolute inset-x-0 top-0 -bottom-4 overflow-hidden bg-border">
+                            <span
+                              className="block w-full transition-[height] duration-700 ease-out"
+                              style={{
+                                height: `${bottomFill}%`,
+                                backgroundImage: `linear-gradient(180deg, ${a.accent}, ${midBelow})`,
+                              }}
+                            />
+                          </span>
+                        )}
                       </span>
                     </div>
                     <div
@@ -781,7 +795,7 @@ function Timeline({
                           one names the selected slot's type in words. */}
                       <span
                         className={cn(
-                          'block font-semibold text-foreground transition-all duration-300',
+                          'block font-semibold text-foreground transition-[color,font-size] duration-300',
                           isSelected && 'font-heading text-[17px] leading-tight',
                           isPast && !isSelected && 'text-muted-foreground',
                         )}
