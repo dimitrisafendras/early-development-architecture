@@ -96,6 +96,9 @@ export function SessionBar({
       // one still to come — the plan losing an outline for a thousandth of a
       // minute.
       touched: solid > 0.01 || running > 0.01,
+      // A block whose planned minutes are banked in full. Same epsilon, other
+      // end: pouring 5.0 minutes into a 5-minute block can leave 4.999 behind.
+      filled: solid >= length - 0.01,
       // The block the live edge is currently in — the only one that gets a dot.
       liveEdge: running > 0 && liveLeft === 0,
     }
@@ -103,60 +106,69 @@ export function SessionBar({
 
   return (
     <div className={cn('flex w-full items-center gap-1.5', className)}>
-      {drawn.map((block) => (
-        <div
-          key={block.i}
-          className="relative"
-          // Named so the fill is assertable: "minutes pour across blocks" is the
-          // rule this component exists for, and it is invisible to a text-based
-          // test otherwise.
-          data-slot="session-block"
-          data-solid={Math.round(block.solidPct)}
-          data-live={Math.round(block.livePct)}
-          style={{ flexGrow: block.length, flexBasis: 0, minWidth: 6 }}
-        >
+      {drawn.map((block) => {
+        // A session that filled its planned minutes goes green on its own,
+        // without waiting for the whole day. Three blocks all in the accent
+        // said only "some progress"; the caregiver's actual question at a
+        // glance is *which* of the planned sessions are behind them, and the
+        // caption's "1 of 3" was the only thing answering it.
+        const blockFill = block.filled ? 'var(--success)' : fill
+        return (
           <div
-            className={cn(
-              'flex h-3.5 w-full overflow-hidden rounded-full',
-              // Untouched: an outline, so it reads as room the plan has reserved
-              // rather than as time that has somehow been spent.
-              !block.touched && 'border border-dashed',
-            )}
-            style={{
-              background: block.touched
-                ? 'color-mix(in oklab, var(--muted-foreground) 24%, transparent)'
-                : 'transparent',
-              borderColor: block.touched
-                ? undefined
-                : `color-mix(in oklab, ${fill} 45%, transparent)`,
-            }}
+            key={block.i}
+            className="relative"
+            // Named so the fill is assertable: "minutes pour across blocks" is
+            // the rule this component exists for, and it is invisible to a
+            // text-based test otherwise.
+            data-slot="session-block"
+            data-solid={Math.round(block.solidPct)}
+            data-live={Math.round(block.livePct)}
+            data-filled={block.filled ? '' : undefined}
+            style={{ flexGrow: block.length, flexBasis: 0, minWidth: 6 }}
           >
             <div
-              className="h-full transition-[width] duration-500 ease-out"
-              style={{ width: `${block.solidPct}%`, background: fill }}
-            />
-            <div
-              className="h-full transition-[width] duration-500 ease-out"
+              className={cn(
+                'flex h-3.5 w-full overflow-hidden rounded-full',
+                // Untouched: an outline, so it reads as room the plan has
+                // reserved rather than as time that has somehow been spent.
+                !block.touched && 'border border-dashed',
+              )}
               style={{
-                width: `${block.livePct}%`,
-                background: `color-mix(in oklab, ${fill} 60%, transparent)`,
+                background: block.touched
+                  ? 'color-mix(in oklab, var(--muted-foreground) 24%, transparent)'
+                  : 'transparent',
+                borderColor: block.touched
+                  ? undefined
+                  : `color-mix(in oklab, ${fill} 45%, transparent)`,
               }}
-            />
-          </div>
-
-          {/* The live edge, outside the track's `overflow-hidden` — a dot centred
-              on the leading edge is half outside the bar by definition, and
-              clipping it leaves a half-moon. */}
-          {block.liveEdge && (
-            <span
-              className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2 transition-[left] duration-500 ease-out"
-              style={{ left: `${block.solidPct + block.livePct}%` }}
             >
-              <LiveDot className="size-2" color={fill} />
-            </span>
-          )}
-        </div>
-      ))}
+              <div
+                className="h-full transition-[width] duration-500 ease-out"
+                style={{ width: `${block.solidPct}%`, background: blockFill }}
+              />
+              <div
+                className="h-full transition-[width] duration-500 ease-out"
+                style={{
+                  width: `${block.livePct}%`,
+                  background: `color-mix(in oklab, ${fill} 60%, transparent)`,
+                }}
+              />
+            </div>
+
+            {/* The live edge, outside the track's `overflow-hidden` — a dot
+                centred on the leading edge is half outside the bar by
+                definition, and clipping it leaves a half-moon. */}
+            {block.liveEdge && (
+              <span
+                className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2 transition-[left] duration-500 ease-out"
+                style={{ left: `${block.solidPct + block.livePct}%` }}
+              >
+                <LiveDot className="size-2" color={fill} />
+              </span>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }

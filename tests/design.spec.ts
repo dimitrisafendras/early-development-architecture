@@ -260,6 +260,42 @@ test('tummy minutes pour across the planned blocks, continuing where they left o
   expect(solid[1]).toBe(0)
 })
 
+test('a planned session that filled goes green, and the caption dates it', async ({ page }) => {
+  // Every block in the accent said only "some progress"; which of the planned
+  // sessions are actually behind you was left to the caption alone. And the
+  // caption used to put a bare "01:46–01:48" after a count of sessions, which
+  // read as a duration, or as the window they fall in — anything but the one
+  // fact it carries.
+  await seedStore(page, {})
+  await page.addInitScript(() => {
+    const now = Date.now()
+    const mk = (agoMin: number, len: number) => ({
+      id: 's' + agoMin,
+      started_at: new Date(now - agoMin * 60000).toISOString(),
+      ended_at: new Date(now - (agoMin - len) * 60000).toISOString(),
+    })
+    // 12 minutes against the no-baby day's three 10-minute sessions: the first
+    // filled exactly, and 2 minutes spilled into the second.
+    localStorage.setItem('eda-tummy-local', JSON.stringify([mk(40, 10), mk(3, 2)]))
+  })
+  await page.goto('tracker')
+  await hideOverlays(page)
+
+  const blocks = page.locator('[data-slot="session-block"]')
+  await expect(blocks.first()).toBeVisible()
+  // The first is done and says so; the one it spilled into is not.
+  await expect(blocks.nth(0)).toHaveAttribute('data-filled', '')
+  await expect(blocks.nth(1)).not.toHaveAttribute('data-filled', '')
+
+  const console_ = page
+    .locator('[data-slot="card"]')
+    .filter({ has: blocks })
+    .first()
+  // Labelled, one instant, and on a 24-hour clock — no stray AM/PM inline.
+  await expect(console_).toContainText(/last at [0-2]\d:\d\d/)
+  await expect(console_).not.toContainText(/\d\d:\d\d[–-]\d\d:\d\d/)
+})
+
 test('the running clock reads elapsed against the planned session length', async ({ page }) => {
   // The plan already says how long this sitting should be; a bare elapsed time
   // gave the number nothing to measure itself against.
