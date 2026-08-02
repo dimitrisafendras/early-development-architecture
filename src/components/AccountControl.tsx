@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { supabase, isSupabaseEnabled } from '@/lib/supabase'
 import { useSession } from '@/lib/use-session'
 import { useT } from '../i18n'
+import { Eyebrow } from './Eyebrow'
 
 /**
  * Account control for the nav.
@@ -82,9 +83,13 @@ export function AccountControl({ variant = 'inline' }: { variant?: 'inline' | 'r
       <PopoverContent align="end" sideOffset={10} className="p-4">
         <div className="flex flex-col gap-3">
           <div>
-            <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
+            {/* The shared eyebrow, not a fifth spelling of it: this one was
+                `tracking-wide` (0.05em) and `font-medium` against the app's
+                0.16em semibold, which reads as a rendering glitch when the
+                popover opens over a page full of the real thing. */}
+            <Eyebrow as="p" tone="muted">
               {t.auth.signedInAs}
-            </p>
+            </Eyebrow>
             <p className="mt-1 truncate text-sm font-semibold">{email}</p>
           </div>
           <Separator />

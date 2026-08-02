@@ -1,8 +1,14 @@
 import { useMemo } from 'react'
-import { dayTemplateForAge, defaultSlotMins, type DayTemplate, type ScheduleSlot } from '../data'
+import {
+  dayTemplateForAge,
+  defaultSlotMins,
+  type DayTemplate,
+  type MomentKey,
+  type ScheduleSlot,
+} from '../data'
 import { useAppStore, type AgeSchedule } from '../store'
 import { useBabyAge } from '../components/AgeBadge'
-import { useT, type Messages } from '../i18n'
+import { allMessages, useT, type Messages } from '../i18n'
 
 /** One age band's sample day resolved with localized text (time + type +
  *  duration from data.ts, title/detail looked up by the slot's `moment` key).
@@ -14,8 +20,69 @@ import { useT, type Messages } from '../i18n'
 export function buildScheduleFromTemplate(t: Messages, template: DayTemplate): ScheduleSlot[] {
   return template.slots.map((s) => {
     const text = t.fullDay.moments[s.moment]
-    return { time: s.time, type: s.type, mins: s.mins, title: text.title, detail: text.detail }
+    return {
+      time: s.time,
+      type: s.type,
+      mins: s.mins,
+      title: text.title,
+      detail: text.detail,
+      // Kept, so a saved copy of this slot can be re-read in the language the
+      // app is in rather than the one it was saved in. See `ScheduleSlot`.
+      moment: s.moment,
+    }
   })
+}
+
+/**
+ * A stored slot with its words in the current language.
+ *
+ * Saved programs snapshot `title` and `detail` as text. That is correct for
+ * anything the caregiver typed and wrong for everything the app wrote: the day
+ * on the landing screen kept the language it was authored in, so switching to
+ * Greek left twenty-odd English moments in the middle of a Greek app — and the
+ * built-in day beside it, which does follow the language, made it look like a
+ * loading bug rather than a design one.
+ *
+ * A key that is no longer in the message catalogue (a program saved before a
+ * moment was renamed) falls back to the stored text, which is the last thing
+ * that was true rather than a blank row.
+ */
+export function localizeSlot(t: Messages, slot: ScheduleSlot): ScheduleSlot {
+  const key = slot.moment ?? momentForTitle(slot.title)
+  if (!key) return slot
+  const text = t.fullDay.moments[key]
+  if (!text) return slot
+  return { ...slot, moment: key, title: text.title, detail: text.detail }
+}
+
+/**
+ * The moment a stored title came from, for programs saved before slots carried
+ * the key.
+ *
+ * Without this the fix would only reach days authored from today on, and every
+ * program already saved would stay in the language it was written in for ever —
+ * which is most of them, and all of the ones that made the drift visible.
+ *
+ * Both catalogues, because the language a program was saved in is exactly what
+ * is not recorded. Titles that appear under more than one key are dropped rather
+ * than guessed, and a title nobody's catalogue claims is a name the caregiver
+ * typed and is left alone — the same test `appWrittenTitles` on `/schedule`
+ * already applies before renaming a row.
+ */
+const titleToMoment: Map<string, MomentKey | null> = (() => {
+  const map = new Map<string, MomentKey | null>()
+  for (const messages of allMessages) {
+    for (const [key, text] of Object.entries(messages.fullDay.moments)) {
+      const title = text.title.trim()
+      // Already claimed by a different moment: ambiguous, so neither gets it.
+      map.set(title, map.has(title) && map.get(title) !== key ? null : (key as MomentKey))
+    }
+  }
+  return map
+})()
+
+function momentForTitle(title: string): MomentKey | null {
+  return titleToMoment.get(title.trim()) ?? null
 }
 
 /** The built-in schedule for a baby of `months` (null → the 3–6 month day). */
@@ -62,7 +129,7 @@ export function useSchedule(): ScheduleSlot[] {
   return useMemo(() => {
     const match = scheduleForAge(custom, months)
     return match && match.slots.length
-      ? match.slots.map(withDuration)
+      ? match.slots.map((s) => localizeSlot(t, withDuration(s)))
       : buildDefaultSchedule(t, months)
   }, [custom, t, months])
 }

@@ -188,7 +188,15 @@ export function SegmentedGroup<T extends string>({
             tabIndex={selected ? 0 : -1}
             onClick={() => onValueChange(option.value)}
             className={cn(
+              // **The item is inset; its tap target is not.** The control scale
+              // puts the height on the *track*, so at `md` on a phone the track
+              // is the 44px touch minimum and each option inside it is 36px —
+              // the thing you actually press is 8px short of the thing that was
+              // sized to be pressable. The `after` layer reclaims the track's own
+              // padding without moving the pill, which is the same trick `Switch`
+              // uses for its 18px thumb.
               'relative inline-flex h-full shrink-0 items-center justify-center rounded-sm px-3 font-medium whitespace-nowrap',
+              'after:absolute after:inset-x-0 after:-inset-y-1 after:content-[""]',
               'outline-none transition-colors select-none',
               'focus-visible:ring-3 focus-visible:ring-ring/50',
               'disabled:pointer-events-none disabled:opacity-50',

@@ -326,7 +326,7 @@ function BabyDetail({
                   {[...rows].reverse().map((r) => (
                     <li key={r.id} className="flex items-center justify-between py-2.5 text-sm">
                       <span className="text-muted-foreground">
-                        {formatDateKey(r.measured_on, locale, { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                        {formatDateKey(r.measured_on, locale)}
                       </span>
                       <span className="flex items-center gap-4">
                         <span className="text-foreground">
@@ -368,7 +368,7 @@ function BabyDetail({
                 <div>
                   <p className="text-[15px] font-semibold text-foreground">{name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {formatDateKey(birthDate, locale, { day: '2-digit', month: '2-digit', year: 'numeric' })} · {baby.palette === 'blue' ? t.nav.boy : t.nav.girl}
+                    {formatDateKey(birthDate, locale)} · {baby.palette === 'blue' ? t.nav.boy : t.nav.girl}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">

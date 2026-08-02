@@ -160,7 +160,13 @@ export default function Family() {
                     {members.map((m) => (
                       <li key={m.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                         <span className="min-w-0 truncate text-foreground">
-                          {m.email ?? '—'}
+                          {/* The signed-in user's own address comes from the
+                              session, not from the row. A member row records the
+                              address an invite was *sent* to, and the founder of
+                              a household was never invited — so the person
+                              reading this page saw the whole family listed by
+                              email and themselves as "— (you)". */}
+                          {(m.user_id === myId ? (m.email ?? session?.user?.email) : m.email) ?? '—'}
                           {m.user_id === myId && <span className="text-muted-foreground"> ({tf.you})</span>}
                         </span>
                         <span className="flex shrink-0 items-center gap-2">

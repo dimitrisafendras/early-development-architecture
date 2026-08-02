@@ -50,9 +50,19 @@ export function StatTile({
         className="pointer-events-none absolute -right-6 -top-6 size-20 rounded-full bg-primary/20 opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100"
       />
       <CardContent className="relative">
+        {/* **The label wraps; it does not truncate.** Four tiles across a 390px
+            phone leave each one about 80px of label, which is enough for "TODAY"
+            and nothing else — in Greek the whole glance tier read "ΣΥΝΟΛΟ ΣΉ…",
+            "ΣΤΌΧΟ…", "ΣΕΡΊ…", four tiles saying nothing. A wrapped label costs a
+            line of height that the grid gives to every tile equally; a clipped
+            one costs the tile its meaning.
+
+            Still `items-center`: two lines of this label are 30px against the
+            chip's 28, so centred and top-aligned are the same thing when it
+            wraps — and centred is the only right answer when it does not. */}
         <div className="flex items-center gap-2">
           <IconChip size="sm">{icon}</IconChip>
-          <Eyebrow as="span" tone="muted" className="truncate">
+          <Eyebrow as="span" tone="muted" className="min-w-0 leading-tight text-balance">
             {label}
           </Eyebrow>
         </div>

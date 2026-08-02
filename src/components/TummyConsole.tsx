@@ -101,11 +101,22 @@ export function TummyConsole({
   const goal = planned.length ? plannedTotal : target
   const byPlan = planned.length > 0
 
-  // `ceil`, not `round`: with 4.6 of 5 minutes banked, rounding gave "0 min to
-  // go" beside a goal that was not met — two readings of one fact disagreeing.
-  // Ceil says "1 min to go" until it genuinely is met.
-  const remaining = Math.max(0, Math.ceil(goal - totalWithRunning))
-  const metTarget = totalWithRunning >= goal
+  /**
+   * **Everything on this readout counts the same number.**
+   *
+   * The big figure printed `round(totalWithRunning)` while "to go" and the green
+   * fill were computed from the raw one, so at 29.6 of 30 the console said
+   * "30 / 30 min" and "1 MIN TO GO" on the same line — the identical
+   * disagreement the `ceil` below was added to fix, one rounding step further
+   * up. There is one displayed total now and both readings are derived from it,
+   * so they cannot contradict each other at any value.
+   *
+   * `floor`, not `round`, is what makes that safe: rounding 29.6 up to 30 would
+   * declare the goal met with 24 seconds still to run.
+   */
+  const shownTotal = Math.floor(totalWithRunning)
+  const remaining = Math.max(0, goal - shownTotal)
+  const metTarget = shownTotal >= goal
 
   /**
    * The session now being timed: how long the plan says it should run, and how
@@ -161,7 +172,7 @@ export function TummyConsole({
                 compact ? 'text-3xl' : 'text-5xl sm:text-6xl',
               )}
             >
-              {Math.round(totalWithRunning)}
+              {shownTotal}
               <span
                 className={cn(
                   'font-medium text-muted-foreground',

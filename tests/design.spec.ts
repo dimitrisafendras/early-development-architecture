@@ -373,6 +373,122 @@ test('the plan governs the console, and the age guidance judges the plan', async
   await expect(page.getByText(/the guidance at this age is \d+ min/)).toBeVisible()
 })
 
+test('the console’s two readings of the day cannot contradict each other', async ({ page }) => {
+  // The big figure printed a *rounded* total while "to go" was computed from the
+  // raw one, so a day 24 seconds short of its plan read "30 / 30 min" and
+  // "1 MIN TO GO" on the same line. Both come off one displayed total now.
+  await seedStore(page, {})
+  await page.addInitScript(() => {
+    const now = Date.now()
+    // 29 minutes 40 seconds: rounds up to the goal, is not the goal.
+    localStorage.setItem(
+      'eda-tummy-local',
+      JSON.stringify([
+        {
+          id: 'nearly',
+          started_at: new Date(now - 60 * 60000).toISOString(),
+          ended_at: new Date(now - 60 * 60000 + 29 * 60000 + 40 * 1000).toISOString(),
+        },
+      ]),
+    )
+  })
+  await page.goto('tracker')
+  await hideOverlays(page)
+
+  const console_ = page
+    .locator('[data-slot="card"]')
+    .filter({ has: page.locator('[data-slot="session-block"]') })
+    .first()
+  const text = await console_.innerText()
+  const readout = text.match(/(\d+)\s*\/\s*(\d+)\s*min/)
+  expect(readout).not.toBeNull()
+  const [, done, goal] = readout!.map(Number)
+  const toGo = Number(text.match(/(\d+)\s*min to go/i)?.[1] ?? 0)
+  // Whatever the numbers are, the two statements have to be the same statement.
+  expect(done + toGo).toBe(goal)
+})
+
+test('every label on the day timeline clears 4.5:1', async ({ page }) => {
+  // The Wiki chip on the focused moment took `color: a.accent` — the 500 the
+  // rail and the card edge are drawn in. That is a line colour: behind the
+  // chip's own 8% tint of the same hue it measured 1.82:1 for play and 4.05:1
+  // for sleep, i.e. all eight activities failing on 13px text. The design system
+  // already keeps a readable pair per hue (700 light / 400 dark) and the time on
+  // the same card was using it.
+  //
+  // Composited, not naive: the chip's background is translucent, so reading the
+  // first non-transparent ancestor colour reports a ratio of 1 against itself.
+  for (const dark of [false, true]) {
+    await seedStore(page, { dark, palette: 'blue' })
+    await page.goto('daily')
+    await hideOverlays(page)
+
+    const worst = await page.evaluate(() => {
+      const parse = (c: string) => {
+        const m = c.match(/rgba?\(([^)]+)\)/)
+        if (!m) return null
+        const p = m[1].split(',').map(Number)
+        return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 }
+      }
+      const lum = ({ r, g, b }: { r: number; g: number; b: number }) => {
+        const f = (v: number) => {
+          v /= 255
+          return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)
+        }
+        return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b)
+      }
+      /** Flatten every translucent layer above the element onto opaque white/black. */
+      const backdrop = (el: Element) => {
+        const stack: { r: number; g: number; b: number; a: number }[] = []
+        let n: Element | null = el
+        while (n) {
+          const c = parse(getComputedStyle(n).backgroundColor)
+          if (c && c.a > 0) {
+            stack.push(c)
+            if (c.a === 1) break
+          }
+          n = n.parentElement
+        }
+        let out = stack.length && stack[stack.length - 1].a === 1 ? stack.pop()! : { r: 255, g: 255, b: 255, a: 1 }
+        for (let i = stack.length - 1; i >= 0; i--) {
+          const c = stack[i]
+          out = {
+            r: c.r * c.a + out.r * (1 - c.a),
+            g: c.g * c.a + out.g * (1 - c.a),
+            b: c.b * c.a + out.b * (1 - c.a),
+            a: 1,
+          }
+        }
+        return out
+      }
+      let min = 99
+      let label = ''
+      for (const el of Array.from(document.querySelectorAll('ol li *'))) {
+        const text = Array.from(el.childNodes)
+          .filter((n) => n.nodeType === 3 && n.textContent?.trim())
+          .map((n) => n.textContent!.trim())
+          .join('')
+        if (!text) continue
+        const r = el.getBoundingClientRect()
+        if (!r.width || !r.height) continue
+        const cs = getComputedStyle(el)
+        const fg = parse(cs.color)
+        if (!fg) continue
+        const l1 = lum(fg)
+        const l2 = lum(backdrop(el))
+        const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05)
+        if (ratio < min) {
+          min = ratio
+          label = text.slice(0, 30)
+        }
+      }
+      return { min: Math.round(min * 100) / 100, label }
+    })
+
+    expect(worst.min, `${dark ? 'dark' : 'light'}: "${worst.label}"`).toBeGreaterThanOrEqual(4.5)
+  }
+})
+
 test('sessions are scoped to one baby', async ({ page }) => {
   // Reads had no baby filter while writes carried one, so a second child's
   // tummy time filled the first's bar and was judged against the first's age.

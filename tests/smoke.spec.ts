@@ -43,6 +43,38 @@ for (const route of ROUTES) {
   })
 }
 
+test('a render error shows a screen instead of a blank page', async ({ page }) => {
+  // A thrown render error in an SPA unmounts the whole tree and still returns
+  // HTTP 200 — a white page with nothing to press and, on an app whose job is
+  // to hold a record of a baby's day, nothing saying that record is still there.
+  //
+  // Provoked the way it would actually happen: a persisted value the code did
+  // not anticipate. An activity kind nobody wrote makes the timeline look up a
+  // meta entry that does not exist.
+  const crashes: string[] = []
+  page.on('console', (m) => m.type() === 'error' && crashes.push(m.text()))
+  await seedStore(page, {
+    customSchedules: [
+      {
+        id: 'broken',
+        fromMonths: 0,
+        slots: [{ time: '07:00', type: 'not-an-activity', mins: 20, title: 'x', detail: '' }],
+      },
+    ],
+  })
+  await page.goto('daily')
+
+  await expect(page.getByRole('alert')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Something went wrong' })).toBeVisible()
+  // The reassurance is the reason this screen exists rather than a bare message.
+  await expect(page.getByRole('alert')).toContainText(/Nothing you have logged is affected/)
+  await expect(page.getByRole('button', { name: /Reload the page/ })).toBeVisible()
+  await expect(page.getByRole('link', { name: /Back to your day/ })).toBeVisible()
+  // Caught, not swallowed: the crash is still on the console, so the per-route
+  // smoke checks above keep failing on anything this boundary would hide.
+  expect(crashes.some((c) => /Unhandled render error/.test(c))).toBe(true)
+})
+
 test('an unknown route redirects home rather than 404ing', async ({ page }) => {
   await seedStore(page, {})
   await page.goto('does-not-exist')

@@ -434,6 +434,19 @@ export interface ScheduleSlot {
   mins: number
   title: string
   detail: string
+  /**
+   * The i18n moment this slot's words come from, when the app wrote them.
+   *
+   * `title` and `detail` are stored as *text*, which is right for "Dad's turn"
+   * and wrong for "Long midday sleep": a saved program keeps whatever language
+   * it was created in, so switching the app to Greek left the day — the app's
+   * landing screen — reading in English for ever. With the key kept, app-written
+   * moments resolve through i18n on every read and follow the language.
+   *
+   * Cleared the moment the caregiver renames the row: from then on the words are
+   * theirs, and re-deriving them from a key would overwrite what they typed.
+   */
+  moment?: MomentKey
 }
 
 /** Typical length per activity kind, used for a slot the caregiver has just

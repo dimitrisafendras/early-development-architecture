@@ -182,6 +182,26 @@ test('the feed log reads the seeded feeds, in all three shapes', async ({ page }
   await expect(page.getByText(/\d+\s*ml/).first()).toBeVisible({ timeout: NET })
 })
 
+test('the printable report carries the selected child’s own logs', async ({ page }) => {
+  // The report fetched both logs with no `baby_id`, which on the server means
+  // "rows belonging to nobody" — so every signed-in household's report said
+  // nothing had been logged, on the one page meant to be handed to a doctor.
+  // Only a real database can catch this: signed out, the filter and the omission
+  // look the same, because local rows written before children existed are the
+  // legacy bucket the report is right to keep.
+  await signIn(page)
+  await selectBaby(page, FIXTURES.younger)
+  await page.goto('export')
+  await hideOverlays(page)
+
+  const doc = page.locator('#report-document')
+  await expect(doc).toBeVisible({ timeout: NET })
+  await expect(doc.getByRole('heading', { name: 'Feeds' })).toBeVisible({ timeout: NET })
+  await expect(doc).not.toContainText(/Nothing was logged/i)
+  // The seed writes both feeds and sessions for both children every day.
+  await expect(doc.getByRole('heading', { name: 'Tummy time' })).toBeVisible()
+})
+
 test('the family page shows the household, both parents and the open invite', async ({ page }) => {
   await signIn(page)
   await page.goto('family')

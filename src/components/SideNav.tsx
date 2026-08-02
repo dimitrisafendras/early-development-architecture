@@ -53,7 +53,13 @@ export function SideNav() {
         // The xl shell is exactly one viewport tall and doesn't scroll, so the
         // rail simply fills it — no sticky needed.
         'z-50 hidden h-svh shrink-0 transition-[width] duration-200 xl:block',
-        collapsed ? 'w-[4.5rem]' : 'w-60',
+        // `w-68` (272px), not `w-60`. The expanded rail exists to say where each
+        // link goes, and at 240px three of its eight Greek destinations were cut
+        // mid-word — "Καταγραφή Ταΐσματ…", "Προγράμματα ημέρ…" — so the one state
+        // whose entire purpose is the label was the state that hid it. The
+        // truncation stays as the backstop it was meant to be; it is no longer
+        // the normal case in one of the app's two languages.
+        collapsed ? 'w-[4.5rem]' : 'w-68',
       )}
     >
       <GlassSurface

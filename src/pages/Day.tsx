@@ -592,7 +592,9 @@ function Timeline({
       contentClassName="flex min-h-0 flex-1 flex-col"
       title={t.day.scheduleTitle}
       meta={
-        <div className="flex items-center gap-3">
+        // A `span`, because `WidgetCard` renders `meta` inside one — a `div`
+        // here was a block box inside an inline one.
+        <span className="flex items-center gap-3">
           {/* Sideways the control leaves the list and joins the header. A column
               is 21rem tall and its rows are 56px, so a floating chip over it
               covers a slot you are not reading; the strip is 112px tall and every
@@ -600,13 +602,17 @@ function Timeline({
               and the one place it could sit, the centre, is exactly where the
               carousel puts the moment you came to look at. */}
           {horizontal && jump}
+          {/* The padding is the tap target, and the negative margin gives it
+              back to the layout: at its own size this link is 43×16px on a
+              phone — a third of the 44px minimum — and it is the only way from
+              the dashboard to the editor. */}
           <Link
             to="/schedule"
-            className="inline-flex items-center gap-1 font-medium text-primary transition-colors hover:text-primary/80"
+            className="-my-3.5 inline-flex items-center gap-1 py-3.5 font-medium text-primary transition-colors hover:text-primary/80"
           >
             <Pencil className="size-3.5" /> {t.day.editSchedule}
           </Link>
-        </div>
+        </span>
       }
     >
         {/* The recentre control rides at the *top* of the list, not the bottom.
@@ -1153,8 +1159,17 @@ function Timeline({
                           // blue link in it. In the hue it reads as part of the
                           // card, and as something to press rather than something
                           // to read.
+                          // **The label is the hue's readable step, not the hue.**
+                          // `a.accent` is the 500 the rail and the edge are drawn
+                          // in, which is a fine *line* colour and a poor text one:
+                          // on a light card behind its own 8% tint it measured
+                          // 1.82:1 for play and 4.05:1 for sleep — every one of
+                          // the eight under 4.5:1, on 13px text. `a.text` is the
+                          // pair the design system already tunes for exactly this
+                          // (700 light / 400 dark) and clears 4.5:1 in all
+                          // sixteen combinations. It is also what the time on the
+                          // same card uses, so the two finally agree.
                           style={{
-                            color: a.accent,
                             borderColor: `${a.accent}59`,
                             backgroundColor: `${a.accent}14`,
                           }}
@@ -1163,7 +1178,10 @@ function Timeline({
                           // window above it. Aligning the chip's box instead left
                           // its label indented by 11px against two lines that were
                           // not — three left edges where the card has one.
-                          className="group/wiki pointer-events-auto relative z-10 -ml-[11px] mt-1 flex max-w-[calc(100%+11px)] items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-semibold transition-shadow hover:shadow-sm"
+                          className={cn(
+                            'group/wiki pointer-events-auto relative z-10 -ml-[11px] mt-1 flex max-w-[calc(100%+11px)] items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-semibold transition-shadow hover:shadow-sm',
+                            a.text,
+                          )}
                         >
                           <BookOpen className="size-3.5 shrink-0" />
                           {/* The label truncates, the chip does not. `truncate` on

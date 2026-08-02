@@ -183,6 +183,11 @@ export function TummyWeekChart({
   scheme?: ChartScheme
 }) {
   const c = useChartColors(scheme)
+  // The two series and the axis suffix are the only strings in this file that
+  // were written inline rather than passed in, which is exactly why they were
+  // the only ones never translated: a Greek `/tracker` drew a legend reading
+  // "Target" and "Minutes" over Greek day names.
+  const t = useT()
   const max = Math.max(target, ...minutes, 1)
   return (
     <div style={{ position: 'relative', height: 240 }}>
@@ -193,7 +198,7 @@ export function TummyWeekChart({
             datasets: [
               {
                 type: 'line' as const,
-                label: 'Target',
+                label: t.charts.weekTarget,
                 data: labels.map(() => target),
                 borderColor: c.neutral,
                 borderDash: [6, 6],
@@ -203,7 +208,7 @@ export function TummyWeekChart({
               },
               {
                 type: 'bar' as const,
-                label: 'Minutes',
+                label: t.charts.weekMinutes,
                 data: minutes,
                 backgroundColor: c.primary,
                 borderRadius: 6,
@@ -220,7 +225,7 @@ export function TummyWeekChart({
             y: {
               beginAtZero: true,
               suggestedMax: Math.ceil((max * 1.2) / 10) * 10,
-              ticks: { callback: (v) => `${v}m`, color: c.text },
+              ticks: { callback: (v) => `${v}${t.charts.weekMinuteTick}`, color: c.text },
               grid: { color: c.grid },
             },
             x: { ticks: { color: c.text }, grid: { color: c.grid } },

@@ -31,10 +31,18 @@ const en = {
     feed: 'Feed log',
     baby: 'Baby',
     family: 'Family',
-    /** Short forms for the mobile bottom tab bar, where each tab is ~64px wide. */
+    /**
+     * Short forms for the mobile bottom tab bar, where each tab is ~64px wide.
+     *
+     * The tracker tab says the same word the rail does. It said "Tummy", which
+     * is only half the destination: from the first birthday that page is the
+     * Active-Play Tracker and never mentions tummy time again — so a parent of a
+     * sixteen-month-old tapped "Tummy" and arrived somewhere with another name.
+     * One destination, one name.
+     */
     tabs: {
       today: 'Today',
-      tracker: 'Tummy',
+      tracker: 'Tracker',
       feed: 'Feed',
       baby: 'Baby',
       family: 'Family',
@@ -187,6 +195,14 @@ const en = {
     save: 'Save',
     cancel: 'Cancel',
     date: 'Date',
+  },
+  // The last screen the app can show: what a caught render error says.
+  crash: {
+    title: 'Something went wrong',
+    body: 'This screen stopped rendering. Nothing you have logged is affected — it is saved on this device and in your account.',
+    reload: 'Reload the page',
+    home: 'Back to your day',
+    detailsLabel: 'Technical detail',
   },
   // Tier eyebrows for the widget-page pattern (glance → input → detail).
   widget: {
@@ -1445,6 +1461,10 @@ const en = {
     tummyAxis: ['Birth (Week 1)', '1 Month', '2 Months', '3 Months', '4 Months+'],
     tummySeries: 'Target Daily Minutes',
     tummyYTitle: 'Cumulative Minutes / Day',
+    /** The week chart's two series, and the suffix on its minute axis. */
+    weekTarget: 'Target',
+    weekMinutes: 'Minutes',
+    weekMinuteTick: 'm',
   },
 }
 
@@ -1470,7 +1490,7 @@ const el: Messages = {
     family: 'Οικογένεια',
     tabs: {
       today: 'Σήμερα',
-      tracker: 'Μπρούμυτα',
+      tracker: 'Παρακολ.',
       feed: 'Τάισμα',
       baby: 'Μωρό',
       family: 'Οικογένεια',
@@ -1613,6 +1633,13 @@ const el: Messages = {
     save: 'Αποθήκευση',
     cancel: 'Ακύρωση',
     date: 'Ημερομηνία',
+  },
+  crash: {
+    title: 'Κάτι πήγε στραβά',
+    body: 'Αυτή η οθόνη σταμάτησε να εμφανίζεται. Ό,τι έχετε καταγράψει δεν επηρεάζεται — είναι αποθηκευμένο σε αυτή τη συσκευή και στον λογαριασμό σας.',
+    reload: 'Επαναφόρτωση σελίδας',
+    home: 'Πίσω στη μέρα σας',
+    detailsLabel: 'Τεχνική λεπτομέρεια',
   },
   widget: {
     input: 'Καταγραφή',
@@ -2859,10 +2886,20 @@ const el: Messages = {
     tummyAxis: ['Γέννηση (Εβδ. 1)', '1 Μήνας', '2 Μήνες', '3 Μήνες', '4 Μήνες+'],
     tummySeries: 'Στόχος Ημερήσιων Λεπτών',
     tummyYTitle: 'Αθροιστικά Λεπτά / Ημέρα',
+    weekTarget: 'Στόχος',
+    weekMinutes: 'Λεπτά',
+    weekMinuteTick: 'λ',
   },
 }
 
 const dictionaries: Record<Locale, Messages> = { en, el }
+
+/**
+ * Every catalogue, for the few things that must read a language other than the
+ * one on screen — recognising a moment title saved in the *other* locale, for
+ * one. Exported read-only; nothing should render from this rather than `useT`.
+ */
+export const allMessages: readonly Messages[] = [en, el]
 
 /** Returns the message tree for the currently-selected locale. */
 export function useT(): Messages {

@@ -64,6 +64,11 @@ function loadLocal<T>(key: string): T[] {
   }
 }
 
+/** The local-store twin of `db.ts`'s `forBaby`: this child's rows, or nobody's. */
+function mine(row: { baby_id?: string | null }, babyId: string | null): boolean {
+  return (row.baby_id ?? null) === babyId || row.baby_id == null
+}
+
 export interface ReportData {
   feeds: FeedEntry[]
   sessions: TrackerSession[]
@@ -85,15 +90,31 @@ export function useReportData(babyId: string | null, sinceISO: string): ReportDa
     setLoading(true)
     try {
       if (!signedIn) {
-        // Local rows carry no baby id, so they are filtered by date only.
-        setFeeds(loadLocal<FeedEntry>(LOCAL_FEEDS).filter((f) => f.fed_at >= sinceISO))
-        setSessions(loadLocal<TrackerSession>(LOCAL_SESSIONS).filter((s) => s.started_at >= sinceISO))
+        // Scoped to the child the same way `useFeedLog` and `useTummyTracker`
+        // scope their own local lists — rows written before a baby existed carry
+        // no id and stay in every report, which is the same draining legacy
+        // bucket the server queries keep.
+        setFeeds(
+          loadLocal<FeedEntry>(LOCAL_FEEDS).filter((f) => f.fed_at >= sinceISO && mine(f, babyId)),
+        )
+        setSessions(
+          // `TrackerSession` is what the tracker *renders*; the stored row also
+          // carries the child it belongs to.
+          loadLocal<TrackerSession & { baby_id?: string | null }>(LOCAL_SESSIONS).filter(
+            (s) => s.started_at >= sinceISO && mine(s, babyId),
+          ),
+        )
         setMeasurements([])
         return
       }
+      // **Both logs are scoped to the child, like every other read in the app.**
+      // Without the id these resolved to `baby_id is null` — the legacy bucket —
+      // so a signed-in household's report stated zero feeds and zero tummy time
+      // for a child with months of both, on the one page whose whole purpose is
+      // to be handed to a paediatrician.
       const [feedRows, sessionRows, measureRows] = await Promise.all([
-        listFeedsSince(sinceISO),
-        listSessionsSince(sinceISO),
+        listFeedsSince(sinceISO, babyId),
+        listSessionsSince(sinceISO, babyId),
         babyId ? listMeasurements(babyId) : Promise.resolve([] as Measurement[]),
       ])
       setFeeds(

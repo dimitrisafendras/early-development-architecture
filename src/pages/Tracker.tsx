@@ -27,6 +27,7 @@ import {
   useDateLocale,
 } from '../lib/dates'
 import { useT } from '../i18n'
+import { Eyebrow } from '../components/Eyebrow'
 
 /** Uses the app's locale, not the browser's, so times read the same everywhere. */
 function fmtTime(iso: string, locale: string): string {
@@ -273,9 +274,9 @@ export default function Tracker() {
                 <div id="tummy-history" className="space-y-4 pr-1">
                   {historyDays.map(([key, list]) => (
                     <div key={key}>
-                      <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      <Eyebrow as="p" tone="muted" className="mb-1">
                         {dayLabel(key)}
-                      </p>
+                      </Eyebrow>
                       <ul className="divide-y divide-border">
                         {list.map((s) => (
                           <SessionRow

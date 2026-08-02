@@ -32,6 +32,12 @@ HTTP 200 with a blank page. Also asserts an unknown route redirects home, and
 that the `h1` left edge is identical across routes — `PageFrame` exists because
 titles used to jump by up to 256px between pages.
 
+One more covers what happens when that does go wrong: a persisted activity kind
+nobody wrote makes the timeline throw, and the `ErrorBoundary` above the router
+has to show a screen that says the logged data is safe, offers both ways out,
+**and still writes the crash to the console** — otherwise the boundary would be
+somewhere the nine assertions above go to be hidden.
+
 ### `weather.spec.ts` — the header reading
 The reading appears once location is allowed; the settings switch removes it and
 clears the stored coordinates while leaving the rest of the band intact;
@@ -61,7 +67,10 @@ each broken at some point:
 - transitions are off in print (`visibility` is a *discrete transition*, so
   controls stayed painted until their animation finished);
 - a real PDF is generated and checked for its magic bytes and size.
-Empty-state and signed-out growth messaging are covered too.
+Empty-state and signed-out growth messaging are covered too, plus **another
+child's rows staying out of this child's report** — the report fetched both logs
+with no baby filter at all, which signed in meant "rows belonging to nobody" and
+signed out pooled two children onto one sheet.
 
 ### `schedule.spec.ts` — the day editor
 The combined What field (one control, not the old Type-pills-plus-Title pair);
@@ -118,7 +127,16 @@ well as the age-derived target those two can disagree with. `/tracker` and the
 `/daily` dashboard must render the *same* console — they had drifted into two
 different instruments once already. And minutes pour across the planned blocks
 in order rather than one block per session, which is asserted off the
-`data-solid` attributes because fill widths are invisible to a text-based test. Two in `logs.spec.ts` cover hand-logged sessions:
+`data-solid` attributes because fill widths are invisible to a text-based test. A fourth keeps its two readings of the day from contradicting each other — the
+big figure printed a rounded total while "to go" came off the raw one, so a day
+24 seconds short read "30 / 30 min" and "1 MIN TO GO" on one line. A fifth
+measures **composited** contrast for every label on the day timeline in both
+themes: the Wiki chip took the activity's 500 as its text colour behind an 8%
+tint of the same hue, which is 1.82:1 for play and 4.05:1 for sleep — all eight
+failing on 13px text. Naive contrast checks report 1.00 there, against the
+element's own translucent background, so the test flattens the whole stack.
+
+Two in `logs.spec.ts` cover hand-logged sessions:
 one lands in History, and a stop time in the future is refused — the date picker
 only ever capped the *day*, so "today 45 / 60 min" could describe the next two
 hours. Two more: the plan governs the console (one scale is
@@ -132,6 +150,15 @@ falling back to English, the report and the schedule editor are translated
 including table headers, both languages stay on a 24-hour clock (CLDR resolves
 `el` to π.μ./μ.μ., which the app deliberately overrides), and no imperial unit
 appears in either language.
+
+Two more cover the ways structural parity cannot help. A **saved day program**
+stores its moments as text, so it used to keep whatever language it was authored
+in — a day written in English staying English inside a Greek app, beside a
+built-in day that did translate; app-written moments now carry their i18n key and
+re-resolve, while a row the caregiver named stays exactly as typed, *including*
+one named in the other language. And **no destination in the expanded sidebar is
+cut off**: the rail's expanded state exists only to name where each link goes,
+and in Greek three of eight did not fit.
 
 ### `signed-in.spec.ts` — the server half
 
@@ -155,9 +182,12 @@ the wrong child's data is a visible number rather than a subtle one; the older
 child's page logs *active play* and the younger's *tummy time*; a session
 started and stopped in the browser comes back from the server after a reload;
 the feed log renders all three row shapes; the family page lists the household,
-both parents and the open invite; and the **invited co-parent sees the same two
+both parents and the open invite; the **invited co-parent sees the same two
 children** — the `owner OR member` half of the RLS policy that the owner's own
-session never exercises.
+session never exercises — and the **printable report carries the selected
+child's own logs**, which only a real database can catch: signed out, the filter
+and its absence look identical, because local rows written before children
+existed are the legacy bucket the report is right to keep.
 
 Two things this spec has to do that the local-first ones do not. Waits on server
 data use `NET` (20s) rather than Playwright's five-second default, because

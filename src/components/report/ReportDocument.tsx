@@ -9,6 +9,7 @@ import type { FeedEntry } from '../../lib/useFeedLog'
 import type { TrackerSession } from '../../lib/useTummyTracker'
 import type { Measurement } from '../../lib/db'
 import { useT } from '../../i18n'
+import { Eyebrow } from '../Eyebrow'
 
 /**
  * The printable report — one component that is both the on-screen preview and
@@ -354,7 +355,11 @@ function Figure({ label, value, unit }: { label: string; value: ReactNode; unit?
         {value}
         {unit && <span className="ml-1 text-xs font-normal text-muted-foreground">{unit}</span>}
       </p>
-      <p className="mt-0.5 text-[11px] tracking-wide text-muted-foreground uppercase">{label}</p>
+      {/* 11px is the sheet's own density and stays; everything else about the
+          label — uppercase, semibold, 0.16em — is the app's one eyebrow. */}
+      <Eyebrow as="p" tone="muted" className="mt-0.5 text-[11px]">
+        {label}
+      </Eyebrow>
     </div>
   )
 }
@@ -399,7 +404,7 @@ function DayTable<T>({
   return (
     <table className="w-full border-collapse text-sm">
       <thead>
-        <tr className="border-b border-border text-[11px] tracking-wide text-muted-foreground uppercase">
+        <tr className="border-b border-border text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
           {columns.map((c) => (
             <th key={c} className={cn(CELL, 'font-medium')} scope="col">
               {c}
@@ -454,7 +459,7 @@ function FlatTable({ columns, rows }: { columns: string[]; rows: ReactNode[][] }
   return (
     <table className="w-full border-collapse text-sm">
       <thead>
-        <tr className="border-b border-border text-[11px] tracking-wide text-muted-foreground uppercase">
+        <tr className="border-b border-border text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
           {columns.map((c) => (
             <th key={c} className={cn(CELL, 'font-medium')} scope="col">
               {c}

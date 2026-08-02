@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import './index.css'
 // The Liquid Glass material, imported once for the whole app — the components
 // that use it are no longer local, so no component pulls its own stylesheet in.
@@ -30,9 +31,14 @@ if (import.meta.env.DEV) {
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
-      <App />
-    </BrowserRouter>
+    {/* Above the router on purpose: a render error anywhere — including in the
+        shell itself — otherwise unmounts the tree and leaves a blank page that
+        still returns 200. See `ErrorBoundary`. */}
+    <ErrorBoundary>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
+        <App />
+      </BrowserRouter>
+    </ErrorBoundary>
   </React.StrictMode>,
 )
 

@@ -166,7 +166,16 @@ export function useDateLocale(): string {
   return locale === 'el' ? 'el-GR-u-hc-h23' : 'en-GB-u-hc-h23'
 }
 
-/** Formats a date key for display, falling back to the raw key. */
+/**
+ * Formats a date key for display, falling back to the raw key.
+ *
+ * The default is a **named month** on purpose. `/baby` used to pass
+ * `2-digit/2-digit`, which renders a birth date and every measurement as
+ * `02/08/2026` — the second of August under `en-GB` and the eighth of February
+ * to anyone reading it as American. A growth record is the one place in this app
+ * where a date is a fact somebody else may act on, so it says which month it
+ * means.
+ */
 export function formatDateKey(
   key: string | null | undefined,
   locale?: string,

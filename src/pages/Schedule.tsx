@@ -1,6 +1,7 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, ArrowUpRight, Trash2, Plus, Check, AlertTriangle } from 'lucide-react'
+import { GlassScrollArea } from '@dimitrisafendras/liquid-glass'
 import { cn } from '@/lib/utils'
 import { PageFrame } from '../components/PageFrame'
 import { EmptyState } from '../components/EmptyState'
@@ -18,7 +19,13 @@ import { Label } from '@/components/ui/label'
 import { dayActivityMeta, dayActivityOrder } from '../components/dayActivity'
 import type { DayActivity } from '../data'
 import { dayTemplates, defaultSlotMins, type ScheduleSlot } from '../data'
-import { useSchedule, buildDefaultSchedule, buildScheduleFromTemplate, scheduleForAge } from '../lib/useSchedule'
+import {
+  useSchedule,
+  buildDefaultSchedule,
+  buildScheduleFromTemplate,
+  localizeSlot,
+  scheduleForAge,
+} from '../lib/useSchedule'
 import { useBabyAge } from '../components/AgeBadge'
 import { useFieldLabels } from '../lib/useFieldLabels'
 import { slotEndTime, sortByClock, overlapMinutes, formatAgeRange, firstFreeTime } from '../lib/schedule'
@@ -204,7 +211,10 @@ export default function Schedule() {
    *  what is loaded matches what is stored, so there is nothing to write. */
   const load = (slots: ScheduleSlot[], id: string | null) => {
     setActiveId(id)
-    setRows(sortByClock(toRows(slots)))
+    // Stored slots come out of the store with the words they were saved with;
+    // the editor shows them in the language the app is in, like every other
+    // reader of a saved program.
+    setRows(sortByClock(toRows(slots.map((s) => localizeSlot(t, s)))))
     setSavedAt(true)
     setEdited(false)
   }
@@ -510,7 +520,10 @@ export default function Schedule() {
                             key={type}
                             type="button"
                             onClick={() => insertType(type)}
-                            className="inline-flex items-center gap-1.5 rounded-full border border-border py-1.5 pr-2.5 pl-2 text-xs font-medium transition-colors outline-none hover:border-ring hover:bg-accent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
+                            // A rounded square like every other control in this
+                            // popover; a capsule here was the odd corner out
+                            // beside the time field and the preset rows.
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-border py-1.5 pr-2.5 pl-2 text-xs font-medium transition-colors outline-none hover:border-ring hover:bg-accent focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
                           >
                             <Icon className={cn('size-3.5', meta.text)} aria-hidden />
                             {t.fullDay.types[type]}
@@ -525,14 +538,22 @@ export default function Schedule() {
                       length. They take the time chosen above rather than the one
                       they were written with, which is what used to drop a preset
                       feed straight on top of the existing 07:00 feed. */}
-                  <div className="min-h-0 flex-1 overflow-y-auto p-3">
+                  {/* `GlassScrollArea`, not a bare `overflow-y-auto`: this list
+                      is twenty-odd presets in a popover barely taller than four
+                      of them, and a hard-cut edge with a hidden scrollbar gives
+                      no sign there is more. It is the app's one in-card scroll
+                      region utility — edge fades and a frosted, self-hiding bar
+                      — and every other scrolling list already uses it. */}
+                  <div className="min-h-0 flex-1 p-3">
                     <p className="pb-2 text-xs text-muted-foreground">{ts.presetsHint}</p>
-                    <SlotPresets
-                      months={months}
-                      time={addTime}
-                      listClassName="grid-cols-1"
-                      onAdd={insert}
-                    />
+                    <GlassScrollArea className="max-h-[15rem]">
+                      <SlotPresets
+                        months={months}
+                        time={addTime}
+                        listClassName="grid-cols-1"
+                        onAdd={insert}
+                      />
+                    </GlassScrollArea>
                   </div>
                 </PopoverContent>
               </Popover>
@@ -643,7 +664,10 @@ const SlotRow = memo(function SlotRow({
   const changeType = (type: DayActivity) => {
     onPatch(row.uid, {
       type,
-      ...(titleIsDefault ? { title: t.fullDay.types[type] } : null),
+      // Renaming to the new kind's generic name drops the moment key with it: the
+      // words no longer describe that moment, so re-deriving them would put the
+      // old name back the next time the language changed.
+      ...(titleIsDefault ? { title: t.fullDay.types[type], moment: undefined } : null),
       // A slot still at its kind's typical length follows the new kind; an
       // edited duration is the caregiver's and stays.
       ...(row.mins === defaultSlotMins[row.type] ? { mins: defaultSlotMins[type] } : null),
@@ -679,7 +703,10 @@ const SlotRow = memo(function SlotRow({
               title={row.title}
               placeholder={ts.titlePlaceholder}
               onTypeChange={changeType}
-              onTitleChange={(title) => onPatch(row.uid, { title })}
+              // `moment: undefined` — the row's words are the caregiver's from
+              // here on. Leaving the key attached would let the next language
+              // switch resolve the moment again and overwrite what they typed.
+              onTitleChange={(title) => onPatch(row.uid, { title, moment: undefined })}
             />
           </div>
 
@@ -716,7 +743,11 @@ const SlotRow = memo(function SlotRow({
               unit={t.tracker.minutesShort}
               aria-describedby={overlap > 0 ? warningId : undefined}
               onValueChange={(v) => onPatch(row.uid, { mins: v ?? defaultSlotMins[row.type] })}
-              className="w-32"
+              // `w-40`, not `w-32`: the two steppers and the unit take a fixed
+              // 110px of it, so at 128px the field a caregiver actually taps into
+              // was 18px wide — narrower than the digits it holds, and narrower
+              // still with the Greek unit beside them.
+              className="w-40"
             />
           </div>
 

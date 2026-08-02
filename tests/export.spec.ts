@@ -124,3 +124,27 @@ test('growth is explained rather than shown empty when signed out', async ({ pag
   await page.goto('export')
   await expect(page.locator('#report-document')).toContainText(/live in your account/i)
 })
+
+test('another child’s rows are not in this child’s report', async ({ page }) => {
+  // The report fetched both logs with no baby filter at all, which on the
+  // server resolved to "rows belonging to nobody" — so a signed-in household
+  // got a report stating zero feeds and zero tummy time for a child with months
+  // of both. Signed out the same omission pooled two children into one sheet.
+  //
+  // Rows with no `baby_id` are the legacy bucket and stay, exactly as they do in
+  // every other read; a row stamped with a *different* child does not.
+  await seedFeeds(page, [
+    { ...feeds[0], baby_id: 'someone-else' },
+    { ...feeds[1], id: 'f-legacy' },
+  ])
+  await seedSessions(page, [
+    { ...sessions[0], baby_id: 'someone-else' },
+    { ...sessions[1], id: 's-legacy' },
+  ])
+  await page.goto('export')
+  const doc = page.locator('#report-document')
+  await expect(doc).toBeVisible()
+  // 90 ml is the other child's bottle; the 20-minute breastfeed is unassigned.
+  await expect(doc).not.toContainText('90 ml')
+  await expect(doc).toContainText('20 min')
+})
