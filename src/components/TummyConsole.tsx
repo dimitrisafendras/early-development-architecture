@@ -233,13 +233,18 @@ export function TummyConsole({
             {lastToday && !compact && (
               <>
                 <span aria-hidden>·</span>
-                {/* Collapsed when both ends land in the same minute: a
-                    twenty-second sitting rendered as "01:00–01:00", which reads
-                    as a broken range rather than as a very short session. */}
+                {/* One labelled instant, not a range. "1 of 3 sessions planned ·
+                    01:46–01:48" put an unlabelled span of time immediately after
+                    a count of sessions, and every reading of it was wrong: a
+                    duration, the window the sessions fall in, the next one due.
+                    The fact this line wants is *pacing* — when the last one was
+                    — and its start time says that on its own. The end time only
+                    ever restated the duration, which the bar already draws. */}
                 <span className="tabular-nums">
-                  {fmtTime(lastToday.started_at, locale) === fmtTime(lastToday.ended_at, locale)
-                    ? fmtTime(lastToday.started_at, locale)
-                    : `${fmtTime(lastToday.started_at, locale)}–${fmtTime(lastToday.ended_at, locale)}`}
+                  {t.tracker.lastSessionAt.replace(
+                    '{time}',
+                    fmtTime(lastToday.started_at, locale),
+                  )}
                 </span>
               </>
             )}
@@ -280,10 +285,20 @@ export function TummyConsole({
   )
 }
 
-/** A session's clock times, in the reader's locale. */
+/**
+ * A session's clock time, on a 24-hour clock.
+ *
+ * `hourCycle: 'h23'` rather than the locale's own choice: this sits inline in a
+ * caption that already runs "1 of 3 sessions planned · …", and an "AM"/"PM"
+ * hanging off the end of it is two more tokens in a line whose whole job is to
+ * be read at a glance. `h23` also pins midnight to `00:xx` — `hour12: false`
+ * alone yields `24:xx` on some locales.
+ */
 function fmtTime(iso: string, locale: string): string {
-  return new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(
-    new Date(iso),
-  )
+  return new Intl.DateTimeFormat(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).format(new Date(iso))
 }
 
