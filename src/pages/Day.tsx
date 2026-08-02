@@ -799,6 +799,38 @@ function Timeline({
                           </span>
                         )}
                       </span>
+                      {/* The stub that hands the row's mark to its card. Without
+                          it the two sat either side of a 14px void and read as a
+                          rail and a list that merely happened to line up; a
+                          stroke in the moment's own hue makes them one object.
+
+                          It runs across the gap in the column and down it in the
+                          strip — the same relation, on whichever axis separates
+                          the two there. Full accent on the row in focus, faint on
+                          the rest, so it joins without competing with the rail. */}
+                      <span
+                        aria-hidden
+                        className={cn(
+                          'pointer-events-none absolute',
+                          // Measured from the mark's own edge, exactly as the
+                          // rail is: the column is wider than the halo, so
+                          // starting at the column's edge left the stub floating
+                          // in the gap with air on the side it was meant to be
+                          // joining. Half the column is 2.25rem; the halo's own
+                          // half is 1.75rem, or 2rem once the focused mark grows.
+                          horizontal
+                            ? isSelected
+                              ? 'top-[calc(50%+2rem)] left-1/2 h-3 w-[3px] -translate-x-1/2'
+                              : 'top-[calc(50%+1.75rem)] left-1/2 h-4 w-[3px] -translate-x-1/2'
+                            : isSelected
+                              ? 'top-1/2 left-[calc(50%+2rem)] h-[3px] w-[1.125rem] -translate-y-1/2'
+                              : 'top-1/2 left-[calc(50%+1.75rem)] h-[3px] w-[1.375rem] -translate-y-1/2',
+                        )}
+                        style={{
+                          backgroundColor:
+                            isSelected || isNow ? a.accent : `${a.accent}40`,
+                        }}
+                      />
                       {/* A ring of card colour around the mark: the 4px of air
                           that stops the rail's two halves from running flush into
                           the circle. `flex`, not the default `inline` — an inline
