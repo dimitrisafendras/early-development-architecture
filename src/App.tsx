@@ -8,6 +8,7 @@ import Tracker from './pages/Tracker'
 import Baby from './pages/Baby'
 import Family from './pages/Family'
 import FeedLog from './pages/FeedLog'
+import SleepLog from './pages/SleepLog'
 import Export from './pages/Export'
 import Auth from './pages/Auth'
 import DesignSystem from './pages/DesignSystem'
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="/baby" element={<Baby />} />
           <Route path="/family" element={<Family />} />
           <Route path="/feed" element={<FeedLog />} />
+          <Route path="/sleep" element={<SleepLog />} />
           <Route path="/export" element={<Export />} />
           <Route path="/signin" element={<Auth mode="signin" />} />
           <Route path="/signup" element={<Auth mode="signup" />} />

@@ -44,6 +44,23 @@ export interface ChecklistEntry {
   checked: boolean
 }
 
+/**
+ * One sleep, with a start and an end.
+ *
+ * `ended_at` null means the child is asleep *right now* — the same shape
+ * `TummySession` uses for a running timer, and the reason this can be started at
+ * bedtime and stopped in the morning rather than reconstructed afterwards.
+ */
+export interface SleepLog {
+  id: string
+  owner: string
+  household_id: string | null
+  baby_id: string | null
+  started_at: string
+  ended_at: string | null
+  note: string | null
+}
+
 export type FeedMethod = 'bottle' | 'breast' | 'solid'
 export interface FeedLog {
   id: string
@@ -326,5 +343,81 @@ export async function upsertChecklistEntry(
       { owner, day, item_id: itemId, checked, updated_at: new Date().toISOString() },
       { onConflict: 'owner,day,item_id' },
     )
+  if (error) throw error
+}
+
+/* ------------------------------------------------------------ sleep logs */
+
+/** This child's sleeps since `isoDate`, newest first. Scoped like every other
+ *  read — see `forBaby` for why the unassigned bucket is kept. */
+export async function listSleepsSince(
+  isoDate: string,
+  babyId: string | null = null,
+): Promise<SleepLog[]> {
+  const { data, error } = await forBaby(
+    client().from('sleep_logs').select('*').gte('started_at', isoDate),
+    babyId,
+  ).order('started_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as SleepLog[]
+}
+
+/** The sleep still running for this child, if any. */
+export async function findOpenSleep(babyId: string | null = null): Promise<SleepLog | null> {
+  const { data, error } = await forBaby(
+    client().from('sleep_logs').select('*').is('ended_at', null),
+    babyId,
+  )
+    .order('started_at', { ascending: false })
+    .limit(1)
+  if (error) throw error
+  return (data?.[0] as SleepLog) ?? null
+}
+
+export async function startSleep(
+  babyId: string | null,
+  startedAt: string,
+  householdId: string | null = null,
+): Promise<SleepLog> {
+  const owner = await currentUserId()
+  const { data, error } = await client()
+    .from('sleep_logs')
+    .insert({ owner, baby_id: babyId, started_at: startedAt, household_id: householdId })
+    .select()
+    .single()
+  if (error) throw error
+  return data as SleepLog
+}
+
+export async function endSleep(id: string, endedAt: string): Promise<void> {
+  const { error } = await client().from('sleep_logs').update({ ended_at: endedAt }).eq('id', id)
+  if (error) throw error
+}
+
+/** Insert a sleep that has already finished — the "log a past sleep" path, and
+ *  how local rows are persisted on sign-in. */
+export async function insertClosedSleep(input: {
+  baby_id: string | null
+  household_id: string | null
+  started_at: string
+  ended_at: string
+  note?: string | null
+}): Promise<SleepLog> {
+  const owner = await currentUserId()
+  const { data, error } = await client().from('sleep_logs').insert({ ...input, owner }).select().single()
+  if (error) throw error
+  return data as SleepLog
+}
+
+export async function updateSleep(
+  id: string,
+  patch: { started_at?: string; ended_at?: string | null; note?: string | null },
+): Promise<void> {
+  const { error } = await client().from('sleep_logs').update(patch).eq('id', id)
+  if (error) throw error
+}
+
+export async function deleteSleep(id: string): Promise<void> {
+  const { error } = await client().from('sleep_logs').delete().eq('id', id)
   if (error) throw error
 }

@@ -176,11 +176,24 @@ export function TummyWeekChart({
   minutes,
   target,
   scheme,
+  seriesLabel,
+  tickSuffix,
 }: {
   labels: string[]
   minutes: number[]
   target: number
   scheme?: ChartScheme
+  /**
+   * What the bars are, when they are not minutes of tummy time.
+   *
+   * The sleep log draws the same chart in *hours* — a night is 600 minutes, and
+   * an axis running to 900m says nothing a parent can read at a glance. Same
+   * component rather than a second one: this is one bar series against one
+   * dashed reference line, which is exactly what it already was.
+   */
+  seriesLabel?: string
+  /** Unit appended to each y tick. Defaults to the minute mark. */
+  tickSuffix?: string
 }) {
   const c = useChartColors(scheme)
   // The two series and the axis suffix are the only strings in this file that
@@ -208,7 +221,7 @@ export function TummyWeekChart({
               },
               {
                 type: 'bar' as const,
-                label: t.charts.weekMinutes,
+                label: seriesLabel ?? t.charts.weekMinutes,
                 data: minutes,
                 backgroundColor: c.primary,
                 borderRadius: 6,
@@ -225,7 +238,7 @@ export function TummyWeekChart({
             y: {
               beginAtZero: true,
               suggestedMax: Math.ceil((max * 1.2) / 10) * 10,
-              ticks: { callback: (v) => `${v}${t.charts.weekMinuteTick}`, color: c.text },
+              ticks: { callback: (v) => `${v}${tickSuffix ?? t.charts.weekMinuteTick}`, color: c.text },
               grid: { color: c.grid },
             },
             x: { ticks: { color: c.text }, grid: { color: c.grid } },

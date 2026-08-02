@@ -202,13 +202,43 @@ test('the printable report carries the selected child’s own logs', async ({ pa
   await expect(doc.getByRole('heading', { name: 'Tummy time' })).toBeVisible()
 })
 
+test('sleep comes back from the server, scoped to the child', async ({ page }) => {
+  // The seed gives Iris two naps and a night and Theo one nap and a shorter
+  // night, deliberately different totals — so "the wrong child's sleep" is a
+  // visible number rather than a subtle one, which is the only way the scoping
+  // bug this table was built to avoid would ever be caught.
+  await signIn(page)
+
+  await selectBaby(page, FIXTURES.younger)
+  await page.goto('sleep')
+  await hideOverlays(page)
+  await expect(page.locator('#sleep-today li').first()).toBeVisible({ timeout: NET })
+  const younger = await page.locator('#sleep-today li').count()
+
+  await selectBaby(page, FIXTURES.older)
+  await page.goto('sleep')
+  await hideOverlays(page)
+  await expect(page.locator('#sleep-today li').first()).toBeVisible({ timeout: NET })
+  const older = await page.locator('#sleep-today li').count()
+
+  expect(younger).toBeGreaterThan(0)
+  expect(older).toBeGreaterThan(0)
+  // Two naps against one — the fixture makes them differ on purpose.
+  expect(older).not.toBe(younger)
+})
+
 test('the family page shows the household, both parents and the open invite', async ({ page }) => {
   await signIn(page)
   await page.goto('family')
   await hideOverlays(page)
 
   await expect(page.getByText(FIXTURES.family)).toBeVisible({ timeout: NET })
-  await expect(page.getByText(FIXTURES.parent.email)).toBeVisible()
+  // The owner's own row, with the address *and* the "(you)" marker. Matching the
+  // bare address is ambiguous — `grandparent@example.test` contains
+  // `parent@example.test` — and it was only ever unambiguous by accident, back
+  // when this row rendered an em dash because the founder was never invited and
+  // so has no invited-to address on file.
+  await expect(page.getByText(`${FIXTURES.parent.email} (you)`)).toBeVisible()
   await expect(page.getByText(FIXTURES.partner.email)).toBeVisible()
   await expect(page.getByText('grandparent@example.test')).toBeVisible()
 })

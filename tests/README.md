@@ -143,6 +143,17 @@ hours. Two more: the plan governs the console (one scale is
 named, and it is the plan's) while the age guidance judges the plan on
 `/schedule`; and another baby's sessions are not counted as this one's.
 
+### `sleep.spec.ts` — the sleep log
+A sleep is an **interval**, which is what separates it from the feed log, so both
+ways in are covered: start/stop for one you are in the middle of (and while it
+runs, the page offers only the way out of it), and both-times-at-once for the
+night nobody was awake to time. Then the rules that are easy to get wrong: a
+night belongs to **the day it started**, because counting each half against its
+own calendar day reports every family as sleeping half as much as they do,
+twice; a wake time before the sleep began is **refused with a reason** and marks
+the *end* field, not both; the form opens on an already-valid hour, so it does
+not greet anyone with its own error; and another child's rows do not count.
+
 ### `i18n.spec.ts` — Greek is first-class
 `Messages = typeof en` makes the two structurally identical at compile time, so
 what is left to test is runtime: every page actually renders Greek rather than
@@ -184,7 +195,9 @@ started and stopped in the browser comes back from the server after a reload;
 the feed log renders all three row shapes; the family page lists the household,
 both parents and the open invite; the **invited co-parent sees the same two
 children** — the `owner OR member` half of the RLS policy that the owner's own
-session never exercises — and the **printable report carries the selected
+session never exercises — **sleep comes back from the server scoped to the child** (the seed gives the two
+children deliberately different nights and nap counts, so the wrong child's sleep
+is a visible number), and the **printable report carries the selected
 child's own logs**, which only a real database can catch: signed out, the filter
 and its absence look identical, because local rows written before children
 existed are the legacy bucket the report is right to keep.

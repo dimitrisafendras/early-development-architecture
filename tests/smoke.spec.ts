@@ -15,6 +15,7 @@ const ROUTES = [
   { path: 'wiki', heading: /.+/ },
   { path: 'tracker', heading: /Tracker/i },
   { path: 'feed', heading: /Feed/i },
+  { path: 'sleep', heading: /Sleep/i },
   { path: 'baby', heading: /Baby/i },
   { path: 'family', heading: /Family|Household/i },
   { path: 'export', heading: /Export/i },

@@ -8,7 +8,7 @@ import { hideOverlays, seedStore } from './helpers'
  * 24-hour clock the app pins both languages to.
  */
 
-const PAGES = ['', 'schedule', 'tracker', 'feed', 'export'] as const
+const PAGES = ['', 'schedule', 'tracker', 'feed', 'sleep', 'export'] as const
 
 for (const path of PAGES) {
   test(`/${path} is fully translated in Greek`, async ({ page }) => {

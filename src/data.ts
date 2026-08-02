@@ -321,6 +321,24 @@ export const sleepStats: { value: string; color: string }[] = [
 /** Exclusive upper age bound (months) per nap band; last is open-ended. */
 export const napUppers = [3, 6, 12, 18, 24, 999]
 
+/**
+ * Total sleep per 24 hours by age, in hours — the AASM/AAP consensus ranges the
+ * sleep topic states in words (`sleep.stats`), as numbers the sleep log can
+ * measure a day against.
+ *
+ * A **range**, never a single number, and that is the whole point: a fourteen-
+ * hour newborn and a seventeen-hour newborn are both normal, so a log that drew
+ * one target line would tell most families they were failing. `sleepTargetUppers`
+ * is the exclusive upper bound in months, matching every other band table here.
+ */
+export const sleepTargets: [number, number][] = [
+  [14, 17], // 0–3 mo
+  [12, 16], // 4–12 mo
+  [11, 14], // 1–2 y
+  [10, 13], // 2 y and up
+]
+export const sleepTargetUppers = [3, 12, 24, 999]
+
 /** Safe-sleep rules; title/text localized in i18n. tone drives the accent. */
 export const safeSleepRules: { tone: StatusTone }[] = [
   { tone: 'success' }, // back to sleep

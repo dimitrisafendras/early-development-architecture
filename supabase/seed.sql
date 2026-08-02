@@ -348,4 +348,61 @@ cross join unnest(array['respond', 'parentese', 'tummy', 'music', 'screens', 'sl
 where not (d % 11 = 4 and item in ('music', 'screens'))
 on conflict (owner, day, item_id) do nothing;
 
+/* ------------------------------------------------------------ sleep logs */
+--
+-- A night and its naps, per child, on the same anchoring rule as the sessions
+-- above: today comes from `now()` so it is populated at any hour, and the
+-- history keeps clock times in the app's zone so it reads like a real week.
+--
+-- The night is deliberately seeded as the sleep that *started yesterday
+-- evening* — that is the shape the log has to get right (a night belongs to the
+-- day it began, not split across two dates), and a fixture that only ever
+-- contained naps would never exercise it.
+
+insert into public.sleep_logs (owner, baby_id, household_id, started_at, ended_at)
+select
+  '11111111-1111-4111-8111-111111111111',
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+  start_at, start_at + make_interval(mins => len)
+from (
+  -- Today: two naps that have certainly happened by any hour of the afternoon.
+  select now() - interval '6 hours' as start_at, 95 as len
+  union all select now() - interval '3 hours', 50
+  -- The thirty days behind it: a night plus two naps a day.
+  union all
+  select
+    ((((now() at time zone 'Europe/Athens')::date - d) + t.at) at time zone 'Europe/Athens'),
+    t.len
+  from generate_series(1, 30) as d
+  cross join (values
+    (time '19:40', 620),   -- the night, started the evening before
+    (time '09:15', 90),
+    (time '13:10', 105)
+  ) as t(at, len)
+) s
+where start_at + make_interval(mins => len) < now();  -- never seed a sleep that has not finished
+
+insert into public.sleep_logs (owner, baby_id, household_id, started_at, ended_at)
+select
+  '11111111-1111-4111-8111-111111111111',
+  'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
+  'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+  start_at, start_at + make_interval(mins => len)
+from (
+  -- Theo is sixteen months: one nap, not two, and a shorter night. The totals
+  -- must not be able to coincide with Iris's — the scoping tests read them.
+  select now() - interval '4 hours' as start_at, 75 as len
+  union all
+  select
+    ((((now() at time zone 'Europe/Athens')::date - d) + t.at) at time zone 'Europe/Athens'),
+    t.len
+  from generate_series(1, 30) as d
+  cross join (values
+    (time '20:10', 660),
+    (time '12:40', 80)
+  ) as t(at, len)
+) s
+where start_at + make_interval(mins => len) < now();
+
 commit;
