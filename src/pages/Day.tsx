@@ -627,7 +627,14 @@ function Timeline({
                           }}
                         />
                       </span>
-                      <span className="relative z-10 rounded-full bg-card p-1">
+                      {/* A ring of card colour around the mark: the 4px of air
+                          that stops the rail's two halves from running flush into
+                          the circle. `flex`, not the default `inline` — an inline
+                          box sits its contents on a text baseline and keeps the
+                          descender space beneath them, so the halo was several
+                          pixels taller below the mark than above it and the two
+                          halves started at visibly different distances. */}
+                      <span className="relative z-10 flex shrink-0 rounded-full bg-card p-1">
                       {isNow ? (
                         // Identity + live progress in one 48px mark: the arc is how
                         // far through this slot we are. Static by request — the
