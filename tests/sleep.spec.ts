@@ -218,3 +218,37 @@ test('the running clock counts seconds, and reads as a clock', async ({ page }) 
   // would pass the format check above and still be wrong.
   await expect(clock).not.toHaveText(first!, { timeout: 4_000 })
 })
+
+test('stopping a sleep is as loud as starting one', async ({ page }) => {
+  // While a sleep runs there is exactly one action on the screen, and the number
+  // it writes is how long the night was — yet it rendered `outline`, the
+  // quietest variant in the scale, on a card whose next-loudest element is a
+  // clock nobody can press. The variant is the emphasis knob, so it says the
+  // same thing in both states.
+  await seedStore(page, {})
+  await seedSleeps(page, [])
+  await page.goto('sleep')
+  await hideOverlays(page)
+  // Every control has `transition-colors`, and Chromium serialises a colour
+  // *mid-transition* in `oklab()` and a settled one in `oklch()` — so reading
+  // the two buttons at different points in their transitions compared two
+  // spellings of the same pink and failed on a correct build.
+  await page.addStyleTag({ content: '*, *::before, *::after { transition: none !important; }' })
+
+  const fill = (name: string) =>
+    page.getByRole('button', { name }).evaluate((b) => getComputedStyle(b).backgroundColor)
+
+  const start = await fill('Start sleep')
+  await page.getByRole('button', { name: 'Start sleep' }).click()
+  // The pointer is left sitting on the button it just clicked, and the button
+  // that replaces it inherits that hover — `hover:bg-primary/80`, i.e. the same
+  // pink at 80%. Park the mouse first, or this compares a hovered control with
+  // a resting one.
+  await page.mouse.move(0, 0)
+  const stop = await fill('They woke up')
+
+  expect(stop).toBe(start)
+  // Filled, not a transparent outline — belt and braces, in case both states
+  // ever regress together.
+  expect(stop).not.toMatch(/rgba\(0, 0, 0, 0\)|transparent/)
+})

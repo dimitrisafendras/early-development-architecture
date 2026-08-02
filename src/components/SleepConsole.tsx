@@ -49,9 +49,16 @@ export function SleepConsole({
 
   return (
     <div className="flex flex-wrap items-center gap-3">
+      {/* **Filled in both states, because both are the only thing to press.**
+          Stopping was `outline` — the quietest variant in the scale — while a
+          sleep was running, which is exactly backwards: at that moment there is
+          precisely one action on the screen, it is time-critical (the number it
+          writes is how long the night was), and it was the faintest control on a
+          card whose next-loudest thing is a clock that cannot be clicked. The
+          variant is the emphasis knob, so it says the same thing in both states:
+          this is the button. */}
       <Button
         size={compact ? 'md' : 'lg'}
-        variant={log.running ? 'outline' : 'default'}
         disabled={busy}
         onClick={() => void run(log.running ? () => log.stop() : () => log.start())}
       >
