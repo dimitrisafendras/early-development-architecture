@@ -248,8 +248,13 @@ function MomentCard({
                     and the one thing the caregiver needs is the way out of that.
                     `secondary` rather than `default`: the loudest button in this
                     card belongs to the tool below, whatever the tool is. */}
+                {/* Filled primary, and the same rounded-square as the strip's
+                    copy of it. The two are one control in two places, so they
+                    should not read as two different offers — and `secondary` put
+                    the way *out* of a previewed moment in the same grey as the
+                    things that merely sit there. */}
                 <Button
-                  variant="secondary"
+                  variant="default"
                   size="sm"
                   onClick={onJumpToNow}
                   className="travelling-ring"
@@ -601,10 +606,17 @@ function Timeline({
             <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center pt-1">
               <GlassButton
                 size="sm"
+                tone="primary"
                 onClick={recenter}
-                className="travelling-ring pointer-events-auto text-xs font-semibold"
+                // The material's radius, not a utility: `.ds-glass` sets
+                // `border-radius` from `--ds-glass-radius` in an unlayered
+                // stylesheet, which a Tailwind class cannot outrank — the knob
+                // is the variable, and 0.5rem is `rounded-lg`. Every other chip
+                // and control on this card is a rounded square; the one floating
+                // above them was the only pill.
+                className="travelling-ring pointer-events-auto [--ds-glass-radius:0.5rem] text-xs font-semibold"
               >
-                <LocateFixed className="size-3.5 text-primary" /> {t.day.jumpToNow}
+                <LocateFixed className="size-3.5" /> {t.day.jumpToNow}
               </GlassButton>
             </div>
           )}

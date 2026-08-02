@@ -336,6 +336,11 @@ section {
    pseudo-element, leaving a ring exactly `--ring-w` thick, outside the
    control's own painting and outside the layout entirely.
 
+   The light is `currentColor`, not a fixed token: both of these buttons are
+   primary-filled, so a primary ring would be invisible on them — and a control
+   that later wants a neutral ground gets one that reads there without a second
+   class.
+
    `@property` is what makes the angle animatable — a plain custom property is
    an unregistered token that the engine can only swap, not interpolate, so the
    gradient would jump rather than turn. The `prefers-reduced-motion` block
@@ -368,7 +373,7 @@ section {
   background: conic-gradient(
     from var(--eda-ring-angle),
     transparent 0deg,
-    var(--primary) 60deg,
+    currentColor 60deg,
     transparent 150deg,
     transparent 360deg
   );
