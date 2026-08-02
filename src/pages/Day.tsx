@@ -285,6 +285,12 @@ function MomentCard({
             <div className="mt-1 font-heading text-2xl font-semibold leading-tight tracking-tight text-foreground">
               {cur.title}
             </div>
+            {/* What this moment actually asks of you. It used to live in the
+                timeline, opening on the row you picked — so the day's list was
+                carrying the day's *instructions*, and reading one meant reading
+                across both columns. The list answers when and what; this card
+                answers everything else about the one moment it is showing. */}
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{cur.detail}</p>
           </div>
 
         </div>
@@ -394,16 +400,14 @@ function MomentTool({ type, isNow, accent }: { type: DayActivity; isNow: boolean
             <TopicInfo type={type} />
           )}
         </GlassScrollArea>
-        <Link
-          to={wikiPath(dayActivityMeta[type].wiki)}
-          className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-        >
-          <BookOpen className="size-4" /> {t.day.learnFull}
-          <ArrowRight className="size-3.5" />
-        </Link>
       </CardContent>
     </Card>
   )
+}
+
+/** The Wiki topic an activity maps to — the row's link is named after it. */
+function wikiTopicFor(type: DayActivity) {
+  return findTopic(dayActivityMeta[type].wiki)
 }
 
 /* ------------------------------------------------------------------ timeline */
@@ -478,13 +482,21 @@ function Timeline({
         </Link>
       }
     >
-        <GlassScrollArea
-          ref={areaRef}
-          className="max-h-[21rem] lg:max-h-none"
-          overlay={
-            !nowInView && (
-              /* A floating control over content — the one place on this page the
-                 glass material belongs (per the Liquid Glass guidance). */
+        {/* The recentre control rides at the *top* of the list, not the bottom.
+            `GlassScrollArea`'s own `overlay` prop pins it to the bottom edge,
+            which is where you look for "more below" — but this button means "you
+            have scrolled away from now", and the day runs downward, so it is
+            almost always sitting above you. Hanging it off the bottom put the
+            way back at the far end of the direction you would have to travel.
+
+            Anchored here rather than by changing the package: the prop is one
+            fixed position in an external, tagged dependency, and this is one
+            absolutely-positioned child of a `relative` wrapper. It is still the
+            floating glass control the Liquid Glass guidance sanctions — the same
+            component, over content, in the one place on this page that qualifies. */}
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          {!nowInView && (
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center pt-1">
               <GlassButton
                 size="sm"
                 onClick={recenter}
@@ -492,8 +504,11 @@ function Timeline({
               >
                 <LocateFixed className="size-3.5 text-primary" /> {t.day.jumpToNow}
               </GlassButton>
-            )
-          }
+            </div>
+          )}
+        <GlassScrollArea
+          ref={areaRef}
+          className="max-h-[21rem] lg:max-h-none"
         >
           <ol className="relative px-1.5">
             {schedule.map((slot, i) => {
@@ -514,60 +529,122 @@ function Timeline({
                   ref={(el) => {
                     itemRefs.current[i] = el
                   }}
-                  className="relative flex gap-3.5 pb-6 last:pb-1"
+                  className="group relative flex gap-3.5 pb-6 last:pb-1"
                 >
-                  {/* The rail segment for the gap *below* this step. It starts at
-                      52px — the 48px dot plus a 4px air gap — and stops 2px short
-                      of the next one, so it can never appear to run under a dot
-                      (the dots are translucent, which is what made the old
-                      `top-11` rail visibly leak through them). Centred on the
-                      `w-12` dot column, not a hand-derived constant. */}
-                  {!last && (
-                    <span
-                      aria-hidden
-                      className="pointer-events-none absolute left-6 top-[3.25rem] bottom-0.5 w-[3px] -translate-x-1/2 overflow-hidden rounded-full bg-border/70"
-                    >
-                      <span
-                        className="block w-full rounded-full transition-[height] duration-700 ease-out"
-                        style={{
-                          height: `${fill}%`,
-                          // Hands over from this activity's hue to the next one, so
-                          // the rail reads as one continuous gradient down the day.
-                          backgroundImage: `linear-gradient(180deg, ${a.accent}, ${nextAccent})`,
-                          boxShadow: fill > 0 ? `0 0 8px ${a.accent}80` : undefined,
-                        }}
-                      />
-                    </span>
-                  )}
+                  {/* **The row's control is an overlay, not a wrapper.** The
+                      focused card carries a real `<Link>` into the Wiki now, and
+                      a link inside a button is invalid HTML that browsers silently
+                      unnest — so the button became a stretched, transparent layer
+                      over the whole row and everything else renders beside it.
+                      Hit area and behaviour are unchanged; the link sits above it
+                      and takes its own clicks back with `pointer-events-auto`.
+                      The accessible name moves to an `sr-only` copy of the title,
+                      since the button no longer contains the text. */}
                   <button
                     type="button"
                     onClick={() => onSelect(i)}
                     aria-pressed={isSelected}
                     aria-current={isNow ? 'step' : undefined}
-                    className="group flex flex-1 items-start gap-3.5 rounded-2xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+                    className="absolute inset-0 rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
                   >
-                    <div className="relative flex w-12 shrink-0 justify-center">
+                    <span className="sr-only">{slot.title}</span>
+                  </button>
+                  <div className="pointer-events-none flex flex-1 items-stretch gap-3.5">
+                    {/* **The dot is centred on its row, and the rail is anchored
+                        to the dot.** Both used to be pinned to the row's *top* —
+                        the dot by `items-start`, the rail by a hand-measured
+                        `top-[3.25rem]` that assumed it. That held while every row
+                        was the same two lines; the focused row is now half again
+                        as tall, and its dot sat up by the title with the rail
+                        cutting through it.
+
+                        `self-stretch` + `items-center` puts the dot at the row's
+                        middle whatever the row's height, and the rail starts from
+                        `50% + 1.5rem` — the dot's own bottom edge — so it follows
+                        rather than guesses. It runs long deliberately (past the
+                        gap and into the next row) because the next dot's centre
+                        moves too: overshooting and letting the dot cover it is
+                        the only version that holds for every pair of heights.
+                        Which is why the dot now carries an opaque `bg-card`
+                        backing — the activity tints are translucent, and the rail
+                        used to show straight through them. */}
+                    <div className="relative flex w-14 shrink-0 items-center justify-center self-stretch">
+                      {!last && (
+                        <span
+                          aria-hidden
+                          className={cn(
+                            'pointer-events-none absolute left-1/2 -bottom-16 w-[3px] -translate-x-1/2 overflow-hidden rounded-full bg-border/70',
+                            // The dot's own bottom edge — 24px of radius plus 4px
+                            // of air, or 28px + 4px once the focused step grows.
+                            isSelected ? 'top-[calc(50%+2rem)]' : 'top-[calc(50%+1.75rem)]',
+                          )}
+                        >
+                          <span
+                            className="block w-full rounded-full transition-[height] duration-700 ease-out"
+                            style={{
+                              height: `${fill}%`,
+                              // Hands over from this activity's hue to the next
+                              // one, so the rail reads as one continuous gradient
+                              // down the day.
+                              backgroundImage: `linear-gradient(180deg, ${a.accent}, ${nextAccent})`,
+                              boxShadow: fill > 0 ? `0 0 8px ${a.accent}80` : undefined,
+                            }}
+                          />
+                        </span>
+                      )}
                       {isNow ? (
                         // Identity + live progress in one 48px mark: the arc is how
                         // far through this slot we are. Static by request — the
                         // arc and the lit rail below it already say "this is now",
                         // so nothing on the stepper pulses.
-                        <ProgressRing progress={livePct / 100} size={48} stroke={3} accent={a.accent}>
+                        <ProgressRing
+                          progress={livePct / 100}
+                          size={isSelected ? 56 : 48}
+                          stroke={3}
+                          accent={a.accent}
+                        >
                           <span
-                            className={cn('inline-flex size-9 items-center justify-center rounded-full', a.dot)}
+                            className={cn(
+                              'inline-flex items-center justify-center rounded-full bg-card transition-all duration-300',
+                              isSelected ? 'size-11' : 'size-9',
+                            )}
                           >
-                            <Icon className="size-4.5" />
+                            <span
+                              className={cn(
+                                'inline-flex size-full items-center justify-center rounded-full',
+                                a.dot,
+                              )}
+                            >
+                              <Icon className={isSelected ? 'size-5' : 'size-4.5'} />
+                            </span>
                           </span>
                         </ProgressRing>
                       ) : (
                         <span
                           className={cn(
-                            'relative inline-flex size-12 items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-105',
-                            a.dot,
+                            'relative z-10 inline-flex items-center justify-center rounded-full bg-card transition-all duration-300 group-hover:scale-105',
+                            // The focused step grows with its card — the mark and
+                            // the moment it belongs to are one thing, so scaling
+                            // only the card left the dot looking like a different
+                            // row's.
+                            isSelected ? 'size-14' : 'size-12',
                             isPast && 'opacity-60',
                           )}
                         >
-                          <Icon className="size-5" />
+                          {/* The activity tint is a *separate* layer over an
+                              opaque `bg-card`, not the same element's background.
+                              Both are background-color utilities, so merging them
+                              onto one class list drops one of them — and the one
+                              that survived was the translucent tint, which let the
+                              rail run visibly through every dot. */}
+                          <span
+                            className={cn(
+                              'inline-flex size-full items-center justify-center rounded-full',
+                              a.dot,
+                            )}
+                          >
+                            <Icon className={isSelected ? 'size-6' : 'size-5'} />
+                          </span>
                           {/* Done marker. Small, semantic green, ringed in the card
                               colour so it reads as a badge on the dot. */}
                           {isPast && (
@@ -580,8 +657,18 @@ function Timeline({
                     </div>
                     <div
                       className={cn(
-                        'min-w-0 flex-1 rounded-xl px-3 py-2 transition-all duration-300',
-                        !isSelected && 'group-hover:bg-muted/70',
+                        'min-w-0 flex-1 rounded-xl transition-all duration-300',
+                        // The focused card is bigger, and it pushes its
+                        // neighbours away: a picker's centre cell, not a list
+                        // row that happens to be tinted. The tint and the ring
+                        // alone made selection a *colour*, which is the one
+                        // signal this list already spends on activity identity —
+                        // eight hues, one per kind — so the selected row read as
+                        // "another blue thing" rather than as the one in focus.
+                        // Size and air are the axes nothing else here uses.
+                        isSelected
+                          ? 'my-2 scale-[1.02] px-4 py-3.5'
+                          : 'px-3 py-2 group-hover:bg-muted/70',
                       )}
                       // The selected row lights up in its own activity hue instead
                       // of a flat primary tint, so selection and identity are the
@@ -612,7 +699,8 @@ function Timeline({
                           one names the selected slot's type in words. */}
                       <span
                         className={cn(
-                          'block font-semibold text-foreground',
+                          'block font-semibold text-foreground transition-all duration-300',
+                          isSelected && 'font-heading text-[17px] leading-tight',
                           isPast && !isSelected && 'text-muted-foreground',
                         )}
                       >
@@ -638,33 +726,38 @@ function Timeline({
                           {formatDuration(slot.mins, tl.hour, tl.minute)}
                         </span>
                       </span>
-                      {/* **The detail belongs to the row you picked, and only to
-                          it.** Every row used to carry a two-line clamp of the
-                          same prose, so a twenty-eight moment day was twenty-eight
-                          half-sentences — "Copy any…", "same order,…", "after a
-                          bi…" — none of them finishable, each ending at whatever
-                          word the 290px column ran out on. A preview you have to
-                          tap to complete is not a preview; it is the tap, plus
-                          two lines of noise between every pair of moments you
-                          were actually scanning for.
+                      {/* Named after what it opens, not after where it goes.
+                          "Read more in the Wiki" was the same sentence under
+                          every one of the day's twenty-eight moments — it told
+                          you the destination's filing system and nothing about
+                          whether what was behind it was worth a tap. The topic's
+                          own title does that.
 
-                          Without it a moment is one line — its time and its name
-                          — which is what a day read as a rhythm is made of, and
-                          three times as many of them fit before the column
-                          scrolls. The detail is one tap away, in the row that
-                          expands to hold it whole. */}
-                      {isSelected && (
-                        <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
-                          {slot.detail}
-                        </p>
+                          Only on the focused card, and it takes its own clicks
+                          back from the row's overlay button — the row selects,
+                          this leaves the page, and the two must not be the same
+                          tap. */}
+                      {isSelected && wikiTopicFor(slot.type) && (
+                        <Link
+                          to={wikiPath(a.wiki)}
+                          className="pointer-events-auto relative z-10 mt-2 inline-flex items-center gap-1.5 text-[13px] font-medium text-primary hover:underline"
+                        >
+                          <BookOpen className="size-3.5" />
+                          {t.day.learnAbout.replace(
+                            '{topic}',
+                            wikiTopicFor(slot.type)!.label(t),
+                          )}
+                          <ArrowRight className="size-3" />
+                        </Link>
                       )}
                     </div>
-                  </button>
+                  </div>
                 </li>
               )
             })}
           </ol>
         </GlassScrollArea>
+        </div>
     </WidgetCard>
   )
 }
