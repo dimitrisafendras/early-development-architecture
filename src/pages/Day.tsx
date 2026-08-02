@@ -720,7 +720,7 @@ function Timeline({
                           // its content the whole strip, and the page under it,
                           // grew and shrank by ~40px on every tap. The cell is
                           // fixed and the card fills it.
-                          'h-28 transition-[width] duration-300',
+                          'h-32 transition-[width] duration-300',
                           // The focused cell is the only one carrying a Wiki chip,
                           // and a chip that has to wrap is a chip that has failed.
                           isSelected ? 'w-[26rem]' : 'w-72',
@@ -1029,7 +1029,10 @@ function Timeline({
                         // has a fixed height on purpose. Left at the default the
                         // contents packed against the top edge and every card had
                         // more air under its time than over its title.
-                        'flex min-w-0 flex-1 flex-col items-start justify-center gap-1.5 rounded-xl border transition-[background-color,border-color,box-shadow,padding,margin] duration-300',
+                        // `gap-2.5`, not `gap-1.5`: three lines 6px apart in a card with 14px of
+                        // padding read as one block of text with the padding around it
+                        // rather than as a title, a window and a link.
+                        'flex min-w-0 flex-1 flex-col items-start justify-center gap-2.5 rounded-xl border transition-[background-color,border-color,box-shadow,padding,margin] duration-300',
                         // In the strip the card fills the cell's fixed height, so
                         // selecting one cannot change how tall the strip is.
                         horizontal && 'h-full',
