@@ -1,10 +1,11 @@
-import { useState } from 'react'
-import { CalendarRange, Plus, RotateCcw, Trash2 } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import { CalendarRange, Plus, RotateCcw, Trash2, TriangleAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NumberInput } from '@/components/ui/number-input'
 import { Label } from '@/components/ui/label'
 import { LiveBadge, LiveDot } from '@/components/ui/live-badge'
 import { CollapsibleSection } from './CollapsibleSection'
+import { Eyebrow } from './Eyebrow'
 import { SegmentedGroup } from '@/components/ui/segmented-group'
 import { NewProgramForm, type ProgramSource } from './NewProgramForm'
 import { DayShapeBar, DayShapeSummary } from './DayShapeBar'
@@ -228,7 +229,12 @@ export function ScheduleBands({
                     grew by 4px on exactly one program of the nine — and stepping
                     along the axis nudged everything below it. */}
                 <span data-slot="band-heading" className="flex min-h-6.5 items-center gap-2">
-                  <span className="text-[15px] font-semibold">
+                  {/* The panel's own subject, and it now looks like one. At
+                      15px semibold it sat between the row labels below it and
+                      the "28 moments" beside it — three weights within four
+                      pixels of each other, so nothing in the block was
+                      obviously its title. */}
+                  <span className="font-heading text-lg leading-none font-semibold">
                     {formatAgeRange(
                       current.fromMonths,
                       next?.fromMonths ?? null,
@@ -253,48 +259,82 @@ export function ScheduleBands({
                 </span>
               </div>
 
-              <DayShapeBar slots={current.slots} dense />
-              <DayShapeSummary slots={current.slots} />
+              {/* The bar and its counts are one thing, not two — the summary is
+                  documented as "the readable half of the pair", i.e. the bar's
+                  caption. Labelling it promoted a caption to a peer of the two
+                  facts below, and restated "28 moments" from the heading at a
+                  different grain. */}
+              <figure>
+                <DayShapeBar slots={current.slots} dense />
+                <figcaption className="mt-1.5">
+                  <DayShapeSummary slots={current.slots} />
+                </figcaption>
+              </figure>
 
-              {/* The age guidance, checked against the day being authored.
-                  This is where the age target belongs: `/tracker` measures the
-                  caregiver against their own plan, so the plan itself has to be
-                  measured against something, and here is where it can still be
-                  changed. It reads the program's *own* start age, not the
-                  child's — the day for 0–2 months is judged as a 0–2 month day
-                  whoever is looking at it. */}
-              <ActivityCheck band={current} />
+              {/* The two facts about this day, as a labelled list.
+                  They used to be unlabelled muted paragraphs stacked under the
+                  bar — a guidance sentence and a what-changes-next sentence, the
+                  same size and colour, so telling them apart meant reading both.
+                  Naming each and setting the values in a second column makes the
+                  block scannable for the row you want.
 
-              {/* What changes at the next program — the question a parent is
-                  really asking when they look ahead. */}
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                {next ? (
-                  <>
-                    <span className="font-semibold text-foreground">
-                      {ts.nextChangeLabel.replace(
-                        '{age}',
-                        formatAgeLabel(next.fromMonths, t.baby.monthsShort, t.baby.yearsShort),
-                      )}
-                      :{' '}
-                    </span>
-                    {diffs.length
-                      ? diffs
-                          .map((d) =>
-                            ts.diffArrow
-                              .replace('{type}', t.fullDay.types[d.type])
-                              .replace('{from}', String(d.from))
-                              .replace('{to}', String(d.to)),
-                          )
-                          .join(' · ')
-                      : ts.diffNone}
-                  </>
-                ) : (
-                  ts.nextChangeNone.replace(
-                    '{age}',
-                    formatAgeLabel(current.fromMonths, t.baby.monthsShort, t.baby.yearsShort),
-                  )
-                )}
-              </p>
+                  The labels are `Eyebrow`s in `muted`, not `primary`. Its
+                  contract reserves `primary` for a label that *opens* a block
+                  and `muted` for the structural kind that must not compete —
+                  and this section's own header, the segmented thumb, the live
+                  dot and the in-use badge are all already primary, so accenting
+                  two row labels as well spent the colour on furniture. The pop
+                  is uppercase + 0.16em tracking + semibold against sentence-case
+                  values, which is exactly how `StatTile` does it. */}
+              <dl className="grid gap-x-5 gap-y-0 sm:grid-cols-[auto_1fr] sm:gap-y-1.5">
+                {/* The age guidance, checked against the day being authored.
+                    This is where the age target belongs: `/tracker` measures
+                    the caregiver against their own plan, so the plan itself has
+                    to be measured against something, and here is where it can
+                    still be changed. It reads the program's *own* start age,
+                    not the child's — the day for 0–2 months is judged as a 0–2
+                    month day whoever is looking at it.
+
+                    Silent, label and all, when the day plans none of this kind
+                    of moment: a leading `Fact` with nothing beside it would be
+                    a heading for an absence. */}
+                <ActivityCheck band={current} label={ts.factGuidance} />
+
+                {/* What changes at the next program — the question a parent is
+                    really asking when they look ahead. */}
+                <Fact label={ts.factNext}>
+                  {next ? (
+                    <>
+                      {/* `font-medium`, not semibold: the eyebrow now announces
+                          the row, so a bold prefix inside the value was a third
+                          level of emphasis in a two-level row. The age still
+                          anchors the sentence without shouting. */}
+                      <span className="font-medium text-foreground">
+                        {ts.nextChangeAt.replace(
+                          '{age}',
+                          formatAgeLabel(next.fromMonths, t.baby.monthsShort, t.baby.yearsShort),
+                        )}
+                      </span>{' '}
+                      ·{' '}
+                      {diffs.length
+                        ? diffs
+                            .map((d) =>
+                              ts.diffArrow
+                                .replace('{type}', t.fullDay.types[d.type])
+                                .replace('{from}', String(d.from))
+                                .replace('{to}', String(d.to)),
+                            )
+                            .join(' · ')
+                        : ts.diffNone}
+                    </>
+                  ) : (
+                    ts.nextChangeNone.replace(
+                      '{age}',
+                      formatAgeLabel(current.fromMonths, t.baby.monthsShort, t.baby.yearsShort),
+                    )
+                  )}
+                </Fact>
+              </dl>
 
               <div className="flex flex-wrap items-end gap-3 border-t border-border/70 pt-3">
                 <div className="space-y-1.5">
@@ -362,6 +402,63 @@ export function ScheduleBands({
 }
 
 /**
+ * One labelled fact about the selected day: a title on the left, its value on
+ * the right.
+ *
+ * A `<dt>`/`<dd>` pair rather than two spans, because that is what this is —
+ * and the grid is on the `<dl>`, so the two columns line up across every row
+ * instead of each row negotiating its own alignment. The label column is
+ * `auto`, so it sizes to the longest label in whichever language is loaded;
+ * Greek's "ΕΠΌΜΕΝΗ ΑΛΛΑΓΉ" is half again as wide as "NEXT CHANGE" and a fixed
+ * width would either clip it or leave English a gutter.
+ */
+function Fact({
+  label,
+  tone,
+  children,
+}: {
+  label: string
+  /** `warning` marks a value that is below guidance — see `ActivityCheck`. */
+  tone?: 'warning'
+  children: ReactNode
+}) {
+  return (
+    <>
+      {/* `leading-5` on both halves so the label and the first line of its
+          value share a baseline; the eyebrow is 12px against 12px text at a
+          different line-height otherwise, and every row sat a pixel off.
+
+          The margins are the single-column layout below `sm`, where the grid's
+          uniform `gap-y` put the same space between a value and the *next*
+          label as between a label and its own value — so the rows dissolved
+          into one stack again. Asymmetric spacing regroups them; from `sm` the
+          two columns do that job and the margins go away. */}
+      <dt className="mt-2 leading-5 first-of-type:mt-0 sm:mt-0">
+        <Eyebrow as="span" tone="muted" className="block">
+          {label}
+        </Eyebrow>
+      </dt>
+      <dd
+        className={cn(
+          'mt-0.5 text-xs leading-5 text-muted-foreground sm:mt-0',
+          // Only on the value: a warning-coloured *label* would make the row
+          // itself look like the problem, when the number is the problem.
+          tone === 'warning' && 'font-medium text-warning',
+        )}
+      >
+        {/* Never colour alone — 12px amber on a muted ground is both a WCAG
+            1.4.1 failure and easy to miss, and every other warning in the app
+            pairs the hue with this mark. */}
+        {tone === 'warning' && (
+          <TriangleAlert aria-hidden className="mr-1 inline size-3.5 shrink-0 align-[-2px]" />
+        )}
+        {children}
+      </dd>
+    </>
+  )
+}
+
+/**
  * How the day's own movement minutes compare with the guidance for its age.
  *
  * A day program can plan far more or far less than the age band asks for, and
@@ -374,21 +471,20 @@ export function ScheduleBands({
  * tummy time is a deliberate shape (a night-heavy newborn day, say), not a
  * shortfall to nag about.
  */
-function ActivityCheck({ band }: { band: AgeSchedule }) {
+function ActivityCheck({ band, label }: { band: AgeSchedule; label: string }) {
   const t = useT()
   const { mins: target, kind } = activityTargetForAge(band.fromMonths)
   const slots = band.slots.filter((slot) => slot.type === (kind === 'movement' ? 'active' : 'tummy'))
   if (!slots.length) return null
 
   const planned = slots.reduce((sum, slot) => sum + slot.mins, 0)
-  const short = planned < target
   return (
-    <p className={cn('text-xs', short ? 'text-warning' : 'text-muted-foreground')}>
-      {(short ? t.schedule.activityShort : t.schedule.activityOk)
+    <Fact label={label} tone={planned < target ? 'warning' : undefined}>
+      {t.schedule.activityValue
         .replace('{planned}', String(planned))
         .replace('{target}', String(target))
         .replace('{kind}', t.fullDay.types[kind === 'movement' ? 'active' : 'tummy'])}
-    </p>
+    </Fact>
   )
 }
 

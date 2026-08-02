@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   ArrowRight,
+  ChevronRight,
   Milk,
   BookOpen,
   Clock,
@@ -27,6 +28,7 @@ import { feedingRows, feedingUppers, type DayActivity, type ScheduleSlot } from 
 import {
   activeTimeIndex,
   slotTiming,
+  slotEndTime,
   formatDuration,
   activityTargetForAge,
   ageInMonths,
@@ -204,8 +206,20 @@ function MomentCard({
                 >
                   <Clock className="size-3.5" /> {t.day.panelSelectedTag}
                 </Eyebrow>
-                <Button variant="link" size="sm" onClick={onJumpToNow} className="h-auto p-0">
-                  {t.day.jumpToNow}
+                {/* The way back to live, and the only control in this state —
+                    so it is a button, not a link. As bare link text beside a
+                    grey chip it was the quietest thing in the card, which is
+                    backwards: the card is showing a moment that is *not* now,
+                    and the one thing the caregiver needs is the way out of that.
+                    `secondary` rather than `default`: the loudest button in this
+                    card belongs to the tool below, whatever the tool is. */}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={onJumpToNow}
+                  className="travelling-ring"
+                >
+                  <LocateFixed className="mr-1.5 size-3.5" /> {t.day.jumpToNow}
                 </Button>
               </>
             )}
@@ -277,26 +291,80 @@ function MomentCard({
             <div className="mt-1 font-heading text-2xl font-semibold leading-tight tracking-tight text-foreground">
               {cur.title}
             </div>
+            {/* What this moment actually asks of you. It used to live in the
+                timeline, opening on the row you picked — so the day's list was
+                carrying the day's *instructions*, and reading one meant reading
+                across both columns. The list answers when and what; this card
+                answers everything else about the one moment it is showing. */}
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{cur.detail}</p>
           </div>
 
-          {/* Up-next hand-off, condensed to a square on the title's line: the
-              next activity's mark over its time. The full title rides along as
-              the accessible name / tooltip, since a square has no room for it. */}
-          <button
-            type="button"
-            onClick={() => onSelectSlot(nextIdx)}
-            title={`${tl.upNext}: ${next.title} · ${next.time}`}
-            aria-label={`${tl.upNext}: ${next.title}, ${next.time}`}
-            className="group flex size-14 shrink-0 flex-col items-center justify-center gap-1 rounded-2xl bg-card/80 outline-none ring-1 ring-foreground/10 transition-[transform,box-shadow,background-color] hover:-translate-y-0.5 hover:bg-card hover:shadow-lg focus-visible:ring-2 focus-visible:ring-ring/70"
-          >
-            <span className={cn('inline-flex size-7 items-center justify-center rounded-lg', nextMeta.dot)}>
-              <NextIcon className="size-4" />
-            </span>
-            <span className="text-[10px] font-semibold tabular-nums leading-none text-muted-foreground">
-              {next.time}
-            </span>
-          </button>
         </div>
+
+        {/* The hand-off to what comes next, on its own line.
+            It was a 56px square at the far right of the title's row: an icon
+            over a 10px time, with the moment's actual *name* only in a tooltip.
+            Four things made it read as decoration rather than as the second most
+            important fact on the card — no visible name, the far-right position
+            where chrome lives, the same rounded-chip shape as the status pills
+            beside it, and an affordance that only appeared on hover, which on a
+            phone is never. "Next" is also a *relation*, and a square holds an
+            identity, not a relation.
+
+            So: a full-width row that says what is next in words. It gets
+            position and one hue chip; it does not get a ring, a display size, a
+            colour field or motion, because the current moment owns all four and
+            "what's now" is the card's whole purpose. A `text-sm` title under a
+            muted eyebrow cannot be mistaken for the 2xl display title above it.
+            Moving it off the title's line also gives that title back the width
+            it was losing to a square. */}
+        <button
+          type="button"
+          onClick={() => onSelectSlot(nextIdx)}
+          className="group -mx-2 flex items-center gap-3 rounded-xl px-2 py-2 text-left outline-none transition-colors hover:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring/70"
+        >
+          <span
+            aria-hidden
+            className={cn(
+              'inline-flex size-8 shrink-0 items-center justify-center rounded-lg',
+              nextMeta.dot,
+            )}
+          >
+            <NextIcon className="size-4" />
+          </span>
+          <span className="min-w-0 flex-1">
+            {/* Muted, not the activity's hue: two hue-coloured eyebrows in one
+                card would make now and next peers. */}
+            <Eyebrow as="span" tone="muted" className="block">
+              {tl.upNext}
+              {/* The accessible name is computed from this row's own text, so
+                  without a separator it runs "Up next Midday feed" together. */}
+              <span className="sr-only">:</span>
+            </Eyebrow>
+            <span className="mt-0.5 flex items-baseline gap-x-2">
+              <span className="truncate text-sm font-semibold text-foreground">{next.title}</span>
+              <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                {next.time}
+                {/* Only while live: `untilNext` is measured against the wall
+                    clock, so on a previewed slot it would be counting down to
+                    something other than what the card is showing. The absolute
+                    time is always true. */}
+                {isNow && (
+                  <>
+                    {' · '}
+                    {t.day.nextIn} {formatDuration(untilNext, tl.hour, tl.minute)}
+                  </>
+                )}
+              </span>
+            </span>
+          </span>
+          {/* Rest-state affordance. Without it the row still read as a badge on
+              touch, where the hover lift never happens. */}
+          <ChevronRight
+            aria-hidden
+            className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+          />
+        </button>
 
         <MomentTool type={type} isNow={isNow} accent={a} />
       </CardContent>
@@ -338,16 +406,14 @@ function MomentTool({ type, isNow, accent }: { type: DayActivity; isNow: boolean
             <TopicInfo type={type} />
           )}
         </GlassScrollArea>
-        <Link
-          to={wikiPath(dayActivityMeta[type].wiki)}
-          className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-        >
-          <BookOpen className="size-4" /> {t.day.learnFull}
-          <ArrowRight className="size-3.5" />
-        </Link>
       </CardContent>
     </Card>
   )
+}
+
+/** The Wiki topic an activity maps to — the row's link is named after it. */
+function wikiTopicFor(type: DayActivity) {
+  return findTopic(dayActivityMeta[type].wiki)
 }
 
 /* ------------------------------------------------------------------ timeline */
@@ -366,7 +432,6 @@ function Timeline({
   onSelect: (i: number) => void
 }) {
   const t = useT()
-  const tl = t.routineLive
   // How far through the live slot we are — drives both the ring around the NOW
   // dot and how much of the rail segment leaving it is filled in. Measured
   // against the slot's own length, so the arc completes when the activity is
@@ -422,22 +487,36 @@ function Timeline({
         </Link>
       }
     >
-        <GlassScrollArea
-          ref={areaRef}
-          className="max-h-[21rem] lg:max-h-none"
-          overlay={
-            !nowInView && (
-              /* A floating control over content — the one place on this page the
-                 glass material belongs (per the Liquid Glass guidance). */
+        {/* The recentre control rides at the *top* of the list, not the bottom.
+            `GlassScrollArea`'s own `overlay` prop pins it to the bottom edge,
+            which is where you look for "more below" — but this button means "you
+            have scrolled away from now", and the day runs downward, so it is
+            almost always sitting above you. Hanging it off the bottom put the
+            way back at the far end of the direction you would have to travel.
+
+            Anchored here rather than by changing the package: the prop is one
+            fixed position in an external, tagged dependency, and this is one
+            absolutely-positioned child of a `relative` wrapper. It is still the
+            floating glass control the Liquid Glass guidance sanctions — the same
+            component, over content, in the one place on this page that qualifies. */}
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          {!nowInView && (
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center pt-1">
               <GlassButton
                 size="sm"
                 onClick={recenter}
-                className="pointer-events-auto text-xs font-semibold"
+                className="travelling-ring pointer-events-auto text-xs font-semibold"
               >
                 <LocateFixed className="size-3.5 text-primary" /> {t.day.jumpToNow}
               </GlassButton>
-            )
-          }
+            </div>
+          )}
+        {/* `proximity`, never `mandatory`: rows settle onto the centre line when
+            you let go — the carousel dial — but browsing the day freely, and the
+            programmatic `centerChild` behind "jump to now", are both left alone. */}
+        <GlassScrollArea
+          ref={areaRef}
+          className="max-h-[21rem] snap-y snap-proximity lg:max-h-none"
         >
           <ol className="relative px-1.5">
             {schedule.map((slot, i) => {
@@ -447,158 +526,354 @@ function Timeline({
               const isNow = i === currentSlot
               const isPast = i < currentSlot
               const isSelected = i === activeIdx
-              const nextAccent = dayActivityMeta[schedule[(i + 1) % schedule.length].type].accent
-              // The one thing the old rail never said: how much of the day is
-              // behind you. Segments before NOW are filled solid, the segment
-              // leaving NOW fills live, everything after stays unlit.
-              const fill = isPast ? 100 : isNow ? livePct : 0
+              // `%` no more: on the last row there is no next slot, and wrapping
+              // to the first one gradiented a rail that is never drawn toward the
+              // wrong end of the day.
+              const nextAccent = last ? a.accent : dayActivityMeta[schedule[i + 1].type].accent
+              const prevAccent = i === 0 ? a.accent : dayActivityMeta[schedule[i - 1].type].accent
+              /**
+               * How much of the segment *leaving* row j is behind us: solid for
+               * every segment before NOW, live for the one leaving it, unlit
+               * after. The rail says the one thing the old flat line never did —
+               * how much of the day is done.
+               */
+              const segFill = (j: number) =>
+                j < 0 ? 0 : j < currentSlot ? 100 : j === currentSlot ? livePct : 0
+              // A segment spans two rows: the bottom half of the row it leaves and
+              // the top half of the row it arrives at. So each half fills over its
+              // own half of the segment's range — the first 50% drains into the
+              // bottom half, the rest into the next row's top half.
+              //
+              // Which is only honest if the halves are the same length, and they
+              // are not for free: the gap between two rows is the `<li>`'s own
+              // `pb-8`, and giving all 32px of it to the bottom half made a normal
+              // pair 91/9 and a pair below the live mark 95/5 — so the rail read
+              // ~95% done at the halfway point of the slot, by a different amount
+              // on every row. The two halves overhang 16px each into the gap
+              // instead, which sums to the same `pb-8` (so the joins stay exact)
+              // and makes a uniform pair exactly 50/50.
+              const bottomFill = Math.min(100, segFill(i) * 2)
+              const topFill = Math.max(0, segFill(i - 1) * 2 - 100)
+              // The hue at a segment's midpoint, which is where the two halves
+              // meet — so the handover reads as one gradient down the whole day
+              // rather than restarting at every dot.
+              const midBelow = `color-mix(in oklab, ${a.accent}, ${nextAccent})`
+              const midAbove = `color-mix(in oklab, ${prevAccent}, ${a.accent})`
               return (
                 <li
                   key={`${slot.time}-${i}`}
                   ref={(el) => {
                     itemRefs.current[i] = el
                   }}
-                  className="relative flex gap-3.5 pb-6 last:pb-1"
+                  className="group relative flex snap-center gap-3.5 pb-8 last:pb-1"
                 >
-                  {/* The rail segment for the gap *below* this step. It starts at
-                      52px — the 48px dot plus a 4px air gap — and stops 2px short
-                      of the next one, so it can never appear to run under a dot
-                      (the dots are translucent, which is what made the old
-                      `top-11` rail visibly leak through them). Centred on the
-                      `w-12` dot column, not a hand-derived constant. */}
-                  {!last && (
-                    <span
-                      aria-hidden
-                      className="pointer-events-none absolute left-6 top-[3.25rem] bottom-0.5 w-[3px] -translate-x-1/2 overflow-hidden rounded-full bg-border/70"
-                    >
-                      <span
-                        className="block w-full rounded-full transition-[height] duration-700 ease-out"
-                        style={{
-                          height: `${fill}%`,
-                          // Hands over from this activity's hue to the next one, so
-                          // the rail reads as one continuous gradient down the day.
-                          backgroundImage: `linear-gradient(180deg, ${a.accent}, ${nextAccent})`,
-                          boxShadow: fill > 0 ? `0 0 8px ${a.accent}80` : undefined,
-                        }}
-                      />
-                    </span>
-                  )}
+                  {/* **The row's control is an overlay, not a wrapper.** The
+                      focused card carries a real `<Link>` into the Wiki now, and
+                      a link inside a button is invalid HTML that browsers silently
+                      unnest — so the button became a stretched, transparent layer
+                      over the whole row and everything else renders beside it.
+                      Hit area and behaviour are unchanged; the link sits above it
+                      and takes its own clicks back with `pointer-events-auto`.
+                      The accessible name moves to an `sr-only` copy of the title,
+                      since the button no longer contains the text.
+
+                      The trade: `pointer-events-none` on the content layer means
+                      the rows' text cannot be selected. Acceptable for a stepper
+                      whose every row is a control, but it is a real loss and not
+                      an accident. */}
                   <button
                     type="button"
                     onClick={() => onSelect(i)}
                     aria-pressed={isSelected}
                     aria-current={isNow ? 'step' : undefined}
-                    className="group flex flex-1 items-start gap-3.5 rounded-2xl text-left outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
+                    className="absolute inset-0 rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
                   >
-                    <div className="relative flex w-12 shrink-0 justify-center">
+                    <span className="sr-only">{slot.title}</span>
+                  </button>
+                  <div className="pointer-events-none flex flex-1 items-stretch gap-3.5">
+                    {/* **Each row owns half of the segment above it and half of
+                        the segment below it.** The rail used to be one span per
+                        row that started at the mark's bottom edge and deliberately
+                        overran into the next row, because the next mark's centre
+                        depends on that row's height and this row cannot know it —
+                        so it overshot and let the next mark cover the excess.
+
+                        That was correct by concealment. It cost three families of
+                        linked magic numbers (the overshoot encoded the row's
+                        padding, the start offsets encoded every mark diameter, the
+                        diameters encoded the halo), it required marks to stay
+                        opaque for ever, and it was 0.7px from failing: a wrapped
+                        title on the focused card — one long Greek moment name —
+                        would have opened a visible gap in the rail directly above
+                        the most prominent row in the list.
+
+                        Two flex halves instead. The bottom half ends at this row's
+                        bottom, which *is* the next row's top, which is where its
+                        top half begins — so every join is exact for any pair of
+                        row heights, for ever. The only fixed numbers left are the two
+                        ±4 overhangs that sum to the row's own `pb-8`, and they sit
+                        next to the padding they split.
+
+                        It also makes the fill honest. Only ~45% of the old rail
+                        was ever visible, the rest hidden behind the next mark, so
+                        a live segment looked complete at 45% of the slot — and by
+                        a different fraction on every row, since it depended on the
+                        height of whatever came next. Here 100% lands exactly on
+                        the next mark. */}
+                    <div className="relative flex w-18 shrink-0 flex-col items-center self-stretch">
+                      {/* The tail of the segment arriving from the row above. It
+                          mirrors the bottom half exactly — same overhang, fill
+                          growing the same way — because it is the same segment.
+                          Its fill was anchored to `bottom-0` and grew *upward*
+                          from the mark, so the second half of every slot drew a
+                          lit stub sitting on the arriving mark with an unlit gap
+                          above it: progress running backwards up the day. */}
+                      <span aria-hidden className="relative w-[3px] flex-1">
+                        {i > 0 && (
+                          <span className="absolute inset-x-0 -top-4 bottom-0 overflow-hidden bg-border">
+                            <span
+                              className="block w-full transition-[height] duration-700 ease-out"
+                              style={{
+                                height: `${topFill}%`,
+                                backgroundImage: `linear-gradient(180deg, ${midAbove}, ${a.accent})`,
+                              }}
+                            />
+                          </span>
+                        )}
+                      </span>
+                      {/* A ring of card colour around the mark: the 4px of air
+                          that stops the rail's two halves from running flush into
+                          the circle. `flex`, not the default `inline` — an inline
+                          box sits its contents on a text baseline and keeps the
+                          descender space beneath them, so the halo was several
+                          pixels taller below the mark than above it and the two
+                          halves started at visibly different distances. */}
+                      <span className="relative z-10 flex shrink-0 rounded-full bg-card p-1">
                       {isNow ? (
                         // Identity + live progress in one 48px mark: the arc is how
                         // far through this slot we are. Static by request — the
                         // arc and the lit rail below it already say "this is now",
                         // so nothing on the stepper pulses.
-                        <ProgressRing progress={livePct / 100} size={48} stroke={3} accent={a.accent}>
+                        <ProgressRing
+                          progress={livePct / 100}
+                          size={isSelected ? 56 : 48}
+                          stroke={3}
+                          accent={a.accent}
+                        >
                           <span
-                            className={cn('inline-flex size-9 items-center justify-center rounded-full', a.dot)}
+                            className={cn(
+                              'inline-flex items-center justify-center rounded-full bg-card',
+                              isSelected ? 'size-11' : 'size-9',
+                            )}
                           >
-                            <Icon className="size-4.5" />
+                            <span
+                              className={cn(
+                                'inline-flex size-full items-center justify-center rounded-full',
+                                a.dot,
+                              )}
+                            >
+                              <Icon className={isSelected ? 'size-5' : 'size-4.5'} />
+                            </span>
                           </span>
                         </ProgressRing>
                       ) : (
                         <span
                           className={cn(
-                            'relative inline-flex size-12 items-center justify-center rounded-full transition-transform duration-300 group-hover:scale-105',
-                            a.dot,
-                            isPast && 'opacity-60',
+                            'relative z-10 inline-flex items-center justify-center rounded-full bg-card',
+                            // The focused step grows with its card — the mark and
+                            // the moment it belongs to are one thing, so scaling
+                            // only the card left the dot looking like a different
+                            // row's.
+                            // No hover scale: the row already lights up on hover,
+                            // and on the focused mark the scaled circle ate the
+                            // halo's air. No `transition-all` either — it animated
+                            // width and height, which reflows every row in the
+                            // list for 300ms and left `centerChild` measuring a
+                            // position the row had not finished moving to.
+                            isSelected ? 'size-14' : 'size-12',
                           )}
                         >
-                          <Icon className="size-5" />
-                          {/* Done marker. Small, semantic green, ringed in the card
-                              colour so it reads as a badge on the dot. */}
+                          {/* The activity tint is a *separate* layer over an
+                              opaque `bg-card`, not the same element's background.
+                              Both are background-color utilities, so merging them
+                              onto one class list drops one of them — and the one
+                              that survived was the translucent tint, which let the
+                              rail run visibly through every dot. */}
+                          {/* The dimming belongs to the *tint*, not to the mark.
+                              On the whole mark it also faded the done badge — so
+                              every green check the app has ever shown rendered at
+                              60%, against a colour whose whole job is to be read
+                              as semantic. */}
+                          <span
+                            className={cn(
+                              'inline-flex size-full items-center justify-center rounded-full',
+                              a.dot,
+                              isPast && 'opacity-60',
+                            )}
+                          >
+                            <Icon className={isSelected ? 'size-6' : 'size-5'} />
+                          </span>
+                          {/* Done marker, on the rim. At `-bottom-0.5 -right-0.5`
+                              its centre sat *outside* the circle — more than half
+                              the badge on the halo's padding, where its `ring-card`
+                              was invisible against the halo's own card colour. */}
                           {isPast && (
-                            <span className="absolute -bottom-0.5 -right-0.5 grid size-4 place-items-center rounded-full bg-success text-success-foreground ring-2 ring-card">
+                            <span className="absolute bottom-0 right-0 grid size-4 place-items-center rounded-full bg-success text-success-foreground ring-2 ring-card">
                               <Check className="size-2.5" strokeWidth={3} />
                             </span>
                           )}
                         </span>
                       )}
+                      </span>
+                      {/* The head of the segment leaving this row. Rendered, not
+                          merely hidden, on the last row — `visibility` still
+                          reserves scrollable overflow, so an invisible track
+                          hanging past the final moment left 28px of dead scroll
+                          into nothing at the bottom of the day. */}
+                      <span aria-hidden className="relative w-[3px] flex-1">
+                        {!last && (
+                          <span className="absolute inset-x-0 top-0 -bottom-4 overflow-hidden bg-border">
+                            <span
+                              className="block w-full transition-[height] duration-700 ease-out"
+                              style={{
+                                height: `${bottomFill}%`,
+                                backgroundImage: `linear-gradient(180deg, ${a.accent}, ${midBelow})`,
+                              }}
+                            />
+                          </span>
+                        )}
+                      </span>
                     </div>
                     <div
                       className={cn(
-                        'min-w-0 flex-1 rounded-xl px-3 py-2 transition-all duration-300',
-                        !isSelected && 'group-hover:bg-muted/70',
+                        'min-w-0 flex-1 rounded-xl transition-[background-color,box-shadow,padding,margin] duration-300',
+                        // The focused card is bigger, and it pushes its
+                        // neighbours away: a picker's centre cell, not a list
+                        // row that happens to be tinted. The tint and the ring
+                        // alone made selection a *colour*, which is the one
+                        // signal this list already spends on activity identity —
+                        // eight hues, one per kind — so the selected row read as
+                        // "another blue thing" rather than as the one in focus.
+                        // Size and air are the axes nothing else here uses.
+                        isSelected ? 'my-2 bg-card px-4 py-3.5' : 'px-3 py-2 group-hover:bg-muted/70',
                       )}
-                      // The selected row lights up in its own activity hue instead
-                      // of a flat primary tint, so selection and identity are the
-                      // same signal. Inset ring rather than `ring-*`: it keeps the
-                      // 1px edge inside the row's own box, which is what stopped
-                      // the highlight nudging the text on select.
+                      // **The focused row is the only card in the list that is
+                      // materially raised.** It was a translucent wash in the
+                      // activity's hue — but hue is the axis this list already
+                      // spends on identity, eight of them, one per kind, so a
+                      // tinted row read as "another blue thing" rather than as the
+                      // one in focus. And the lift under it (`0 8px 24px -18px`)
+                      // collapsed to almost nothing.
+                      //
+                      // Opaque, lifted, with the accent kept to a 1px inset edge
+                      // and the mark beside it. A surface that is actually off the
+                      // page reads as the lens of a carousel at a glance; a tint
+                      // reads as a hover state. `scale-[1.02]` is gone with it —
+                      // six pixels on a 300px box, invisible as size, but as a
+                      // transform it rasterised the text at a fractional scale for
+                      // the whole 300ms and softened every selection.
                       style={
                         isSelected
                           ? {
-                              backgroundImage: `linear-gradient(100deg, ${a.accent}26, ${a.accent}0d 55%, transparent)`,
-                              boxShadow: `inset 0 0 0 1px ${a.accent}59, 0 8px 24px -18px ${a.accent}`,
+                              boxShadow: `inset 0 0 0 1px ${a.accent}59, 0 12px 32px -12px ${a.accent}66`,
                             }
                           : undefined
                       }
                     >
-                      {/* Time chip + title only. The activity *type* used to sit
-                          here as a third item, but this column is ~290px wide: on
-                          any slot with a longer title the eyebrow wrapped onto its
-                          own line and every row ended up a different height. The
-                          dot's icon and hue already say which activity it is, and
-                          the moment card beside this one names the selected slot's
-                          type in words — so the rows stay two lines, uniform.
-                          `gap-y-1` still matters in Greek, where the title itself
-                          can wrap. */}
-                      {/* The duration rides *inside* the time chip rather than
-                          beside it: a third flex item is what used to wrap this
-                          ~290px column onto a ragged extra line. */}
-                      <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
-                        <span
-                          className={cn(
-                            'rounded-md px-1.5 py-0.5 font-heading text-[13px] font-bold tabular-nums transition-colors',
-                            isNow || isSelected ? a.text : 'text-muted-foreground',
-                          )}
-                          style={
-                            isNow || isSelected
-                              ? { backgroundColor: `${a.accent}1f` }
-                              : { backgroundColor: 'color-mix(in oklab, var(--muted) 70%, transparent)' }
-                          }
-                        >
-                          {slot.time}
-                          <span className="font-medium opacity-70">
-                            {' · '}
-                            {formatDuration(slot.mins, tl.hour, tl.minute)}
-                          </span>
-                        </span>
-                        <span
-                          className={cn(
-                            'font-semibold text-foreground',
-                            isPast && !isSelected && 'text-muted-foreground',
-                          )}
-                        >
-                          {slot.title}
-                        </span>
-                      </div>
-                      {/* Two lines is enough to recognise a slot; the one you pick
-                          opens to its full detail, which is what the schedule is
-                          for. Cheaper than a second card and it keeps ten slots
-                          reachable without scrolling past prose. */}
-                      <p
+                      {/* **Title first, then when.** Side by side the chip won
+                          the row — it is bold, tabular and sitting in a tinted
+                          field, against a title in plain semibold — so the eye
+                          walked a column of times looking for the thing each one
+                          names. The name is what you are scanning for; the clock
+                          is how you place it once you have found it.
+
+                          The activity *type* used to sit on this line as a third
+                          item, but this column is ~290px wide: on any slot with a
+                          longer title the eyebrow wrapped and every row ended up
+                          a different height. The dot's icon and hue already say
+                          which activity it is, and the moment card beside this
+                          one names the selected slot's type in words. */}
+                      <span
                         className={cn(
-                          'mt-1 text-[13px] leading-relaxed text-muted-foreground',
-                          !isSelected && 'line-clamp-2',
+                          'block font-semibold text-foreground transition-[color,font-size] duration-300',
+                          isSelected && 'font-heading text-[17px] leading-tight',
+                          isPast && !isSelected && 'text-muted-foreground',
                         )}
                       >
-                        {slot.detail}
-                      </p>
+                        {slot.title}
+                      </span>
+                      {/* The duration rides *inside* the chip rather than beside
+                          it: a second element on this line is what used to wrap
+                          the ~290px column onto a ragged extra line. */}
+                      <span
+                        className={cn(
+                          'mt-1 inline-block rounded-md px-1.5 py-0.5 font-heading text-[13px] font-bold tabular-nums transition-colors',
+                          isNow || isSelected ? a.text : 'text-muted-foreground',
+                        )}
+                        style={
+                          isNow || isSelected
+                            ? { backgroundColor: `${a.accent}1f` }
+                            : { backgroundColor: 'color-mix(in oklab, var(--muted) 70%, transparent)' }
+                        }
+                      >
+                        {/* The window, not a start time and a length. "11:55 ·
+                            30m" put two numbers on one line with a separator and
+                            no units to tell them apart — `30m` scans as another
+                            clock time, and the reader has to work out which of
+                            the two is the odd one out before either means
+                            anything. Two clock times either side of a dash is a
+                            range on sight, and it answers the question a day plan
+                            is actually asked: not "how long is this" but "when am
+                            I free again". The length is still on the moment's own
+                            card, where there is room to label it. */}
+                        {slot.time}
+                        <span className="opacity-70">{' – '}</span>
+                        {slotEndTime(slot.time, slot.mins)}
+                      </span>
+                      {/* Named after what it opens, not after where it goes.
+                          "Read more in the Wiki" was the same sentence under
+                          every one of the day's twenty-eight moments — it told
+                          you the destination's filing system and nothing about
+                          whether what was behind it was worth a tap. The topic's
+                          own title does that.
+
+                          Only on the focused card, and it takes its own clicks
+                          back from the row's overlay button — the row selects,
+                          this leaves the page, and the two must not be the same
+                          tap. */}
+                      {isSelected && wikiTopicFor(slot.type) && (
+                        <Link
+                          to={wikiPath(a.wiki)}
+                          // A chip in the moment's own hue rather than a line of
+                          // blue text. Underlined primary made it the one thing
+                          // on the card that belonged to the app's accent instead
+                          // of to the activity — a feed card tinted teal with a
+                          // blue link in it. In the hue it reads as part of the
+                          // card, and as something to press rather than something
+                          // to read.
+                          style={{
+                            color: a.accent,
+                            borderColor: `${a.accent}59`,
+                            backgroundColor: `${a.accent}14`,
+                          }}
+                          className="group/wiki pointer-events-auto relative z-10 mt-2.5 inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[13px] font-semibold transition-shadow hover:shadow-sm"
+                        >
+                          <BookOpen className="size-3.5 shrink-0" />
+                          {t.day.learnAbout.replace(
+                            '{topic}',
+                            wikiTopicFor(slot.type)!.label(t),
+                          )}
+                          <ArrowRight className="size-3 shrink-0 transition-transform group-hover/wiki:translate-x-0.5" />
+                        </Link>
+                      )}
                     </div>
-                  </button>
+                  </div>
                 </li>
               )
             })}
           </ol>
         </GlassScrollArea>
+        </div>
     </WidgetCard>
   )
 }

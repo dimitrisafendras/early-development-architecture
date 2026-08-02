@@ -222,28 +222,43 @@ export function AddFeedForm({
             </Button>
           </div>
         )}
-        {methodTabs}
-        {/* The stepper gets a row to itself. Sharing one with the submit button
-            left ~40px of value between the −/+ caps in the day's ~21rem tool
-            zone: unreadable, and impossible to aim a thumb at. The `max-w` is
-            the other half of the same problem — in a wide zone a full-bleed
-            stepper throws the two caps to opposite edges, so it stops growing
-            once it is a comfortable field and stays left-aligned under its
-            label. Value is bumped a step: it is this form's whole payload. */}
-        <div className="space-y-1.5">
-          <Label htmlFor={amountId}>{amountLabelText}</Label>
-          <NumberInput {...amountProps} {...fields.stepper} className="max-w-[16rem]" />
+        {/* Method, amount and submit on one line — the whole compose step in a
+            single glance rather than three stacked full-width blocks with a
+            label above the middle one.
+
+            It used to be three rows because the day's tool zone was ~21rem, and
+            in that width a shared row squeezed the stepper to ~40px of value
+            between its two caps: unreadable, and impossible to aim a thumb at.
+            The dashboard's moment card is a ~35rem column now, so the row fits
+            with the stepper still a comfortable field. Below that it wraps on
+            its own, which is the same three-block layout it had before, arrived
+            at by the width rather than asserted against it.
+
+            Every control is `md` — the one size at which pills, stepper and
+            button are the same height (`ui/control-size.ts`); a row is only ever
+            one size. */}
+        <div className="flex flex-wrap items-center gap-2">
+          {methodTabs}
+          {/* The label goes `sr-only` rather than away: on one line there is no
+              room above the field, and the visible unit inside it ("ml" / "min")
+              says which scale this is — but only to someone who can see it. */}
+          <Label htmlFor={amountId} className="sr-only">
+            {amountLabelText}
+          </Label>
+          <NumberInput {...amountProps} {...fields.stepper} className="w-40 shrink-0" />
+          {/* Demoted to `secondary` while a one-tap repeat exists above; the
+              only filled button here when it doesn't. Takes the row's slack so
+              the line always ends flush, and never shrinks under its label. */}
+          <Button
+            type="submit"
+            size="md"
+            variant={last ? 'secondary' : 'default'}
+            disabled={busy}
+            className="min-w-[7.5rem] flex-1"
+          >
+            <Milk className="mr-2 size-4" /> {tf.save}
+          </Button>
         </div>
-        {/* Demoted to `secondary` while a one-tap repeat exists above; the only
-            filled button here when it doesn't. */}
-        <Button
-          type="submit"
-          variant={last ? 'secondary' : 'default'}
-          disabled={busy}
-          className="w-full"
-        >
-          <Milk className="mr-2 size-4" /> {tf.save}
-        </Button>
       </form>
     )
   }
