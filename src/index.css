@@ -297,14 +297,18 @@ section {
   --app-bottom-nav-h: 4.5rem;
 }
 
-/* Standard page gutter: 1rem on phones, 1.5rem from `sm` up, never narrower
-   than the landscape notch inset. */
+/* Standard page gutter: 0.75rem on phones, 1rem from `sm` up, never narrower
+   than the landscape notch inset.
+   One utility, and `PageFrame` is its only caller — which is what keeps the
+   page title, the header band and every card edge on the same line. Narrow it
+   here and all three move together; there is deliberately nowhere else to set
+   a gutter and get them out of step. */
 @utility page-px {
-  padding-left: max(1rem, env(safe-area-inset-left));
-  padding-right: max(1rem, env(safe-area-inset-right));
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+  padding-right: max(0.75rem, env(safe-area-inset-right));
   @media (width >= 40rem) {
-    padding-left: max(1.5rem, env(safe-area-inset-left));
-    padding-right: max(1.5rem, env(safe-area-inset-right));
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
   }
 }
 

@@ -26,7 +26,7 @@ const frameContract = [
   },
   {
     prop: 'gutter',
-    value: 'page-px = 16px, 24px from sm',
+    value: 'page-px = 12px, 16px from sm',
     note: 'A utility, so the gutter is identical on every route.',
   },
   {

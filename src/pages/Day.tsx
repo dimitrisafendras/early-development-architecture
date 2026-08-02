@@ -625,7 +625,10 @@ function Timeline({
             wrapping it sideways would be borrowing a shape for the axis it does
             not have. */}
         <Scroller horizontal={horizontal} areaRef={areaRef} stripRef={stripRef}>
-          <ol className={cn('relative', horizontal ? 'flex px-1 py-1' : 'px-1.5')}>
+          {/* The focused card's halo needs somewhere to land: the scroll
+              viewport clips it, and at `px-1.5` it was cut flat against the right
+              edge. The padding is the glow's own reach. */}
+          <ol className={cn('relative', horizontal ? 'flex gap-0 px-3.5 py-3.5' : 'px-3.5 py-1')}>
             {schedule.map((slot, i) => {
               const a = dayActivityMeta[slot.type]
               const Icon = a.icon
@@ -680,10 +683,16 @@ function Timeline({
                     // the same way either way.
                     horizontal
                       ? cn(
-                          'shrink-0 flex-col items-center gap-2.5 pr-8 last:pr-1',
+                          // The card sits *beside* its mark here too, not under
+                          // it: the strip is the same step turned on its side, and
+                          // a mark stacked over a caption was a different object
+                          // that happened to hold the same words. So the whole day
+                          // reads as one line — ○ card ○ card ○ — with the rail
+                          // running between each card and the next mark.
+                          'shrink-0 items-center gap-2.5 pr-6 last:pr-1',
                           // The focused cell is the only one carrying a Wiki chip,
                           // and a chip that has to wrap is a chip that has failed.
-                          isSelected ? 'w-60' : 'w-44',
+                          isSelected ? 'w-[26rem]' : 'w-72',
                         )
                       : 'gap-3.5 pb-8 last:pb-1',
                   )}
@@ -721,9 +730,7 @@ function Timeline({
                       // the whole card past the column's right edge whenever a
                       // moment's Wiki topic had a long name.
                       'pointer-events-none flex min-w-0 flex-1',
-                      horizontal
-                        ? 'w-full flex-col items-center gap-2'
-                        : 'items-stretch gap-3.5',
+                      horizontal ? 'w-full items-center gap-3' : 'items-stretch gap-3.5',
                     )}
                   >
                     {/* **Each row owns half of the segment above it and half of
@@ -757,8 +764,8 @@ function Timeline({
                         the next mark. */}
                     <div
                       className={cn(
-                        'relative flex shrink-0 items-center self-stretch',
-                        horizontal ? 'h-18 w-full flex-row' : 'w-18 flex-col',
+                        'relative flex shrink-0 items-center',
+                        horizontal ? 'h-18 flex-row' : 'w-18 flex-col self-stretch',
                       )}
                     >
                       {/* The tail of the segment arriving from the row above. It
@@ -819,13 +826,9 @@ function Timeline({
                           // in the gap with air on the side it was meant to be
                           // joining. Half the column is 2.25rem; the halo's own
                           // half is 1.75rem, or 2rem once the focused mark grows.
-                          horizontal
-                            ? isSelected
-                              ? 'top-[calc(50%+2rem)] left-1/2 h-3 w-[3px] -translate-x-1/2'
-                              : 'top-[calc(50%+1.75rem)] left-1/2 h-4 w-[3px] -translate-x-1/2'
-                            : isSelected
-                              ? 'top-1/2 left-[calc(50%+2rem)] h-[3px] w-[1.125rem] -translate-y-1/2'
-                              : 'top-1/2 left-[calc(50%+1.75rem)] h-[3px] w-[1.375rem] -translate-y-1/2',
+                          isSelected
+                            ? 'top-1/2 left-[calc(50%+2rem)] h-[3px] w-[1.125rem] -translate-y-1/2'
+                            : 'top-1/2 left-[calc(50%+1.75rem)] h-[3px] w-[1.375rem] -translate-y-1/2',
                         )}
                         // Lit exactly where the rail beside it is: the segments
                         // through and behind NOW carry the day's accent, the ones
@@ -970,7 +973,7 @@ function Timeline({
                         // In the strip the card sits *under* its mark and owns the
                         // cell's width; in the column it sits beside the mark and
                         // takes what is left.
-                        horizontal ? 'w-full items-center text-center' : 'flex-1 items-start',
+                        horizontal ? 'flex-1 items-start' : 'flex-1 items-start',
                         // The focused card is bigger, and it pushes its
                         // neighbours away: a picker's centre cell, not a list
                         // row that happens to be tinted. The tint and the ring
@@ -1014,7 +1017,7 @@ function Timeline({
                         isSelected
                           ? {
                               borderColor: `${a.accent}8c`,
-                              boxShadow: `0 0 28px -6px ${a.accent}73`,
+                              boxShadow: `0 0 18px -4px ${a.accent}73`,
                             }
                           : {
                               borderColor:
@@ -1102,7 +1105,12 @@ function Timeline({
                             borderColor: `${a.accent}59`,
                             backgroundColor: `${a.accent}14`,
                           }}
-                          className="group/wiki pointer-events-auto relative z-10 mt-1 flex max-w-full items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-semibold transition-shadow hover:shadow-sm"
+                          // Pulled left by its own padding and border, so the chip's
+                          // *text* starts on the same line as the title and the
+                          // window above it. Aligning the chip's box instead left
+                          // its label indented by 11px against two lines that were
+                          // not — three left edges where the card has one.
+                          className="group/wiki pointer-events-auto relative z-10 -ml-[11px] mt-1 flex max-w-[calc(100%+11px)] items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-semibold transition-shadow hover:shadow-sm"
                         >
                           <BookOpen className="size-3.5 shrink-0" />
                           {/* The label truncates, the chip does not. `truncate` on
