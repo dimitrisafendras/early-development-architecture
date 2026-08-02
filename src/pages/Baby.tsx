@@ -198,7 +198,7 @@ function CreateBabyForm({
             required
           />
         </div>
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor="baby-birth">{t.baby.birthDateLabel}</Label>
           <DatePicker
             id="baby-birth"
@@ -463,11 +463,11 @@ function EditBabyForm({
 
   return (
     <form onSubmit={submit} className="grid grid-cols-1 items-end gap-4 sm:grid-cols-2">
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="edit-name">{t.baby.nameLabel}</Label>
         <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} required />
       </div>
-      <div className="space-y-1.5">
+      <div className="flex flex-col gap-1.5">
         <Label htmlFor="edit-birth">{t.baby.birthDateLabel}</Label>
         <DatePicker
           id="edit-birth"
@@ -573,7 +573,7 @@ function AddMeasurementForm({
           onSubmit={submit}
           className="grid grid-cols-2 items-start gap-4 sm:grid-cols-4 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]"
         >
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="m-date">{t.baby.dateLabel}</Label>
             <DatePicker
               id="m-date"

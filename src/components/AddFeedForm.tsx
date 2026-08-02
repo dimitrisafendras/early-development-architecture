@@ -297,7 +297,7 @@ export function AddFeedForm({
 
         <div
           className={cn(
-            'w-full space-y-1.5',
+            'w-full flex flex-col gap-1.5',
             noteOpen ? 'sm:w-[12rem]' : 'sm:min-w-[12rem] sm:flex-1 lg:max-w-[17rem]',
           )}
         >

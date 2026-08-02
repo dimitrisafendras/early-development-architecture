@@ -197,6 +197,9 @@ const en = {
     save: 'Save',
     cancel: 'Cancel',
     date: 'Date',
+    /** Day headings in every history list — see `HistoryList`. */
+    today: 'Today',
+    yesterday: 'Yesterday',
   },
   // The last screen the app can show: what a caught render error says.
   crash: {
@@ -482,7 +485,9 @@ const en = {
     copyLast: 'Copy last feed',
     repeatLast: 'Repeat last feed',
     todayTitle: "Today's feeds",
+    historyTitle: 'Recent feeds',
     none: 'No feeds logged today yet.',
+    noHistory: 'No feeds logged yet.',
     totalToday: 'Total today',
     countToday: 'Feeds today',
     sinceLast: 'Since last feed',
@@ -1677,6 +1682,8 @@ const el: Messages = {
     save: 'Αποθήκευση',
     cancel: 'Ακύρωση',
     date: 'Ημερομηνία',
+    today: 'Σήμερα',
+    yesterday: 'Χθες',
   },
   crash: {
     title: 'Κάτι πήγε στραβά',
@@ -1951,7 +1958,9 @@ const el: Messages = {
     copyLast: 'Αντιγραφή τελευταίου',
     repeatLast: 'Επανάληψη τελευταίου',
     todayTitle: 'Σημερινά ταΐσματα',
+    historyTitle: 'Πρόσφατα ταΐσματα',
     none: 'Δεν έχει καταγραφεί τάισμα σήμερα.',
+    noHistory: 'Δεν έχει καταγραφεί τάισμα ακόμη.',
     totalToday: 'Σύνολο σήμερα',
     countToday: 'Ταΐσματα σήμερα',
     sinceLast: 'Από το τελευταίο',

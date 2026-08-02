@@ -827,3 +827,32 @@ test('Family keeps a home outside the bottom bar', async ({ page }) => {
   await page.getByRole('link', { name: 'Family', exact: false }).locator('visible=true').first().click()
   await expect(page).toHaveURL(/\/family$/)
 })
+
+test('opening a picker does not move the row it sits in', async ({ page }) => {
+  // base-ui renders its focus guards as `position: fixed` spans *beside* the
+  // trigger, inside the field wrapper. Those wrappers were `space-y-1.5`, whose
+  // Tailwind rule keys off `:last-child` — so the moment the guards appeared the
+  // real control stopped being the last child, picked up a 6px margin, and the
+  // field grew while everything after it slid down. `flex flex-col gap-1.5`
+  // instead: gap is only drawn between *flex items*, and an out-of-flow span is
+  // not one.
+  await seedStore(page, {})
+  await page.goto('sleep')
+  await hideOverlays(page)
+
+  // Layout-relative, never viewport-relative: opening a popover can scroll the
+  // page on a phone, which moves every `getBoundingClientRect().y` on it and
+  // says nothing about the bug.
+  const box = () =>
+    page.evaluate(() => {
+      const field = document.getElementById('sleep-start')!
+      const wrapper = field.closest('div') as HTMLElement
+      const row = wrapper.parentElement as HTMLElement
+      return { row: row.offsetHeight, wrapper: wrapper.offsetHeight, fieldTop: field.offsetTop }
+    })
+
+  const before = await box()
+  await page.locator('#sleep-start').click()
+  await expect(page.locator('[data-slot="popover-content"]')).toBeVisible()
+  expect(await box(), 'the field row changed size when the picker opened').toEqual(before)
+})

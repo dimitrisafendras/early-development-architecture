@@ -74,7 +74,7 @@ export function AddSleepForm({
   return (
     <div className="flex flex-col gap-3 border-t border-border pt-4">
       <div className="flex flex-wrap items-end gap-3">
-        <div className="min-w-[12rem] space-y-1.5">
+        <div className="min-w-[12rem] flex flex-col gap-1.5">
           <Label htmlFor={`${idPrefix}-start`}>{tsl.startLabel}</Label>
           <DateTimePicker
             id={`${idPrefix}-start`}
@@ -84,7 +84,7 @@ export function AddSleepForm({
             {...fields.dateTimePicker}
           />
         </div>
-        <div className="min-w-[12rem] space-y-1.5">
+        <div className="min-w-[12rem] flex flex-col gap-1.5">
           <Label htmlFor={`${idPrefix}-end`}>{tsl.endLabel}</Label>
           {/* The *end* is what is wrong in both cases — it is either before the
               start or in the future — so that is the field that carries the

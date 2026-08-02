@@ -90,7 +90,9 @@ export const dayActivityMeta: Record<
   care: { icon: Bath, dot: 'bg-teal-500/15 text-teal-600 dark:text-teal-400', text: 'text-teal-700 dark:text-teal-400', bar: 'bg-teal-500', accent: '#14b8a6', wiki: 'bathing', tool: null },
   // Wind-down ends in a sleep, and the sleep log is what records it — the
   // caregiver settling a baby at 18:55 is minutes away from pressing start.
-  wind: { icon: Sparkles, dot: 'bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400', text: 'text-fuchsia-700 dark:text-fuchsia-400', bar: 'bg-fuchsia-500', accent: '#d946ef', wiki: 'soothing', tool: { to: '/sleep', label: (t) => t.nav.sleep } },
+  // No tool: wind-down is the half hour *before* the sleep, and the sleep has
+  // its own moment. The two mappings agree — see `momentWidgets` in `Day.tsx`.
+  wind: { icon: Sparkles, dot: 'bg-fuchsia-500/15 text-fuchsia-600 dark:text-fuchsia-400', text: 'text-fuchsia-700 dark:text-fuchsia-400', bar: 'bg-fuchsia-500', accent: '#d946ef', wiki: 'soothing', tool: null },
   // Logged by the same timer as tummy time: past the first birthday `/tracker`
   // *is* the active-play tracker (see `activityTargetForAge`), so pointing this
   // at a second page would be inventing a tool the app doesn't have.

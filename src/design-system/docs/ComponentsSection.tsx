@@ -559,7 +559,7 @@ export function ComponentsSection() {
               ever shifts across a timezone.
             </p>
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
+              <div className="flex flex-col gap-1.5">
                 <Label htmlFor="ds-birth">Birth date</Label>
                 <DatePicker
                   id="ds-birth"
@@ -568,11 +568,11 @@ export function ComponentsSection() {
                   max={todayKey()}
                 />
               </div>
-              <div className="space-y-1.5">
+              <div className="flex flex-col gap-1.5">
                 <Label htmlFor="ds-date-empty">Nothing picked</Label>
                 <DatePicker id="ds-date-empty" max={todayKey()} />
               </div>
-              <div className="space-y-1.5 sm:col-span-2">
+              <div className="flex flex-col gap-1.5 sm:col-span-2">
                 <Label htmlFor="ds-date-disabled">Disabled</Label>
                 <DatePicker id="ds-date-disabled" value={todayKey()} disabled />
               </div>
@@ -590,15 +590,15 @@ export function ComponentsSection() {
             </p>
             <div className="flex flex-wrap items-start gap-6">
               <div className="w-56 space-y-4">
-                <div className="space-y-1.5">
+                <div className="flex flex-col gap-1.5">
                   <Label htmlFor="ds-bedtime">Bedtime</Label>
                   <TimePicker id="ds-bedtime" value={bedtime} onValueChange={setBedtime} />
                 </div>
-                <div className="space-y-1.5">
+                <div className="flex flex-col gap-1.5">
                   <Label htmlFor="ds-time-empty">Nothing picked</Label>
                   <TimePicker id="ds-time-empty" />
                 </div>
-                <div className="space-y-1.5">
+                <div className="flex flex-col gap-1.5">
                   <Label htmlFor="ds-time-disabled">Disabled</Label>
                   <TimePicker id="ds-time-disabled" value="07:15" disabled />
                 </div>
@@ -651,7 +651,7 @@ export function ComponentsSection() {
             </p>
             <div className="flex flex-wrap items-start gap-6">
               <div className="w-64 space-y-4">
-                <div className="space-y-1.5">
+                <div className="flex flex-col gap-1.5">
                   <Label htmlFor="ds-fed">Fed at</Label>
                   <DateTimePicker
                     id="ds-fed"
@@ -661,7 +661,7 @@ export function ComponentsSection() {
                     labels={{ today: 'Today' }}
                   />
                 </div>
-                <div className="space-y-1.5">
+                <div className="flex flex-col gap-1.5">
                   <Label htmlFor="ds-fed-empty">Nothing picked</Label>
                   <DateTimePicker id="ds-fed-empty" maxDate={todayKey()} />
                 </div>

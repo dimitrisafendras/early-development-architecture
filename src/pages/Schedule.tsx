@@ -493,7 +493,7 @@ export default function Schedule() {
                   // eight kinds stay put; only the preset list scrolls.
                   className="flex max-h-[min(28rem,calc(100svh-4rem))] w-[min(23rem,calc(100vw-2rem))] flex-col gap-0 overflow-hidden p-0"
                 >
-                  <div className="space-y-1.5 p-3">
+                  <div className="flex flex-col gap-1.5 p-3">
                     <Label htmlFor="add-time">{ts.timeLabel}</Label>
                     <TimePicker
                       id="add-time"
@@ -710,7 +710,7 @@ const SlotRow = memo(function SlotRow({
             />
           </div>
 
-          <div className="order-3 space-y-1.5 sm:order-1">
+          <div className="order-3 flex flex-col gap-1.5 sm:order-1">
             <Label htmlFor={`slot-time-${row.uid}`} className="sr-only">
               {ts.timeLabel}
             </Label>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Moon, MoonStar, Sun, Trash2, Pencil, Hourglass } from 'lucide-react'
 import { useBabyAge } from '../components/AgeBadge'
 import { StatTile } from '../components/StatTile'
+import { HistoryList } from '../components/HistoryList'
 import { SleepConsole } from '../components/SleepConsole'
 import { AddSleepForm } from '../components/AddSleepForm'
 import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
@@ -80,30 +81,34 @@ export default function SleepLog() {
     return days
   })()
 
-  const todayCard = (
+  const historyCard = (
     <WidgetCard
       icon={<Moon />}
-      title={tsl.todayTitle}
+      // Every day the log holds, not just today's. A night that ran to 06:00
+      // used to vanish from this card the moment the date rolled over — on the
+      // page whose whole subject is how the nights are going.
+      title={tsl.historyTitle}
       footer={
         <span className="text-xs text-muted-foreground">
           {log.signedIn ? tsl.synced : tsl.localOnly}
         </span>
       }
     >
-      {log.todaySleeps.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{tsl.none}</p>
-      ) : (
-        <ul id="sleep-today" className="divide-y divide-border">
-          {log.todaySleeps.map((s) => (
-            <SleepRow
-              key={s.id}
-              entry={s}
-              onSave={(patch) => log.update(s.id, patch)}
-              onRemove={() => log.remove(s.id)}
-            />
-          ))}
-        </ul>
-      )}
+      <HistoryList
+        id="sleep-history"
+        items={log.sleeps}
+        // The *start*, so a night files under the day it began — see `useSleepLog`.
+        at={(s) => s.started_at}
+        empty={tsl.noHistory}
+        row={(s) => (
+          <SleepRow
+            key={s.id}
+            entry={s}
+            onSave={(patch) => log.update(s.id, patch)}
+            onRemove={() => log.remove(s.id)}
+          />
+        )}
+      />
     </WidgetCard>
   )
 
@@ -150,7 +155,7 @@ export default function SleepLog() {
       detail={
         log.sleeps.length > 0 ? (
           <WidgetSplit>
-            {todayCard}
+            {historyCard}
             <WidgetCard icon={<MoonStar />} title={tsl.weekTitle}>
               {/* Hours, not minutes: a night is 600 minutes and an axis running
                   to 900m is not a number anyone reads at a glance. The dashed
@@ -166,7 +171,7 @@ export default function SleepLog() {
             </WidgetCard>
           </WidgetSplit>
         ) : (
-          todayCard
+          historyCard
         )
       }
     />
@@ -257,7 +262,7 @@ function SleepRow({
   return (
     <li className="flex flex-col gap-3 py-3">
       <div className="flex flex-wrap items-end gap-3">
-        <div className="min-w-[12rem] space-y-1.5">
+        <div className="min-w-[12rem] flex flex-col gap-1.5">
           <Label htmlFor={`s-start-${entry.id}`}>{tsl.startLabel}</Label>
           <DateTimePicker
             id={`s-start-${entry.id}`}
@@ -267,7 +272,7 @@ function SleepRow({
             {...fields.dateTimePicker}
           />
         </div>
-        <div className="min-w-[12rem] space-y-1.5">
+        <div className="min-w-[12rem] flex flex-col gap-1.5">
           <Label htmlFor={`s-end-${entry.id}`}>{tsl.endLabel}</Label>
           <DateTimePicker
             id={`s-end-${entry.id}`}

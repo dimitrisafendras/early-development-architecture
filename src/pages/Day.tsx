@@ -453,8 +453,13 @@ const momentWidgets: Record<DayActivity, (() => JSX.Element) | null> = {
   // A meal is logged in the same place, with the `solid` method.
   meal: FeedWidget,
   sleep: SleepWidget,
-  // Wind-down ends in a sleep, and this is what records it.
-  wind: SleepWidget,
+  // **Wind-down logs nothing.** It ended in a sleep, so it carried the sleep
+  // console — but the sleep it leads to has its own moment half an hour later,
+  // and that is where the timer belongs. Starting one here would record the
+  // bath-and-lullaby half hour as sleep, and the card said "0min slept today"
+  // over a routine that is not sleep at all. The 5 S's stand in, which is what
+  // the caregiver is actually doing.
+  wind: null,
   tummy: TummyWidget,
   // Past the first birthday `/tracker` *is* the active-play tracker.
   active: TummyWidget,

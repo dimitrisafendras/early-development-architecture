@@ -126,7 +126,7 @@ export function SessionFields({
       <div className="flex flex-wrap items-end gap-3">
         {/* Date first: it scopes the two times that follow, and reading the row
             in the other order asks "09:15 on which day?". */}
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor={`${idPrefix}-date`}>{t.common.date}</Label>
           <DatePicker
             id={`${idPrefix}-date`}
@@ -141,7 +141,7 @@ export function SessionFields({
             appearance is the browser's, so it ignored the app's 24-hour clock
             and both themes. `invalid` marks the stop field rather than the start
             one — stop is the value that has to move. */}
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor={`${idPrefix}-start`}>{t.tracker.start}</Label>
           <TimePicker
             id={`${idPrefix}-start`}
@@ -151,7 +151,7 @@ export function SessionFields({
             {...fields.timePicker}
           />
         </div>
-        <div className="space-y-1.5">
+        <div className="flex flex-col gap-1.5">
           <Label htmlFor={`${idPrefix}-end`}>{t.tracker.stop}</Label>
           <TimePicker
             id={`${idPrefix}-end`}

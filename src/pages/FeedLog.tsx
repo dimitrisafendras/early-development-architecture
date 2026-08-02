@@ -6,6 +6,7 @@ import { SegmentedGroup } from '@/components/ui/segmented-group'
 import { FeedProgress } from '../components/FeedProgress'
 import { StatTile } from '../components/StatTile'
 import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
+import { HistoryList } from '../components/HistoryList'
 import { FeedWeekChart } from '../components/charts'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -64,28 +65,30 @@ export default function FeedLog() {
     return days
   })()
 
-  const todayCard = (
+  const historyCard = (
     <WidgetCard
       icon={<Utensils />}
-      title={tf.todayTitle}
+      // Every day the log holds, not just today's — the same list the tracker
+      // has always shown. A feed at 23:50 used to leave the page at midnight.
+      title={tf.historyTitle}
       footer={
         <span className="text-xs text-muted-foreground">{feed.signedIn ? tf.synced : tf.localOnly}</span>
       }
     >
-      {feed.todayFeeds.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{tf.none}</p>
-      ) : (
-        <ul className="divide-y divide-border">
-          {feed.todayFeeds.map((f) => (
-            <FeedRow
-              key={f.id}
-              entry={f}
-              onSave={(patch) => feed.update(f.id, patch)}
-              onRemove={() => feed.remove(f.id)}
-            />
-          ))}
-        </ul>
-      )}
+      <HistoryList
+        id="feed-history"
+        items={feed.feeds}
+        at={(f) => f.fed_at}
+        empty={tf.noHistory}
+        row={(f) => (
+          <FeedRow
+            key={f.id}
+            entry={f}
+            onSave={(patch) => feed.update(f.id, patch)}
+            onRemove={() => feed.remove(f.id)}
+          />
+        )}
+      />
     </WidgetCard>
   )
 
@@ -129,7 +132,7 @@ export default function FeedLog() {
       detail={
         feed.feeds.length > 0 ? (
           <WidgetSplit>
-            {todayCard}
+            {historyCard}
             <WidgetCard icon={<Milk />} title={t.tracker.weekTitle}>
               <FeedWeekChart
                 labels={week.map((d) => formatDateKey(d.key, locale, { weekday: 'short' }))}
@@ -141,7 +144,7 @@ export default function FeedLog() {
             </WidgetCard>
           </WidgetSplit>
         ) : (
-          todayCard
+          historyCard
         )
       }
     />
@@ -254,7 +257,7 @@ function FeedRow({
             reachable at all. `maxDate` matches the form's: a feed cannot have
             happened tomorrow. Wider than the old `w-32` time box because the
             trigger now carries a date as well. */}
-        <div className="min-w-[12rem] space-y-1.5">
+        <div className="min-w-[12rem] flex flex-col gap-1.5">
           <Label htmlFor={`f-when-${entry.id}`}>{tf.timeLabel}</Label>
           <DateTimePicker
             id={`f-when-${entry.id}`}

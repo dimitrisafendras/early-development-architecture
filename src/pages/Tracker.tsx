@@ -13,21 +13,17 @@ import {
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { GlassScrollArea } from '@dimitrisafendras/liquid-glass'
 import { TummyConsole } from '../components/TummyConsole'
 import { SessionFields, draftFromSession, newSessionDraft } from '../components/SessionFields'
 import { StatTile } from '../components/StatTile'
+import { HistoryList } from '../components/HistoryList'
 import { TummyWeekChart } from '../components/charts'
 import { WidgetPage, WidgetCard, WidgetStatGrid, WidgetSplit } from '../components/WidgetPage'
 import { useBabies } from '../lib/useBabies'
 import { useTummyTracker, useWeeklyMinutes, type TrackerSession } from '../lib/useTummyTracker'
-import { activityTargetForAge, ageInMonths, todayKey } from '../lib/schedule'
-import {
-  formatDateKey,
-  useDateLocale,
-} from '../lib/dates'
+import { activityTargetForAge, ageInMonths } from '../lib/schedule'
+import { formatDateKey, useDateLocale } from '../lib/dates'
 import { useT } from '../i18n'
-import { Eyebrow } from '../components/Eyebrow'
 
 /** Uses the app's locale, not the browser's, so times read the same everywhere. */
 function fmtTime(iso: string, locale: string): string {
@@ -108,23 +104,6 @@ export default function Tracker() {
   const avgSession = durations.length
     ? Math.round(durations.reduce((a, b) => a + b, 0) / durations.length)
     : 0
-
-  // Full history grouped by day, newest first.
-  const todayK = todayKey()
-  const yesterdayK = todayKey(new Date(Date.now() - 86_400_000))
-  const historyDays: [string, typeof tracker.sessions][] = []
-  for (const s of [...tracker.sessions].sort((a, b) => b.started_at.localeCompare(a.started_at))) {
-    const key = todayKey(new Date(s.started_at))
-    const group = historyDays.find(([k]) => k === key)
-    if (group) group[1].push(s)
-    else historyDays.push([key, [s]])
-  }
-  const dayLabel = (key: string) =>
-    key === todayK
-      ? t.tracker.todayLabel
-      : key === yesterdayK
-        ? t.tracker.yesterdayLabel
-        : formatDateKey(key, locale, { weekday: 'short', day: 'numeric', month: 'short' })
 
   const targetContext = currentBaby
     ? t.tracker.targetForBaby.replace('{name}', currentBaby.name).replace('{age}', String(ageM))
@@ -267,33 +246,22 @@ export default function Tracker() {
                 <Plus className="mr-1.5 size-4" /> {t.tracker.addManual}
               </Button>
             )}
-            {tracker.sessions.length === 0 ? (
-              <p className="text-sm text-muted-foreground">{t.tracker.noHistory}</p>
-            ) : (
-              <GlassScrollArea className="max-h-[10.5rem]">
-                <div id="tummy-history" className="space-y-4 pr-1">
-                  {historyDays.map(([key, list]) => (
-                    <div key={key}>
-                      <Eyebrow as="p" tone="muted" className="mb-1">
-                        {dayLabel(key)}
-                      </Eyebrow>
-                      <ul className="divide-y divide-border">
-                        {list.map((s) => (
-                          <SessionRow
-                            key={s.id}
-                            session={s}
-                            locale={locale}
-                            runningSince={runningSince}
-                            onSave={(patch) => tracker.update(s.id, patch)}
-                            onRemove={() => tracker.remove(s.id)}
-                          />
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              </GlassScrollArea>
-            )}
+            <HistoryList
+              id="tummy-history"
+              items={tracker.sessions}
+              at={(s) => s.started_at}
+              empty={t.tracker.noHistory}
+              row={(s) => (
+                <SessionRow
+                  key={s.id}
+                  session={s}
+                  locale={locale}
+                  runningSince={runningSince}
+                  onSave={(patch) => tracker.update(s.id, patch)}
+                  onRemove={() => tracker.remove(s.id)}
+                />
+              )}
+            />
           </WidgetCard>
 
           <WidgetCard

@@ -212,14 +212,14 @@ test('sleep comes back from the server, scoped to the child', async ({ page }) =
   await selectBaby(page, FIXTURES.younger)
   await page.goto('sleep')
   await hideOverlays(page)
-  await expect(page.locator('#sleep-today li').first()).toBeVisible({ timeout: NET })
-  const younger = await page.locator('#sleep-today li').count()
+  await expect(page.locator('#sleep-history li').first()).toBeVisible({ timeout: NET })
+  const younger = await page.locator('#sleep-history li').count()
 
   await selectBaby(page, FIXTURES.older)
   await page.goto('sleep')
   await hideOverlays(page)
-  await expect(page.locator('#sleep-today li').first()).toBeVisible({ timeout: NET })
-  const older = await page.locator('#sleep-today li').count()
+  await expect(page.locator('#sleep-history li').first()).toBeVisible({ timeout: NET })
+  const older = await page.locator('#sleep-history li').count()
 
   expect(younger).toBeGreaterThan(0)
   expect(older).toBeGreaterThan(0)

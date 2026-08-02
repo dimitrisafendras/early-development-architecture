@@ -29,7 +29,7 @@ test('a finished sleep is logged with both times and totalled', async ({ page })
   await page.goto('sleep')
   await hideOverlays(page)
 
-  const rows = page.locator('#sleep-today li')
+  const rows = page.locator('#sleep-history li')
   await expect(rows).toHaveCount(2)
   // Both ends of the interval, and its length — the three facts a sleep is.
   await expect(rows.first()).toContainText('13:00')
@@ -51,10 +51,16 @@ test('a night is one sleep on the day it began, not two half-nights', async ({ p
   await page.goto('sleep')
   await hideOverlays(page)
 
-  // It started yesterday, so it is not in *today's* list…
-  await expect(page.locator('#sleep-today li')).toHaveCount(0)
-  // …and it is a night, not a nap, and it is nine and a half hours long — the
-  // week chart is where it lands.
+  // It is in the history, filed under the day it *began* — which is the whole
+  // rule. Grouped by day, so the assertion can see which day it landed on
+  // rather than only that it exists.
+  const history = page.locator('#sleep-history')
+  await expect(history.locator('li')).toHaveCount(1)
+  // Scoped to the list: "Today" is also a stat-tile label, a header field and a
+  // shortcut inside every date picker on the page.
+  await expect(history.getByText('Yesterday', { exact: true })).toBeVisible()
+  await expect(history.getByText('Today', { exact: true })).toHaveCount(0)
+  // …and it is nine and a half hours long — the week chart is where that lands.
   await expect(page.getByText(/Sleep this week/)).toBeVisible()
 })
 
@@ -72,7 +78,7 @@ test('the start/stop path records a sleep you are in the middle of', async ({ pa
 
   await page.getByRole('button', { name: 'They woke up' }).click()
   await expect(page.getByRole('button', { name: 'Start sleep' })).toBeVisible()
-  await expect(page.locator('#sleep-today li')).toHaveCount(1)
+  await expect(page.locator('#sleep-history li')).toHaveCount(1)
 })
 
 test('a wake time before the sleep began is refused, with a reason', async ({ page }) => {
@@ -140,8 +146,8 @@ test('sleep is scoped to the selected child', async ({ page }) => {
   await page.goto('sleep')
   await hideOverlays(page)
 
-  await expect(page.locator('#sleep-today li')).toHaveCount(1)
-  await expect(page.locator('#sleep-today')).toContainText('09:00')
+  await expect(page.locator('#sleep-history li')).toHaveCount(1)
+  await expect(page.locator('#sleep-history')).toContainText('09:00')
 })
 
 test('the sleep moment offers the sleep log, not just its rules', async ({ page }) => {
@@ -251,4 +257,47 @@ test('stopping a sleep is as loud as starting one', async ({ page }) => {
   // Filled, not a transparent outline — belt and braces, in case both states
   // ever regress together.
   expect(stop).not.toMatch(/rgba\(0, 0, 0, 0\)|transparent/)
+})
+
+test('the sleep history scrolls rather than growing the card', async ({ page }) => {
+  // A newborn day is six naps and a night, each row expandable into an edit
+  // form, and the card grew with all of them — pushing the week chart and the
+  // guidance off the bottom of a phone on the page where the day's shape is the
+  // point. Capped and scrolled, like the tracker's history beside it.
+  await seedStore(page, {})
+  await seedSleeps(
+    page,
+    [
+      [8, 0, 9, 0],
+      [10, 30, 11, 15],
+      [12, 30, 14, 0],
+      [15, 0, 15, 45],
+      [16, 30, 17, 0],
+      [17, 30, 18, 0],
+    ].map(([a, b, c, d], i) => ({
+      id: `s${i}`,
+      started_at: todayAt(a, b),
+      ended_at: todayAt(c, d),
+      note: null,
+    })),
+  )
+  await page.goto('sleep')
+  await hideOverlays(page)
+
+  const box = await page.evaluate(() => {
+    const ul = document.getElementById('sleep-history')!
+    const viewport = ul.parentElement as HTMLElement
+    return {
+      content: ul.scrollHeight,
+      viewport: viewport.clientHeight,
+      scrollable: getComputedStyle(viewport).overflowY,
+    }
+  })
+  expect(box.scrollable).toBe('auto')
+  // The content genuinely overflows its viewport, so this is a scroll region in
+  // use rather than a cap that never bites.
+  expect(box.content).toBeGreaterThan(box.viewport)
+  // And every row is still reachable — a cap that clipped would be worse than
+  // the card that grew.
+  await expect(page.locator('#sleep-history li')).toHaveCount(6)
 })
