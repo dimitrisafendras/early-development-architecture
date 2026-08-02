@@ -12,7 +12,7 @@ working around it; it already handles the cases below.
 |---|---|
 | `./scripts/dev-stack.sh up` | Docker + Supabase, seeded if empty. Idempotent — safe to run every time. |
 | `./scripts/dev-stack.sh test [args]` | `up`, then the Playwright suite against the local stack. Extra args pass through (`test tests/logs.spec.ts`). |
-| `./scripts/dev-stack.sh dev` | `up`, then `npm run dev` pointed at the local stack. |
+| `./scripts/dev-stack.sh dev` (`npm run dev:local`) | `up`, then `npm run dev` pointed at the local stack. Plain `npm run dev` still uses `.env.local`, i.e. the hosted project. |
 | `./scripts/dev-stack.sh reset` | Wipe the database, re-apply migrations + `supabase/seed.sql`. |
 | `./scripts/dev-stack.sh status` | What is running, plus the fixture accounts. |
 | `./scripts/dev-stack.sh down` | Stop Supabase. Docker stays up. |
@@ -30,11 +30,14 @@ is where the app changes what it measures — tummy time becomes active play, th
 target moves from the AAP ramp to the WHO's 180 minutes, and the day program
 switches template:
 
-- **Iris**, 4 months — 21 days of tummy sessions, 14 days of bottle/breast feeds
+- **Iris**, 4 months — four months of tummy sessions, three months of
+  bottle/breast feeds
 - **Theo**, 16 months — the same shape in active play and solids
 
-Plus growth measurements since birth, ten days of checklist entries, and one
-open household invite. Ages are offsets from `current_date`, so the fixture
+Plus growth measurements since birth, ninety days of checklist entries, and one
+open household invite. That is ~2,000 rows: enough that a chart has a curve, a
+streak has ends, and a list has to paginate — all things an eight-row fixture
+says nothing about. Ages are offsets from `current_date`, so the fixture
 keeps describing the same two children a year from now.
 
 ## Rules

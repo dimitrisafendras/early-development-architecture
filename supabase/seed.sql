@@ -152,7 +152,7 @@ values
   );
 
 -- ---------------------------------------------------------------------------
--- Tummy / active sessions — 21 days of history
+-- Tummy / active sessions — four months of history
 -- ---------------------------------------------------------------------------
 --
 -- Three a day for Iris and two longer ones for Theo, so `/tracker`'s bar has
@@ -192,7 +192,7 @@ from (
   select
     ((((now() at time zone 'Europe/Athens')::date - d) + t.at) at time zone 'Europe/Athens'),
     t.len
-  from generate_series(1, 20) as d
+  from generate_series(1, 120) as d
   cross join (values
     (time '08:20', 10),
     (time '10:45', 10),
@@ -218,7 +218,7 @@ from (
   select
     ((((now() at time zone 'Europe/Athens')::date - d) + t.at) at time zone 'Europe/Athens'),
     t.len
-  from generate_series(1, 20) as d
+  from generate_series(1, 120) as d
   cross join (values
     (time '09:30', 45),
     (time '16:00', 60)
@@ -228,7 +228,7 @@ from (
 where start_at < now();
 
 -- ---------------------------------------------------------------------------
--- Feeds — 14 days
+-- Feeds — three months
 -- ---------------------------------------------------------------------------
 --
 -- Iris alternates bottle and breast (the two shapes of a feed row: one carries
@@ -256,7 +256,7 @@ from (
   select
     ((((now() at time zone 'Europe/Athens')::date - d) + f.at) at time zone 'Europe/Athens'),
     f.method, f.ml, f.mins
-  from generate_series(1, 13) as d
+  from generate_series(1, 90) as d
   cross join (values
     (time '06:30', 'bottle', 150, null),
     (time '09:15', 'breast', null, 18),
@@ -285,7 +285,7 @@ from (
   select
     ((((now() at time zone 'Europe/Athens')::date - d) + f.at) at time zone 'Europe/Athens'),
     f.method, f.ml, f.note
-  from generate_series(1, 13) as d
+  from generate_series(1, 90) as d
   cross join (values
     (time '07:30', 'solid',  null, 'Porridge and fruit'),
     (time '12:15', 'solid',  null, 'Family lunch'),
@@ -327,7 +327,7 @@ from generate_series(0, 8) as m
 where ((current_date - interval '16 months') + make_interval(months => m * 2))::date <= current_date;
 
 -- ---------------------------------------------------------------------------
--- Checklist — 10 days, deliberately imperfect
+-- Checklist — 90 days, deliberately imperfect
 -- ---------------------------------------------------------------------------
 --
 -- `checklist_entries` is unique on (owner, day, item_id) — it is not scoped per
@@ -341,9 +341,11 @@ select
   (current_date - d)::date,
   item,
   true
-from generate_series(0, 9) as d
+from generate_series(0, 89) as d
 cross join unnest(array['respond', 'parentese', 'tummy', 'music', 'screens', 'sleep']) as item
-where not (d in (4, 7) and item in ('music', 'screens'))
+-- Every eleventh day falls short, so the streak has ends to find rather than
+-- one unbroken run the length of the whole fixture.
+where not (d % 11 = 4 and item in ('music', 'screens'))
 on conflict (owner, day, item_id) do nothing;
 
 commit;

@@ -10,7 +10,13 @@
     "seed:supabase": "node scripts/seed-supabase.mjs",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
-    "test:report": "playwright show-report"
+    "test:report": "playwright show-report",
+    "dev:local": "./scripts/dev-stack.sh dev",
+    "test:local": "./scripts/dev-stack.sh test",
+    "stack:up": "./scripts/dev-stack.sh up",
+    "stack:reset": "./scripts/dev-stack.sh reset",
+    "stack:down": "./scripts/dev-stack.sh down",
+    "stack:status": "./scripts/dev-stack.sh status"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
