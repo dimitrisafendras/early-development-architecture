@@ -127,12 +127,19 @@ export function useSleepLog(babyId: string | null, householdId: string | null) {
     void refresh().catch(() => {})
   }, [refresh])
 
-  // Keeps the running clock and "time since last sleep" honest without a
-  // per-second re-render of the whole page.
+  // **Two rates, because there are two things being kept honest.**
+  //
+  // "Time since last sleep" is a fact about hours ago and moves once a minute at
+  // most; a running sleep is a stopwatch, and at 30s it showed `0min` for a full
+  // minute after Start, which is indistinguishable from a button that did
+  // nothing. So the second hand runs only while a sleep is actually running —
+  // the same gate `useTummyTracker` puts on its own 1s tick — and the page falls
+  // back to the cheap rate the moment it stops.
+  const isRunning = Boolean(running)
   useEffect(() => {
-    const t = setInterval(() => tick((n) => n + 1), 30_000)
+    const t = setInterval(() => tick((n) => n + 1), isRunning ? 1_000 : 30_000)
     return () => clearInterval(t)
-  }, [])
+  }, [isRunning])
 
   const start = useCallback(
     async (startedAt: string = new Date().toISOString()) => {
@@ -212,8 +219,11 @@ export function useSleepLog(babyId: string | null, householdId: string | null) {
   const todayMinutes = todaySleeps.reduce((sum, s) => sum + sleepMinutes(s), 0)
   const longestToday = todaySleeps.reduce((max, s) => Math.max(max, sleepMinutes(s)), 0)
   const lastSleep = sleeps[0] ?? null
-  const runningMinutes = running
-    ? Math.max(0, Math.floor((Date.now() - new Date(running.started_at).getTime()) / 60000))
+  // Seconds, because the only thing that reads this is a stopwatch. Every
+  // number that *reports* a sleep — today's total, the longest one, the chart —
+  // counts finished sleeps in minutes and does not go through here.
+  const runningSeconds = running
+    ? Math.max(0, Math.floor((Date.now() - new Date(running.started_at).getTime()) / 1000))
     : 0
   const minsSinceLast = lastSleep?.ended_at
     ? Math.floor((Date.now() - new Date(lastSleep.ended_at).getTime()) / 60000)
@@ -227,7 +237,7 @@ export function useSleepLog(babyId: string | null, householdId: string | null) {
     longestToday,
     lastSleep,
     running,
-    runningMinutes,
+    runningSeconds,
     minsSinceLast,
     start,
     stop,

@@ -8,15 +8,9 @@ import { Eyebrow } from './Eyebrow'
 import { SessionBar, blockAt, filledBlocks } from './SessionBar'
 import { useSchedule } from '../lib/useSchedule'
 import { useDateLocale } from '../lib/dates'
+import { formatClock } from '../lib/clock'
 import type { useTummyTracker } from '../lib/useTummyTracker'
 import { useT } from '../i18n'
-
-/** Minutes as `mm:ss`, the readout's own format. */
-function fmtClock(totalSeconds: number): string {
-  const m = Math.floor(totalSeconds / 60)
-  const s = totalSeconds % 60
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
-}
 
 /**
  * The tummy-time (or active-play) console: the clock, the day's sessions, and
@@ -152,7 +146,7 @@ export function TummyConsole({
                 compact ? 'text-3xl' : 'text-5xl sm:text-6xl',
               )}
             >
-              {fmtClock(sessionSeconds)}
+              {formatClock(sessionSeconds)}
               {block.length > 0 && (
                 <span
                   className={cn(
@@ -161,7 +155,7 @@ export function TummyConsole({
                   )}
                 >
                   {' / '}
-                  {fmtClock(Math.round(block.length * 60))}
+                  {formatClock(Math.round(block.length * 60))}
                 </span>
               )}
             </div>

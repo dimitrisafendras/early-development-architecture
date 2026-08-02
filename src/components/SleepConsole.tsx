@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { LiveBadge } from '@/components/ui/live-badge'
 import { cn } from '@/lib/utils'
 import type { useSleepLog } from '../lib/useSleepLog'
-import { formatDuration } from '../lib/schedule'
+import { formatClock } from '../lib/clock'
 import { useT } from '../i18n'
 
 /** Uses the app's locale, not the browser's, so it agrees with the time fields. */
@@ -62,12 +62,20 @@ export function SleepConsole({
         <span className="flex items-center gap-3">
           <LiveBadge>{tsl.running}</LiveBadge>
           <span
+            // Named so the suite can watch it tick. Never mounted twice: the two
+            // screens that render this console are two routes.
+            id="sleep-clock"
             className={cn(
               'font-heading font-semibold tabular-nums text-foreground',
               compact ? 'text-lg' : 'text-2xl',
             )}
           >
-            {formatDuration(log.runningMinutes, t.feed.hourShort, t.feed.minShort)}
+            {/* A clock, not a duration: this number is still moving, and
+                `formatDuration` rounds to the minute — so a sleep you had just
+                started read `0min` for its first sixty seconds and gave no sign
+                the timer was running. `formatClock` is what the tummy console
+                has always read. */}
+            {formatClock(log.runningSeconds)}
           </span>
           {!compact && (
             <span className="text-xs text-muted-foreground">

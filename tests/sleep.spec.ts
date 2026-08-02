@@ -196,3 +196,25 @@ test('the dashboard and /sleep run the same console', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'They woke up' })).toBeVisible()
   await expect(page.getByText('Asleep now').first()).toBeVisible()
 })
+
+test('the running clock counts seconds, and reads as a clock', async ({ page }) => {
+  // A sleep you have just started is a stopwatch, and it was formatted with
+  // `formatDuration` — the helper that writes *quantities* (`45min`, `1h 20m`)
+  // and rounds to the minute. So the first sixty seconds of every sleep read
+  // `0min`, which is exactly what a button that did nothing also shows. The
+  // tummy console has always read `mm:ss`; both go through `formatClock` now.
+  await seedStore(page, {})
+  await seedSleeps(page, [])
+  await page.goto('sleep')
+  await hideOverlays(page)
+
+  await page.getByRole('button', { name: 'Start sleep' }).click()
+
+  const clock = page.locator('#sleep-clock')
+  await expect(clock).toHaveText(/^\d{2}:\d{2}$/)
+  const first = await clock.textContent()
+  // It moves within a couple of seconds — the interval is 1s while running, and
+  // was 30s, so a clock that shows seconds but only updates twice a minute
+  // would pass the format check above and still be wrong.
+  await expect(clock).not.toHaveText(first!, { timeout: 4_000 })
+})
