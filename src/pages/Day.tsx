@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  ArrowRight,
   ChevronRight,
   Milk,
   BookOpen,
@@ -17,6 +16,7 @@ import { Eyebrow } from '../components/Eyebrow'
 import { ProgressRing } from '../components/ProgressRing'
 import { TummyConsole } from '../components/TummyConsole'
 import { dayActivityMeta } from '../components/dayActivity'
+import { ActivityLink } from '../components/ActivityLink'
 import { AddFeedForm } from '../components/AddFeedForm'
 import { FeedProgress } from '../components/FeedProgress'
 import { Card, CardContent } from '@/components/ui/card'
@@ -1153,64 +1153,17 @@ function Timeline({
                           this leaves the page, and the two must not be the same
                           tap. */}
                       {isSelected && wikiTopicFor(slot.type) && (
-                        <Link
+                        <ActivityLink
                           to={wikiPath(a.wiki)}
-                          // A chip in the moment's own hue rather than a line of
-                          // blue text. Underlined primary made it the one thing
-                          // on the card that belonged to the app's accent instead
-                          // of to the activity — a feed card tinted teal with a
-                          // blue link in it. In the hue it reads as part of the
-                          // card, and as something to press rather than something
-                          // to read.
-                          // **The label is the hue's readable step, not the hue.**
-                          // `a.accent` is the 500 the rail and the edge are drawn
-                          // in, which is a fine *line* colour and a poor text one:
-                          // on a light card behind its own 8% tint it measured
-                          // 1.82:1 for play and 4.05:1 for sleep — every one of
-                          // the eight under 4.5:1, on 13px text. `a.text` is the
-                          // pair the design system already tunes for exactly this
-                          // (700 light / 400 dark) and clears 4.5:1 in all
-                          // sixteen combinations. It is also what the time on the
-                          // same card uses, so the two finally agree.
-                          style={{
-                            borderColor: `${a.accent}59`,
-                            backgroundColor: `${a.accent}14`,
-                          }}
-                          // **The chip's box aligns, not its text.** It was pulled
-                          // left by its own padding so the *label* would start on
-                          // the title's line — right for a bare link, wrong the
-                          // moment the chip grew a visible border and fill. A
-                          // bordered box is read by its edge, so hanging that edge
-                          // 11px into the card's left margin put the one framed
-                          // thing on the card outside the column everything else
-                          // sits in.
-                          //
-                          // No `mt-1` either: the card sets one `gap-1.5` for its
-                          // three lines, and a hand-added margin on the last of
-                          // them made the gap under the time half again the gap
-                          // under the title.
-                          className={cn(
-                            'group/wiki pointer-events-auto relative z-10 flex max-w-full items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[13px] font-semibold transition-shadow hover:shadow-sm',
-                            a.text,
-                          )}
+                          activity={slot.type}
+                          icon={<BookOpen className="size-3.5 shrink-0" />}
+                          // It takes its own clicks back from the row's overlay
+                          // button — the row selects, this leaves the page, and the
+                          // two must not be the same tap.
+                          className="pointer-events-auto relative z-10"
                         >
-                          <BookOpen className="size-3.5 shrink-0" />
-                          {/* The label truncates, the chip does not. `truncate` on
-                              the chip itself did nothing — it is a flex container,
-                              so its text is an anonymous flex item that overflow
-                              cannot clip, and a long topic name ("Serve & Return")
-                              pushed the card straight out of the 23rem column.
-                              `min-w-0` is the other half: a flex item's automatic
-                              minimum is its content, so without it the span
-                              refuses to shrink and there is nothing to truncate. */}
-                          <span className="min-w-0 truncate">
-                            {t.day.learnAbout.replace(
-                              '{topic}',
-                              wikiTopicFor(slot.type)!.label(t),
-                            )}
-                          </span>
-                          <ArrowRight className="size-3 shrink-0 transition-transform group-hover/wiki:translate-x-0.5" />
-                        </Link>
+                          {t.day.learnAbout.replace('{topic}', wikiTopicFor(slot.type)!.label(t))}
+                        </ActivityLink>
                       )}
                     </div>
                     {/* The other half of the same segment — see the arriving half
@@ -1306,12 +1259,14 @@ function TummyWidget() {
           drift `FeedProgress` and `AddFeedForm` already fixed for feeds. */}
       <TummyConsole tracker={tracker} target={target} movement={kind === 'movement'} compact />
 
-      <Link
-        to="/tracker"
-        className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-primary hover:underline sm:min-h-0"
-      >
-        {t.daily.openTracker} <ArrowRight className="size-3.5" />
-      </Link>
+      {/* The same chip the timeline's Wiki link is, in the same moment's hue —
+          two links out of one moment, one card apart, that used to be a bordered
+          chip and a line of underlined blue. The activity follows the age for the
+          same reason the target does: past the first birthday this logs active
+          play, not tummy time. */}
+      <ActivityLink to="/tracker" activity={kind === 'movement' ? 'active' : 'tummy'} touch>
+        {t.daily.openTracker}
+      </ActivityLink>
     </div>
   )
 }
@@ -1350,12 +1305,9 @@ function FeedWidget() {
 
       <AddFeedForm compact last={feed.lastFeed} onAdd={feed.add} />
 
-      <Link
-        to="/feed"
-        className="inline-flex min-h-11 items-center gap-1 text-sm font-medium text-primary hover:underline sm:min-h-0"
-      >
-        {t.daily.openFeed} <ArrowRight className="size-3.5" />
-      </Link>
+      <ActivityLink to="/feed" activity="feed" touch>
+        {t.daily.openFeed}
+      </ActivityLink>
     </div>
   )
 }
