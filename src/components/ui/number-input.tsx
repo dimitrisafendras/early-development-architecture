@@ -202,7 +202,14 @@ function NumberInput({
     // measurement row — that put the stepper's bottom edge 6px above every
     // neighbouring control while the cells themselves aligned perfectly. Wrapping
     // Root keeps the hidden input inside the component, where it belongs.
-    <div className="w-full">
+    //
+    // **`className` sizes this box, not the group inside it.** The wrapper used
+    // to be an unconditional `w-full`, so a caller could never make the stepper
+    // narrower than its container: `w-40` landed on the group, the wrapper still
+    // claimed the full line, and in a flex row every neighbour was pushed onto
+    // the next one. The group fills whatever this box is given, which is what
+    // every call site already assumed — all four pass nothing but a width.
+    <div className={cn('w-full', className)}>
     <NumberField.Root
       id={id}
       data-slot="number-input"
@@ -223,7 +230,6 @@ function NumberInput({
           'has-[input:disabled]:bg-input/50 has-[input:disabled]:opacity-60 dark:bg-input/30 dark:has-[input:disabled]:bg-input/80',
           invalid && 'border-destructive ring-3 ring-destructive/20 dark:border-destructive/50 dark:ring-destructive/40',
           s.group,
-          className,
         )}
       >
         <NumberField.Decrement aria-label={decrementLabel} className={cap}>
