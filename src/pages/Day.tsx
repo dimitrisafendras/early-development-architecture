@@ -982,7 +982,12 @@ function Timeline({
                         // Size and air are the axes nothing else here uses.
                         isSelected
                           ? cn('bg-card px-4 py-3.5', !horizontal && 'my-2')
-                          : 'border-border/70 px-3 py-2 group-hover:bg-muted/70',
+                          : // The same `border` token the rail's track is painted
+                            // in, at full strength — at 70% the card edges sat a
+                            // shade lighter than the lines running into them,
+                            // which is the kind of near-match that reads as a
+                            // mistake rather than as a hierarchy.
+                            'border-border px-3 py-2 group-hover:bg-muted/70',
                       )}
                       // **The focused row is the only card in the list that is
                       // materially raised.** It was a translucent wash in the
