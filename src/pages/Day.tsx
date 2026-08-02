@@ -28,6 +28,7 @@ import { feedingRows, feedingUppers, type DayActivity, type ScheduleSlot } from 
 import {
   activeTimeIndex,
   slotTiming,
+  slotEndTime,
   formatDuration,
   activityTargetForAge,
   ageInMonths,
@@ -426,7 +427,6 @@ function Timeline({
   onSelect: (i: number) => void
 }) {
   const t = useT()
-  const tl = t.routineLive
   // How far through the live slot we are — drives both the ring around the NOW
   // dot and how much of the rail segment leaving it is filled in. Measured
   // against the slot's own length, so the arc completes when the activity is
@@ -730,11 +730,19 @@ function Timeline({
                             : { backgroundColor: 'color-mix(in oklab, var(--muted) 70%, transparent)' }
                         }
                       >
+                        {/* The window, not a start time and a length. "11:55 ·
+                            30m" put two numbers on one line with a separator and
+                            no units to tell them apart — `30m` scans as another
+                            clock time, and the reader has to work out which of
+                            the two is the odd one out before either means
+                            anything. Two clock times either side of a dash is a
+                            range on sight, and it answers the question a day plan
+                            is actually asked: not "how long is this" but "when am
+                            I free again". The length is still on the moment's own
+                            card, where there is room to label it. */}
                         {slot.time}
-                        <span className="font-medium opacity-70">
-                          {' · '}
-                          {formatDuration(slot.mins, tl.hour, tl.minute)}
-                        </span>
+                        <span className="opacity-70">{' – '}</span>
+                        {slotEndTime(slot.time, slot.mins)}
                       </span>
                       {/* Named after what it opens, not after where it goes.
                           "Read more in the Wiki" was the same sentence under
