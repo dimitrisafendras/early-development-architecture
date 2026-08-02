@@ -2,10 +2,10 @@ import { MoonStar, Bed, DoorOpen, Ban, BedDouble, Clock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Eyebrow } from '@/components/Eyebrow'
 import { IconChip } from '@/components/IconChip'
-import { sleepStats, safeSleepRules, napBands, napUppers } from '../data'
+import { sleepStats, safeSleepRules, napUppers } from '../data'
 import { useBabyAge } from '../components/AgeBadge'
 import { cn } from '@/lib/utils'
-import { statusTone, scheduleTone } from '../lib/tone'
+import { statusTone } from '../lib/tone'
 import { bandIndex } from '../lib/schedule'
 import { useT } from '../i18n'
 
@@ -64,19 +64,24 @@ export function Sleep() {
       </Eyebrow>
       <p className="mb-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">{ts.napsNote}</p>
       <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {napBands.map((band, i) => (
+        {ts.naps.map((nap, i) => (
           <Card
-            key={ts.naps[i].age}
+            key={nap.age}
             className={cn('h-full', i === activeNap && 'ring-2 ring-primary')}
           >
             <CardContent>
-              <Eyebrow as="h4" size="sm" tone="inherit" className={scheduleTone[band.tone].text}>
-                {ts.naps[i].age}
+              {/* Muted, not a per-band hue. The band's colour came from
+                  `scheduleTone` and meant nothing a reader could decode; the one
+                  colour here that *does* mean something is the ring on the band
+                  this child is actually in, and six competing accents were what
+                  made it hard to find. */}
+              <Eyebrow as="h4" size="sm" tone="muted">
+                {nap.age}
               </Eyebrow>
               <div className="mt-1 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                <Clock className="size-3.5" /> {ts.napHeaders.naps}: {ts.naps[i].naps}
+                <Clock className="size-3.5" /> {ts.napHeaders.naps}: {nap.naps}
               </div>
-              <p className="mt-3 text-[13px] leading-relaxed text-foreground">{ts.naps[i].shape}</p>
+              <p className="mt-3 text-[13px] leading-relaxed text-foreground">{nap.shape}</p>
             </CardContent>
           </Card>
         ))}
@@ -102,7 +107,7 @@ export function Sleep() {
         })}
       </div>
 
-      <p className="mt-6 text-xs text-muted-foreground">{ts.sourcesLabel}</p>
+      <p className="mt-6 max-w-3xl text-xs text-muted-foreground">{ts.sourcesLabel}</p>
     </section>
   )
 }

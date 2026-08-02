@@ -27,15 +27,11 @@ export const heroMetrics = [
   },
 ]
 
-/** Distinct per-phase accent hue. Rendered through soft, theme-aware tints. */
-export type StepTone = 'slate' | 'amber' | 'sky' | 'emerald'
-
 export interface ServeReturnStep {
   num: number
   title: string
   desc: string
   foot: string
-  tone: StepTone
 }
 
 export const serveReturnSteps: ServeReturnStep[] = [
@@ -44,28 +40,24 @@ export const serveReturnSteps: ServeReturnStep[] = [
     title: 'Infant "Serve"',
     desc: 'Baby makes eye contact, babbles, reaches out, coos, or changes facial expression.',
     foot: 'Initiated by infant curiosity or need.',
-    tone: 'slate',
   },
   {
     num: 2,
     title: '1–4 Sec Window',
     desc: 'Caregiver notices the signal and pauses adult task to direct full focus to the baby.',
     foot: '⏱️ Contingent timing is key!',
-    tone: 'amber',
   },
   {
     num: 3,
     title: 'Caregiver "Return"',
     desc: 'Respond with warm facial expression, vocal imitation, gentle touch, or word labeling.',
     foot: 'Validates infant agency & focus.',
-    tone: 'sky',
   },
   {
     num: 4,
     title: 'Neural Fortification',
     desc: 'Synaptic circuits for trust, language, and emotional regulation lock into place.',
     foot: '✨ Circuit completed.',
-    tone: 'emerald',
   },
 ]
 
@@ -97,14 +89,12 @@ export const latencyOutcomes: Record<
 }
 
 /** Each schedule block keeps a distinct hue; rendered as soft, theme-aware tints. */
-export type ScheduleTone = 'amber' | 'emerald' | 'sky' | 'cyan' | 'fuchsia' | 'indigo'
 
 export interface ScheduleBlock {
   time: string
   title: string
   items: { strong: string; text: string }[]
   focus: string
-  tone: ScheduleTone
 }
 
 export const scheduleBlocks: ScheduleBlock[] = [
@@ -116,7 +106,6 @@ export const scheduleBlocks: ScheduleBlock[] = [
       { strong: 'Contingent Eye Contact:', text: 'Respond swiftly (1–4s) to morning coos or gazes.' },
     ],
     focus: 'Focus: High linguistic input & emotional reconnect',
-    tone: 'amber',
   },
   {
     time: '09:00 – 11:30',
@@ -126,7 +115,6 @@ export const scheduleBlocks: ScheduleBlock[] = [
       { strong: 'Face-to-Face Engagement:', text: 'Get down to eye level with high-contrast visual cards.' },
     ],
     focus: 'Focus: Core muscle building & visual scanning',
-    tone: 'emerald',
   },
   {
     time: '12:00 – 14:30',
@@ -136,7 +124,6 @@ export const scheduleBlocks: ScheduleBlock[] = [
       { strong: 'Environmental Control:', text: 'Keep screens OFF and background noise minimal.' },
     ],
     focus: 'Focus: Sensory reset & nervous system calming',
-    tone: 'sky',
   },
   {
     time: '15:00 – 17:30',
@@ -146,7 +133,6 @@ export const scheduleBlocks: ScheduleBlock[] = [
       { strong: 'Active Serve & Return:', text: 'Respond to leg kicks and babbling with warm touch & speech.' },
     ],
     focus: 'Focus: Dynamic mobility & tactile exploration',
-    tone: 'cyan',
   },
   {
     time: '18:00 – 20:30',
@@ -156,7 +142,6 @@ export const scheduleBlocks: ScheduleBlock[] = [
       { strong: 'Caregiver Self-Care Buffer:', text: 'Rotate parenting duties to prevent caregiver burnout.' },
     ],
     focus: 'Focus: Melatonin onset & emotional grounding',
-    tone: 'fuchsia',
   },
   {
     time: '21:00 Onward',
@@ -166,7 +151,6 @@ export const scheduleBlocks: ScheduleBlock[] = [
       { strong: 'Neural Consolidation:', text: 'Deep slow-wave sleep converts daily synapses into long-term memory.' },
     ],
     focus: 'Focus: Airway safety & memory wiring',
-    tone: 'indigo',
   },
 ]
 
@@ -265,15 +249,6 @@ export const interactionStats: { value: string; color: string }[] = [
 
 /** Age-banded awake windows, birth to three years; text (age / window / play)
  *  localized in i18n. */
-export const awakeWindows: { tone: ScheduleTone }[] = [
-  { tone: 'amber' }, // 0–1 mo
-  { tone: 'emerald' }, // 1–3 mo
-  { tone: 'sky' }, // 3–6 mo
-  { tone: 'cyan' }, // 6–12 mo
-  { tone: 'fuchsia' }, // 12–18 mo
-  { tone: 'indigo' }, // 18–24 mo
-  { tone: 'amber' }, // 2–3 y
-]
 /** Exclusive upper age bound (months) per awake-window band; last is open-ended. */
 export const awakeWindowUppers = [1, 3, 6, 12, 18, 24, 999]
 
@@ -323,18 +298,6 @@ export const milestoneDomainOrder: MilestoneDomain[] = ['social', 'language', 'c
  *
  * Text lives in i18n (`milestones.bands`) at the matching index.
  */
-export const milestoneBands: { tone: ScheduleTone }[] = [
-  { tone: 'amber' }, //   2 mo
-  { tone: 'emerald' }, // 4 mo
-  { tone: 'sky' }, //     6 mo
-  { tone: 'cyan' }, //    9 mo
-  { tone: 'fuchsia' }, // 12 mo
-  { tone: 'indigo' }, //  15 mo
-  { tone: 'amber' }, //   18 mo
-  { tone: 'emerald' }, // 24 mo
-  { tone: 'sky' }, //     30 mo
-  { tone: 'cyan' }, //    36 mo
-]
 
 /** Exclusive upper age bound (months) per checkpoint; last is open-ended. A baby
  *  of 3 months therefore sits on the "by 4 months" list — the next thing to
@@ -355,14 +318,6 @@ export const sleepStats: { value: string; color: string }[] = [
 
 /** How the naps themselves change, band by band; text localized in i18n
  *  (`sleep.naps`). Highlighted against the baby's age like every other band. */
-export const napBands: { tone: ScheduleTone }[] = [
-  { tone: 'amber' }, // 0–3 mo — no fixed pattern
-  { tone: 'emerald' }, // 3–6 mo — 3 naps
-  { tone: 'sky' }, // 6–12 mo — 2–3 naps
-  { tone: 'cyan' }, // 12–18 mo — 2 naps to 1
-  { tone: 'fuchsia' }, // 18–24 mo — 1 nap
-  { tone: 'indigo' }, // 2–3 y — 1 nap or quiet time
-]
 /** Exclusive upper age bound (months) per nap band; last is open-ended. */
 export const napUppers = [3, 6, 12, 18, 24, 999]
 
@@ -379,15 +334,15 @@ export const safeSleepRules: { tone: StatusTone }[] = [
  *  `feedsPerDay` is the typical [min, max] number of feeds/24h for the band —
  *  used to compare today's logged count against age guidance (a guide, not a
  *  target). Monotonic-decreasing and consistent with the i18n frequency text. */
-export const feedingRows: { tone: ScheduleTone; feedsPerDay: [number, number] }[] = [
-  { tone: 'amber', feedsPerDay: [8, 12] }, // newborn 0–1 mo
-  { tone: 'emerald', feedsPerDay: [7, 9] }, // 1–2 mo
-  { tone: 'sky', feedsPerDay: [6, 8] }, // 2–4 mo
-  { tone: 'fuchsia', feedsPerDay: [4, 6] }, // 4–6 mo — milk only, solids not yet
-  { tone: 'cyan', feedsPerDay: [4, 5] }, // 6–9 mo — milk + 2–3 solid meals
-  { tone: 'indigo', feedsPerDay: [3, 4] }, // 9–12 mo — milk + 3 meals + a snack
-  { tone: 'amber', feedsPerDay: [2, 3] }, // 12–24 mo — cup milk beside 3 meals + 2 snacks
-  { tone: 'emerald', feedsPerDay: [2, 3] }, // 2–3 y — same shape, bigger portions
+export const feedingRows: { feedsPerDay: [number, number] }[] = [
+  { feedsPerDay: [8, 12] }, // newborn 0–1 mo
+  { feedsPerDay: [7, 9] }, // 1–2 mo
+  { feedsPerDay: [6, 8] }, // 2–4 mo
+  { feedsPerDay: [4, 6] }, // 4–6 mo — milk only, solids not yet
+  { feedsPerDay: [4, 5] }, // 6–9 mo — milk + 2–3 solid meals
+  { feedsPerDay: [3, 4] }, // 9–12 mo — milk + 3 meals + a snack
+  { feedsPerDay: [2, 3] }, // 12–24 mo — cup milk beside 3 meals + 2 snacks
+  { feedsPerDay: [2, 3] }, // 2–3 y — same shape, bigger portions
 ]
 /** Exclusive upper age bound (months) per feeding band; last is open-ended.
  *  From 6 months the count is *milk* feeds only — the solid meals sit beside it

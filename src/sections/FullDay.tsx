@@ -181,7 +181,10 @@ export function FullDay() {
       <p className="mt-3 rounded-xl bg-muted p-4 text-xs leading-relaxed text-muted-foreground">
         {tf.lengthNote}
       </p>
-      <p className="mt-6 text-xs text-muted-foreground">{tf.sourcesLabel}</p>
+      {/* Capped like the intro paragraphs. At full width this ran to ~187
+          characters a line — the longest measure in the app, on its smallest
+          type. */}
+      <p className="mt-6 max-w-3xl text-xs text-muted-foreground">{tf.sourcesLabel}</p>
     </section>
   )
 }

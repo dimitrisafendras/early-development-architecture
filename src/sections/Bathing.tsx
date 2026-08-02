@@ -13,6 +13,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Eyebrow } from '@/components/Eyebrow'
 import { IconChip } from '@/components/IconChip'
 import { statusTone } from '../lib/tone'
+import { FactList } from '@/components/FactList'
 import { useT } from '../i18n'
 
 const practiceIcons = [Clock, Droplets, Bath, CalendarDays]
@@ -42,22 +43,19 @@ export function Bathing() {
       <Eyebrow as="h3" size="md" className="mb-4">
         {tb.howTitle}
       </Eyebrow>
-      <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {tb.practices.map((p, i) => {
-          const Icon = practiceIcons[i]
-          return (
-            <Card key={i} className="h-full">
-              <CardContent>
-                <IconChip>
-                  <Icon />
-                </IconChip>
-                <p className="mt-3 mb-1 text-[15px] font-semibold text-foreground">{p.title}</p>
-                <p className="m-0 text-[13px] leading-relaxed text-muted-foreground">{p.text}</p>
-              </CardContent>
-            </Card>
-          )
-        })}
-      </div>
+      {/* Four steps of one practice, so one card and one list — four separate
+          cards proposed four independent choices. */}
+      <Card className="mb-10">
+        <CardContent>
+          <FactList
+            facts={tb.practices.map((p, i) => ({
+              Icon: practiceIcons[i],
+              title: p.title,
+              text: p.text,
+            }))}
+          />
+        </CardContent>
+      </Card>
 
       {/* Safety */}
       <Eyebrow as="h3" size="md" className="mb-4">
@@ -88,12 +86,17 @@ export function Bathing() {
           </IconChip>
           <div className="min-w-0">
             <p className="text-[15px] font-semibold text-foreground">{tb.bedtimeTitle}</p>
-            <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{tb.bedtimeText}</p>
+            <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-muted-foreground">
+              {tb.bedtimeText}
+            </p>
           </div>
         </CardContent>
       </Card>
 
-      <p className="mt-6 text-xs text-muted-foreground">{tb.sourcesLabel}</p>
+      {/* Capped like the intro paragraphs. At full width this ran to ~187
+          characters a line — the longest measure in the app, on its smallest
+          type. */}
+      <p className="mt-6 max-w-3xl text-xs text-muted-foreground">{tb.sourcesLabel}</p>
     </section>
   )
 }

@@ -1,8 +1,6 @@
 import { HeartPulse, Scissors, Zap } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { IconChip } from '@/components/IconChip'
-import { cn } from '@/lib/utils'
-import { tone } from '../lib/tone'
 import { BrainGrowthChart } from '../components/charts'
 import { useT } from '../i18n'
 
@@ -38,7 +36,7 @@ export function Neurobiology() {
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-5">
           <Card className="h-full">
             <CardContent>
-              <IconChip className={tone.amber.chip}>
+              <IconChip>
                 <Zap />
               </IconChip>
               <p className="mt-3 mb-1 text-[15px] font-semibold text-foreground">
@@ -47,21 +45,19 @@ export function Neurobiology() {
               <p className="m-0 text-[13px] leading-relaxed text-muted-foreground">
                 {tn.cards.synaptogenesis.body}
               </p>
-              <div
-                className={cn(
-                  'mt-4 rounded-xl p-4 text-xs font-semibold',
-                  tone.amber.soft,
-                  tone.amber.text,
-                )}
-              >
+              {/* A rule and a line, not a tinted panel inside the card. The
+                  tint was the card's hue and nothing more, so once the hue went
+                  it was a second surface drawing a second boundary to say
+                  "this is the takeaway" — which the rule and the weight say. */}
+              <p className="mt-4 border-t border-border pt-3 text-xs font-semibold text-foreground">
                 {tn.cards.synaptogenesis.action}
-              </div>
+              </p>
             </CardContent>
           </Card>
 
           <Card className="h-full">
             <CardContent>
-              <IconChip className={tone.sky.chip}>
+              <IconChip>
                 <Scissors />
               </IconChip>
               <p className="mt-3 mb-1 text-[15px] font-semibold text-foreground">
@@ -70,22 +66,16 @@ export function Neurobiology() {
               <p className="m-0 text-[13px] leading-relaxed text-muted-foreground">
                 {tn.cards.pruning.body}
               </p>
-              <div
-                className={cn(
-                  'mt-4 rounded-xl p-4 text-xs font-semibold',
-                  tone.sky.soft,
-                  tone.sky.text,
-                )}
-              >
+              <p className="mt-4 border-t border-border pt-3 text-xs font-semibold text-foreground">
                 {tn.cards.pruning.action}
-              </div>
+              </p>
             </CardContent>
           </Card>
 
           <Card className="sm:col-span-2">
             <CardContent className="py-5">
               <div className="flex items-start gap-4">
-                <IconChip className={tone.emerald.chip}>
+                <IconChip>
                   <HeartPulse />
                 </IconChip>
                 <div className="min-w-0">

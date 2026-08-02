@@ -1,4 +1,4 @@
-import type { ScheduleTone, StatusTone } from '../data'
+import type { StatusTone } from '../data'
 
 /**
  * The one status/hue tone table for the Learn topic sections.
@@ -12,9 +12,17 @@ import type { ScheduleTone, StatusTone } from '../data'
  * lightnesses.
  *
  * These hues are the one place CLAUDE.md allows raw Tailwind palette classes:
- * they are semantically fixed (success / caution / danger, and the per-block
- * schedule identity), so they must *not* follow the blue/red palette axis. Every
- * other colour in a section still goes through the shadcn tokens.
+ * they are **semantically fixed** — success, caution, danger — so they must not
+ * follow the blue/red palette axis. Every other colour in a section goes through
+ * the shadcn tokens.
+ *
+ * There used to be a second table here, `scheduleTone`, handing six saturated
+ * hues to age bands, day blocks and phase steps as "identity". Nothing a reader
+ * could decode: no legend said 18–24 months was fuchsia, and the day's six
+ * blocks put six accent families in one viewport. It was decoration wearing the
+ * semantic exemption, so it is gone and those surfaces are neutral — leaving the
+ * page's coloured things (the active-band ring, a danger chip) actually
+ * findable.
  *
  * Each tone exposes the six roles the call sites actually need. The light shade
  * differs per role on purpose, and only for contrast:
@@ -73,47 +81,6 @@ const rose: Tone = {
   bar: 'bg-rose-500',
 }
 
-const sky: Tone = {
-  soft: 'bg-sky-500/10',
-  text: 'text-sky-700 dark:text-sky-400',
-  icon: 'text-sky-600 dark:text-sky-400',
-  chip: 'bg-sky-500/10 text-sky-600 dark:text-sky-400',
-  fill: 'bg-sky-700 text-white hover:bg-sky-700',
-  bar: 'bg-sky-500',
-}
-
-const cyan: Tone = {
-  soft: 'bg-cyan-500/10',
-  text: 'text-cyan-700 dark:text-cyan-400',
-  icon: 'text-cyan-600 dark:text-cyan-400',
-  chip: 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400',
-  fill: 'bg-cyan-700 text-white hover:bg-cyan-700',
-  bar: 'bg-cyan-500',
-}
-
-const fuchsia: Tone = {
-  soft: 'bg-fuchsia-500/10',
-  text: 'text-fuchsia-700 dark:text-fuchsia-400',
-  icon: 'text-fuchsia-600 dark:text-fuchsia-400',
-  chip: 'bg-fuchsia-500/10 text-fuchsia-600 dark:text-fuchsia-400',
-  fill: 'bg-fuchsia-700 text-white hover:bg-fuchsia-700',
-  bar: 'bg-fuchsia-500',
-}
-
-const indigo: Tone = {
-  soft: 'bg-indigo-500/10',
-  text: 'text-indigo-700 dark:text-indigo-400',
-  icon: 'text-indigo-600 dark:text-indigo-400',
-  chip: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400',
-  fill: 'bg-indigo-700 text-white hover:bg-indigo-700',
-  bar: 'bg-indigo-500',
-}
-
-export type ToneHue = 'emerald' | 'amber' | 'rose' | 'sky' | 'cyan' | 'fuchsia' | 'indigo'
-
-/** Every hue, by name — for the sections that pick a hue directly. */
-export const tone: Record<ToneHue, Tone> = { emerald, amber, rose, sky, cyan, fuchsia, indigo }
-
 /** The fixed status semantics: good / caution / harmful. */
 export const statusTone: Record<StatusTone, Tone> = {
   success: emerald,
@@ -121,12 +88,3 @@ export const statusTone: Record<StatusTone, Tone> = {
   danger: rose,
 }
 
-/** The per-block schedule identity hues (day rhythm, awake windows). */
-export const scheduleTone: Record<ScheduleTone, Tone> = {
-  amber,
-  emerald,
-  sky,
-  cyan,
-  fuchsia,
-  indigo,
-}

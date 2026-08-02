@@ -12,6 +12,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card'
 import { Eyebrow } from '@/components/Eyebrow'
 import { IconChip } from '@/components/IconChip'
+import { FactList } from '@/components/FactList'
 import { useT } from '../i18n'
 
 const sIcons = [Baby, MoveHorizontal, Volume2, Activity, CircleDot]
@@ -41,43 +42,33 @@ export function Soothing() {
       <Eyebrow as="h3" size="md" className="mb-4">
         {ts.howTitle}
       </Eyebrow>
-      <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
-        {ts.practices.map((p, i) => {
-          const Icon = sIcons[i]
-          return (
-            <Card key={i} className="h-full">
-              <CardContent>
-                <IconChip>
-                  <Icon />
-                </IconChip>
-                <p className="mt-3 mb-1 text-[15px] font-semibold text-foreground">{p.title}</p>
-                <p className="m-0 text-[13px] leading-relaxed text-muted-foreground">{p.text}</p>
-              </CardContent>
-            </Card>
-          )
-        })}
-      </div>
+      {/* The five S's are five steps of one technique, so they read as one
+          list. Five cards each carrying a 40px gradient chip made the chips the
+          page's dominant texture — at one per card in a uniform grid a chip
+          stops being a signpost. */}
+      <Card className="mb-10">
+        <CardContent>
+          <FactList
+            columns={3}
+            facts={ts.practices.map((p, i) => ({ Icon: sIcons[i], title: p.title, text: p.text }))}
+          />
+        </CardContent>
+      </Card>
 
       {/* More that soothes */}
       <Eyebrow as="h3" size="md" className="mb-4">
         {ts.moreTitle}
       </Eyebrow>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {ts.more.map((m, i) => {
-          const Icon = moreIcons[i]
-          return (
-            <Card key={i} className="h-full">
-              <CardContent>
-                <IconChip>
-                  <Icon />
-                </IconChip>
-                <p className="mt-3 mb-1 text-[15px] font-semibold text-foreground">{m.title}</p>
-                <p className="m-0 text-[13px] leading-relaxed text-muted-foreground">{m.text}</p>
-              </CardContent>
-            </Card>
-          )
-        })}
-      </div>
+      {/* One card holding a list, not three cards holding one line each: these
+          are further things that soothe, not three alternatives to weigh up. */}
+      <Card>
+        <CardContent>
+          <FactList
+            columns={3}
+            facts={ts.more.map((m, i) => ({ Icon: moreIcons[i], title: m.title, text: m.text }))}
+          />
+        </CardContent>
+      </Card>
 
       {/* Coping / safety callout — a warning state, so surface, edge and chip all
           come from `--warning`. The chip used to take `statusTone.warning`
@@ -97,12 +88,17 @@ export function Soothing() {
           </IconChip>
           <div className="min-w-0">
             <p className="text-[15px] font-semibold text-foreground">{ts.copingTitle}</p>
-            <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">{ts.copingText}</p>
+            <p className="mt-1 max-w-3xl text-[13px] leading-relaxed text-muted-foreground">
+              {ts.copingText}
+            </p>
           </div>
         </CardContent>
       </Card>
 
-      <p className="mt-6 text-xs text-muted-foreground">{ts.sourcesLabel}</p>
+      {/* Capped like the intro paragraphs. At full width this ran to ~187
+          characters a line — the longest measure in the app, on its smallest
+          type. */}
+      <p className="mt-6 max-w-3xl text-xs text-muted-foreground">{ts.sourcesLabel}</p>
     </section>
   )
 }

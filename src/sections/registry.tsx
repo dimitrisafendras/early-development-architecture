@@ -177,6 +177,26 @@ export function wikiTopicsInAgeGroup(age: AgeGroup): Topic[] {
 }
 
 /**
+ * A topic's *primary* chapter — the first stage it applies to.
+ *
+ * Care topics apply across stages, and the hub used to render a full card for a
+ * topic in every chapter its `ages` names. Five of the thirteen name three, so
+ * the page carried 24 cards for 13 topics and about half its height was the same
+ * five cards drawn again with identical label, blurb, icon and "Read →". Split
+ * into "filed here" and "also applies here": the first gets the card, the rest
+ * get a one-line row, so a reader browsing their child's stage still finds every
+ * topic that applies to it without being shown it three times.
+ */
+export function wikiTopicsFiledIn(age: AgeGroup): Topic[] {
+  return wikiTopicsInAgeGroup(age).filter((topic) => topic.ages[0] === age)
+}
+
+/** Topics that apply at this stage but are filed under an earlier one. */
+export function wikiTopicsAlsoIn(age: AgeGroup): Topic[] {
+  return wikiTopicsInAgeGroup(age).filter((topic) => topic.ages[0] !== age)
+}
+
+/**
  * All Wiki topics as one ordered, de-duplicated list — chapter by chapter in
  * `ageGroupOrder`, first appearance wins. This is what the prev/next pager walks,
  * so a topic that appears in three chapters still gets exactly one place in the

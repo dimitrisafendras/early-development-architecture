@@ -9,7 +9,8 @@ import {
   ageGroupOrder,
   ageGroupMeta,
   ageGroupForMonths,
-  wikiTopicsInAgeGroup,
+  wikiTopicsFiledIn,
+  wikiTopicsAlsoIn,
   wikiPath,
   type AgeGroup,
 } from '../sections/registry'
@@ -18,9 +19,17 @@ import { useT } from '../i18n'
 
 /**
  * The Wiki home: every topic organized into chapters by the child's stage
- * (Newborn / Baby / Toddler, then the cross-cutting "any age" chapter). A care
- * topic appears in every stage it applies to. Each chapter lists its topics as
- * cards that open a focused subpage at `/wiki/:slug`.
+ * (Newborn / Baby / Toddler, then the cross-cutting "any age" chapter). Each
+ * chapter lists its topics as cards that open a focused subpage at
+ * `/wiki/:slug`.
+ *
+ * **A topic appears once as a card, and as a line thereafter.** Care topics
+ * apply across stages, and this page used to draw a full card in every chapter a
+ * topic's `ages` named — five of the thirteen name three, so the hub carried 24
+ * cards for 13 topics and roughly half its height was the same five cards again
+ * with identical label, blurb, icon and "Read →". The card now sits in the
+ * topic's own chapter and the later ones carry a one-line row, which keeps every
+ * topic findable from the stage you are in without saying it three times.
  *
  * The chapter matching the current baby's age is marked the same way every
  * age-banded row in the app is: a `ring-2 ring-primary` on the chapter mark plus
@@ -60,7 +69,8 @@ function Chapter({ age, number, active }: { age: AgeGroup; number: number; activ
   const t = useT()
   const Icon = ageGroupMeta[age].icon
   const chapter = t.hub.ageGroups[age]
-  const topics = wikiTopicsInAgeGroup(age)
+  const filed = wikiTopicsFiledIn(age)
+  const also = wikiTopicsAlsoIn(age)
   return (
     <section aria-labelledby={`chapter-${age}`}>
       <div className="flex items-center gap-3">
@@ -101,8 +111,9 @@ function Chapter({ age, number, active }: { age: AgeGroup; number: number; activ
           (`WidgetStatGrid`). It used to hold 3-up until `xl`, so on a 1024–1280px
           screen the topic grid and the stat grids disagreed about their column
           count on the same page width. */}
+      {filed.length > 0 && (
       <ul className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-        {topics.map((topic) => {
+        {filed.map((topic) => {
           const TopicIcon = topic.icon
           return (
             <li key={topic.slug}>
@@ -110,18 +121,17 @@ function Chapter({ age, number, active }: { age: AgeGroup; number: number; activ
                 to={wikiPath(topic.slug)}
                 className="group block h-full rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring/70"
               >
-                {/* The hover affordance is a *ring*, not a border: `Card` has no
-                    border-width, so the `group-hover:border-primary/50` this used
-                    to carry never rendered and only the shadow moved. */}
-                <Card className="relative h-full overflow-hidden bg-gradient-to-br from-card to-muted/30 transition-[transform,box-shadow] duration-300 group-hover:-translate-y-1 group-hover:ring-primary/50 group-hover:shadow-[0_14px_44px_-16px] group-hover:shadow-primary/40">
-                  {/* Corner glow on hover. */}
-                  <span
-                    aria-hidden
-                    className="pointer-events-none absolute -right-8 -top-8 size-24 rounded-full bg-primary/25 opacity-0 blur-2xl transition-opacity duration-300 group-hover:opacity-100"
-                  />
-                  <CardContent className="relative flex h-full flex-col">
+                {/* **One hover affordance, not five.** The card carried a
+                    gradient fill, a corner glow, a ring, a shadow and a lift, all
+                    saying the same thing — and a grid of them is a grid of
+                    gradients before it is a list of topics. The ring and the
+                    shadow stay, because a hover state has to be visible; the rest
+                    was decoration on a surface whose job is to hold a title and
+                    two lines. */}
+                <Card className="h-full transition-[box-shadow] duration-300 group-hover:ring-primary/50 group-hover:shadow-[0_10px_32px_-18px] group-hover:shadow-primary/40">
+                  <CardContent className="flex h-full flex-col">
                     <div className="flex items-center gap-2.5">
-                      <IconChip size="sm" className="transition-transform duration-300 group-hover:scale-110">
+                      <IconChip size="sm">
                         <TopicIcon />
                       </IconChip>
                       <p className="text-[15px] font-semibold leading-tight text-foreground">
@@ -142,6 +152,41 @@ function Chapter({ age, number, active }: { age: AgeGroup; number: number; activ
           )
         })}
       </ul>
+      )}
+
+      {/* Carried over from an earlier chapter: the same destination, at the
+          weight of a cross-reference rather than of a new topic.
+          The label only appears when there are cards above it to distinguish
+          these from — a stage that introduces no new topic (nothing about
+          bathing changes at three months that bathing's own page does not
+          already cover) is simply a chapter of cross-references, and labelling
+          the only list on it "also applies here" would be answering a question
+          nobody had asked. */}
+      {also.length > 0 && (
+        <>
+          {filed.length > 0 && (
+            <Eyebrow tone="muted" className="mt-6 mb-2">
+              {t.wiki.alsoApplies}
+            </Eyebrow>
+          )}
+          <ul className="mt-5 flex flex-wrap gap-2">
+            {also.map((topic) => {
+              const TopicIcon = topic.icon
+              return (
+                <li key={topic.slug}>
+                  <Link
+                    to={wikiPath(topic.slug)}
+                    className="flex min-h-9 items-center gap-2 rounded-lg border border-border px-3 text-[13px] font-medium text-foreground transition-colors outline-none hover:border-ring hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring/70"
+                  >
+                    <TopicIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                    {topic.label(t)}
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        </>
+      )}
     </section>
   )
 }

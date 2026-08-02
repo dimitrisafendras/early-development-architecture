@@ -2,22 +2,13 @@ import { SlidersHorizontal } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { statusTone, tone } from '../lib/tone'
-import { serveReturnSteps, latencyOutcomes, type StepTone } from '../data'
+import { statusTone } from '../lib/tone'
+import { serveReturnSteps, latencyOutcomes } from '../data'
 import { useAppStore, type LatencyMode } from '../store'
 import { useT } from '../i18n'
 
 const modes: LatencyMode[] = ['optimal', 'delayed', 'none']
 
-/** Per-phase tint + step badge. The first phase is the infant's own serve — it
- *  carries no hue, so it takes the neutral tokens rather than an off-palette
- *  slate that belongs to no theme. */
-const stepStyles: Record<StepTone, { panel: string; badge: string }> = {
-  slate: { panel: 'bg-muted', badge: 'bg-foreground text-background' },
-  amber: { panel: tone.amber.soft, badge: tone.amber.fill },
-  sky: { panel: tone.sky.soft, badge: tone.sky.fill },
-  emerald: { panel: tone.emerald.soft, badge: tone.emerald.fill },
-}
 
 export function ServeReturn() {
   const latency = useAppStore((s) => s.latency)
@@ -32,19 +23,15 @@ export function ServeReturn() {
         <CardContent>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {serveReturnSteps.map((step, i) => {
-              const s = stepStyles[step.tone]
               const st = tr.steps[i]
               return (
-                <div
-                  key={step.num}
-                  className={cn('flex h-full flex-col rounded-xl p-4', s.panel)}
-                >
-                  <span
-                    className={cn(
-                      'mb-3 flex size-7 items-center justify-center rounded-full text-xs font-bold',
-                      s.badge,
-                    )}
-                  >
+                /* One tint for all four phases, not four. Each step used to
+                   carry its own hue — slate, amber, sky, emerald — for a
+                   sequence that is already numbered 1 to 4; the colour said
+                   nothing the numeral did not, and put four accent families in a
+                   single card. */
+                <div key={step.num} className="flex h-full flex-col rounded-xl bg-muted p-4">
+                  <span className="mb-3 flex size-7 items-center justify-center rounded-full bg-foreground text-xs font-bold text-background">
                     {step.num}
                   </span>
                   <p className="mb-1 text-[15px] font-semibold text-foreground">{st.title}</p>
@@ -57,7 +44,11 @@ export function ServeReturn() {
             })}
           </div>
 
-          <div className="mt-8 rounded-xl bg-muted p-4">
+          {/* A rule, not a third surface. This was a tinted panel holding
+              another panel inside an already-bordered card — three boundaries
+              deep, the deepest nesting on the Wiki. The live result below keeps
+              its own surface, because it is the thing that changes. */}
+          <div className="mt-8 border-t border-border pt-6">
             <p className="mb-2 flex items-center gap-2 text-[15px] font-semibold text-foreground">
               <SlidersHorizontal className="size-4 text-primary" aria-hidden />
               {tr.simulatorTitle}

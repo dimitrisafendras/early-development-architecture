@@ -2,17 +2,13 @@ import { Ear, Music2, Volume1, type LucideIcon } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { IconChip } from '@/components/IconChip'
-import { cn } from '@/lib/utils'
-import { tone, type ToneHue } from '../lib/tone'
 import { ParenteseChart } from '../components/charts'
 import { useT } from '../i18n'
 
-/** Icon + hue per card; text comes from i18n by index. */
-const cardStyles: { Icon: LucideIcon; hue: ToneHue }[] = [
-  { Icon: Music2, hue: 'fuchsia' },
-  { Icon: Volume1, hue: 'amber' },
-  { Icon: Ear, hue: 'emerald' },
-]
+/** Icon per card; text comes from i18n by index. Three cards, one chip tint —
+ *  each used to carry a different hue (fuchsia, amber, emerald) for three points
+ *  that are not ranked, contrasted or otherwise distinguished by colour. */
+const cardIcons: LucideIcon[] = [Music2, Volume1, Ear]
 
 export function LanguageMusic() {
   const t = useT()
@@ -27,14 +23,15 @@ export function LanguageMusic() {
                 <p className="text-[15px] font-semibold text-foreground">{tl.chartTitle}</p>
                 <div className="text-xs text-muted-foreground">{tl.chartSub}</div>
               </div>
-              <Badge
-                className={cn('shrink-0 border-transparent', tone.fuchsia.soft, tone.fuchsia.text)}
-              >
+              <Badge variant="soft" className="shrink-0">
                 {tl.badge}
               </Badge>
             </div>
             <ParenteseChart />
-            <div className="mt-4 rounded-xl bg-muted p-4 text-[13px] leading-relaxed text-muted-foreground">
+            {/* A rule, not a tinted box inside the card the chart already sits
+                in — the note explains the chart above it, so it belongs to the
+                same surface. */}
+            <div className="mt-4 max-w-3xl border-t border-border pt-4 text-[13px] leading-relaxed text-muted-foreground">
               <strong className="text-foreground">{tl.noteLabel}</strong> {tl.noteBefore}
               <em>{tl.noteEm}</em>
               {tl.noteAfter}
@@ -43,11 +40,11 @@ export function LanguageMusic() {
         </Card>
 
         <div className="flex flex-col gap-4 lg:col-span-5">
-          {cardStyles.map(({ Icon, hue }, i) => (
+          {cardIcons.map((Icon, i) => (
             <Card key={tl.cards[i].title}>
               <CardContent>
                 <div className="flex items-start gap-4">
-                  <IconChip className={tone[hue].chip}>
+                  <IconChip>
                     <Icon />
                   </IconChip>
                   <div className="min-w-0">

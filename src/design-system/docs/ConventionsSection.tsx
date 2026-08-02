@@ -238,10 +238,12 @@ export function ConventionsSection() {
             <div>
               <p className="font-heading text-sm font-semibold">Semantic tone</p>
               <p className="mt-1 leading-relaxed text-muted-foreground">
-                <Code>lib/tone.ts</Code> holds one <Code>statusTone</Code> and one <Code>scheduleTone</Code>,
-                replacing six duplicated hue tables that disagreed on their light shade. Text uses the{' '}
+                <Code>lib/tone.ts</Code> holds one table, <Code>statusTone</Code> — success, warning, danger
+                — replacing six duplicated hue tables that disagreed on their light shade. Text uses the{' '}
                 <Code>700</Code> step (AA at 5:1 or better); glyphs and chip icons use <Code>600</Code>, since
-                3:1 is the bar for a non-text graphic.
+                3:1 is the bar for a non-text graphic. A second table once handed six hues out as age-band and
+                day-block <em>identity</em>; it is gone, because a colour nothing lets you decode is
+                decoration, and six of them at once hid the colours that do mean something.
               </p>
             </div>
             <div>

@@ -16,11 +16,11 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert'
 import { Eyebrow } from '@/components/Eyebrow'
 import { IconChip } from '@/components/IconChip'
 import { SegmentedGroup } from '@/components/ui/segmented-group'
-import { cn } from '@/lib/utils'
-import { statusTone, scheduleTone } from '../lib/tone'
-import { milestoneBands, milestoneUppers, milestoneDomainOrder } from '../data'
+import { statusTone } from '../lib/tone'
+import { milestoneUppers, milestoneDomainOrder } from '../data'
 import { useBabyAge } from '../components/AgeBadge'
 import { bandIndex } from '../lib/schedule'
+import { FactList } from '@/components/FactList'
 import { useT } from '../i18n'
 
 /** Ask · ring today · request help · trust yourself. */
@@ -46,7 +46,6 @@ export function Milestones() {
   const [band, setBand] = useState(ownBand)
   useEffect(() => setBand(ownBand), [ownBand])
   const current = tm.bands[band]
-  const tone = scheduleTone[milestoneBands[band].tone]
 
   return (
     <section id="milestones">
@@ -72,7 +71,12 @@ export function Milestones() {
             <Card key={domain} className="h-full">
               <CardContent>
                 <div className="flex items-center gap-3">
-                  <IconChip className={cn(tone.soft, tone.text)}>
+                  {/* The chip's default tint. It used to take the checkpoint's
+                      own `scheduleTone` hue, so all four domain cards changed
+                      colour together as you stepped along the age axis — six
+                      hues signalling nothing except which pill was pressed,
+                      which the pressed pill already says. */}
+                  <IconChip>
                     <Icon />
                   </IconChip>
                   {/* The checkpoint is named once, by the pressed pill above —
@@ -85,7 +89,7 @@ export function Milestones() {
                 <ul className="mt-4 space-y-2">
                   {items.map((item) => (
                     <li key={item} className="flex gap-2 text-[13px] leading-relaxed text-foreground">
-                      <Check className={cn('mt-0.5 size-4 shrink-0', tone.icon)} aria-hidden />
+                      <Check className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -96,7 +100,9 @@ export function Milestones() {
         })}
       </div>
 
-      <p className="mt-6 rounded-xl bg-muted p-4 text-xs leading-relaxed text-muted-foreground">
+      {/* A rule and a line, not a tinted panel: the tint made a caveat look
+          like a fifth domain card. */}
+      <p className="mt-6 max-w-3xl border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground">
         {tm.note}
       </p>
 
@@ -110,32 +116,27 @@ export function Milestones() {
         {/* Overrides the primitive's baked-in `text-muted-foreground`. */}
         <AlertDescription className="text-warning">{tm.actEarlyLead}</AlertDescription>
       </Alert>
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {tm.actEarly.map((row, i) => {
-          // One icon per card, not four identical warning triangles — each of
-          // these is a different action (ask, ring, request, trust yourself).
-          const Icon = actEarlyIcons[i]
-          return (
-          <Card key={row.title} className="h-full">
-            <CardContent>
-              <IconChip
-                className={cn(
-                  // The escalation card (a lost skill) is the one danger tone on
-                  // the page; the rest are ordinary guidance.
-                  i === 1 ? statusTone.danger.chip : statusTone.success.chip,
-                )}
-              >
-                <Icon />
-              </IconChip>
-              <p className="mt-3 mb-1 text-[15px] font-semibold text-foreground">{row.title}</p>
-              <p className="m-0 text-[13px] leading-relaxed text-muted-foreground">{row.text}</p>
-            </CardContent>
-          </Card>
-          )
-        })}
-      </div>
+      {/* Four actions under one alert, so one card and one list. As four cards
+          they read as four separate warnings; they are four steps of the same
+          one, which the alert above already states. */}
+      <Card className="mt-4">
+        <CardContent>
+          <FactList
+            facts={tm.actEarly.map((row, i) => ({
+              // One glyph per row, not four identical triangles — each of these
+              // is a different action (ask, ring, request, trust yourself).
+              Icon: actEarlyIcons[i],
+              title: row.title,
+              text: row.text,
+              // The escalation row (a lost skill) is the one danger tone on the
+              // page; the rest are ordinary guidance and take the default.
+              iconClassName: i === 1 ? statusTone.danger.icon : undefined,
+            }))}
+          />
+        </CardContent>
+      </Card>
 
-      <p className="mt-6 text-xs text-muted-foreground">{tm.sourcesLabel}</p>
+      <p className="mt-6 max-w-3xl text-xs text-muted-foreground">{tm.sourcesLabel}</p>
     </section>
   )
 }

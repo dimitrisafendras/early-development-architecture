@@ -88,16 +88,18 @@ export function TummyTime() {
           <Card>
             <CardContent>
               <p className="m-0 text-[15px] font-semibold text-foreground">{tt.tipsTitle}</p>
-              <div className="mt-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {/* A list, not tinted boxes inside a card. Each tip is one
+                  sentence with a lead-in — that is a definition list, and
+                  wrapping each in its own filled panel put six boundaries around
+                  six lines of text on a surface that was already a card. */}
+              <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
                 {tt.tips.map((tip) => (
-                  <div
-                    key={tip.strong}
-                    className="rounded-xl bg-muted p-4 text-[13px] leading-relaxed text-muted-foreground"
-                  >
-                    <strong className="text-foreground">{tip.strong}</strong> {tip.text}
+                  <div key={tip.strong} className="text-[13px] leading-relaxed">
+                    <dt className="inline font-semibold text-foreground">{tip.strong}</dt>{' '}
+                    <dd className="inline text-muted-foreground">{tip.text}</dd>
                   </div>
                 ))}
-              </div>
+              </dl>
             </CardContent>
           </Card>
         </div>
@@ -109,16 +111,14 @@ export function TummyTime() {
         {tt.afterTitle}
       </Eyebrow>
       <p className="mb-4 max-w-3xl text-sm leading-relaxed text-muted-foreground">{tt.afterNote}</p>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
         {tt.after.map((row) => (
-          <div
-            key={row.strong}
-            className="rounded-xl bg-muted p-4 text-[13px] leading-relaxed text-muted-foreground"
-          >
-            <strong className="text-foreground">{row.strong}</strong> {row.text}
+          <div key={row.strong} className="text-[13px] leading-relaxed">
+            <dt className="inline font-semibold text-foreground">{row.strong}</dt>{' '}
+            <dd className="inline text-muted-foreground">{row.text}</dd>
           </div>
         ))}
-      </div>
+      </dl>
     </section>
   )
 }

@@ -348,6 +348,8 @@ const en = {
     chapter: 'Chapter',
     inThisChapter: 'In this chapter',
     readTopic: 'Read',
+    /** Heading for topics carried over from an earlier chapter. */
+    alsoApplies: 'Also applies here',
   },
   day: {
     title: 'Your Day',
@@ -641,7 +643,7 @@ const en = {
     ownerOnly: 'Only the owner can remove members or delete the family.',
   },
   neurobiology: {
-    title: 'The Biological Imperative: Explosive Brain Growth',
+    title: 'Brain Growth in the First Year',
     description:
       "An infant's brain doubles in size during the first year, establishing the neural architecture for a lifetime of cognitive, emotional, and social capacity.",
     chartTitle: 'Brain Mass % relative to Adult Size',
@@ -666,7 +668,7 @@ const en = {
     },
   },
   serveReturn: {
-    title: 'The "Serve and Return" Interaction Loop',
+    title: 'Serve & Return',
     description:
       'Harvard Center on the Developing Child highlights that social interactions function like a game of tennis. The infant serves a cue; the caregiver immediately returns it.',
     steps: [
@@ -713,7 +715,7 @@ const en = {
     },
   },
   languageMusic: {
-    title: 'Acoustic Scaffolding: Parentese & Musical Stimuli',
+    title: 'Parentese & Music',
     description:
       'Infant-directed speech ("Parentese") and rhythmic melody act as acoustic scaffolding for language processing and neuro-auditory mapping.',
     chartTitle: 'Acoustic Architecture Comparison',
@@ -740,7 +742,7 @@ const en = {
       ' baby talk or nonsensical words. It uses real grammar and vocabulary spoken at a higher pitch, slower tempo, with exaggerated vowel sounds ("Heeellloo baby!").',
   },
   tummyTime: {
-    title: 'Physical Optimization: Daily Tummy Time',
+    title: 'Tummy Time by Age',
     description:
       'Supervised tummy time while awake is essential for neck, back, and shoulder core strength, motor milestone progression, and preventing flat spots (plagiocephaly).',
     chartTitle: 'Tummy Time Progression Target',
@@ -777,7 +779,7 @@ const en = {
     ],
   },
   routine: {
-    title: '📅 Daily Routine Architecture (Caregiver & Infant)',
+    title: 'The Daily Routine',
     description:
       'A predictable yet adaptable rhythm balancing direct engagement, physical tummy sessions, sensory regulation, and caregiver recovery.',
     nowLink: 'See what’s happening now',
@@ -834,7 +836,7 @@ const en = {
     ],
   },
   environment: {
-    title: 'Environmental Architecture: Screen Deficit vs. Live Interaction',
+    title: 'Screens & Live Interaction',
     description:
       'Infant brains cannot transfer 2D screen stimuli into real-world comprehension—a phenomenon known in developmental psychology as the Video Deficit Effect.',
     reasonsTitle: 'Why Screens Fail Newborn Neural Wiring',
@@ -862,7 +864,7 @@ const en = {
       '* Based on EEG theta/beta power ratios and eye-tracking habituation studies in infant psychology literature.',
   },
   summary: {
-    title: '💡 Summary of Key Action Items for Caregivers',
+    title: 'Key Actions for Caregivers',
     description:
       'Interactive master checklist to track your daily implementation of science-backed infant development practices.',
     items: [
@@ -928,7 +930,6 @@ const en = {
       { age: '18–24 months', window: '5–6 hours', play: 'Pretend play, simple instructions, two-word phrases, running and carrying.' },
       { age: '2–3 years', window: '5–7 hours', play: 'Role play, drawing, playgrounds, real conversations of two or more turns, small choices.' },
     ],
-    togetherTitle: 'Together vs on their own',
     togetherNote:
       'No guideline sets a daily quota of one-on-one minutes — responsiveness during the awake windows is what counts, and most of it is folded into feeding, changing and bathing rather than added on top. What is quantified: answer cues within 1–4s, 15+ min of reading, 2–3 tummy sessions, and no screens. The solo figures below are typical starting points, not targets: contented time alone builds attention and self-settling, and it always happens with you in the room.',
     togetherLabel: 'With you',
@@ -1779,6 +1780,7 @@ const el: Messages = {
     chapter: 'Κεφάλαιο',
     inThisChapter: 'Σε αυτό το κεφάλαιο',
     readTopic: 'Διαβάστε',
+    alsoApplies: 'Ισχύει κι εδώ',
   },
   day: {
     title: 'Η Μέρα σας',
@@ -2067,7 +2069,7 @@ const el: Messages = {
     ownerOnly: 'Μόνο ο ιδιοκτήτης μπορεί να αφαιρεί μέλη ή να διαγράφει την οικογένεια.',
   },
   neurobiology: {
-    title: 'Η Βιολογική Επιταγή: Εκρηκτική Ανάπτυξη του Εγκεφάλου',
+    title: 'Ανάπτυξη Εγκεφάλου τον Πρώτο Χρόνο',
     description:
       'Ο εγκέφαλος του βρέφους διπλασιάζεται σε μέγεθος τον πρώτο χρόνο, θεμελιώνοντας τη νευρική αρχιτεκτονική για μια ζωή γνωστικής, συναισθηματικής και κοινωνικής ικανότητας.',
     chartTitle: 'Μάζα Εγκεφάλου % σε σχέση με το Μέγεθος Ενήλικα',
@@ -2092,7 +2094,7 @@ const el: Messages = {
     },
   },
   serveReturn: {
-    title: 'Ο Βρόχος Αλληλεπίδρασης «Σερβίρισμα και Επιστροφή»',
+    title: 'Σερβίρισμα & Επιστροφή',
     description:
       'Το Harvard Center on the Developing Child τονίζει ότι οι κοινωνικές αλληλεπιδράσεις λειτουργούν σαν παιχνίδι τένις. Το βρέφος «σερβίρει» ένα σήμα· ο φροντιστής το επιστρέφει αμέσως.',
     steps: [
@@ -2139,7 +2141,7 @@ const el: Messages = {
     },
   },
   languageMusic: {
-    title: 'Ακουστική Υποστήριξη: Παιδική Ομιλία & Μουσικά Ερεθίσματα',
+    title: 'Παιδική Ομιλία & Μουσική',
     description:
       'Η βρεφο-κατευθυνόμενη ομιλία («Παιδική Ομιλία») και η ρυθμική μελωδία λειτουργούν ως ακουστική υποστήριξη για την επεξεργασία της γλώσσας και τη νευρο-ακουστική χαρτογράφηση.',
     chartTitle: 'Σύγκριση Ακουστικής Αρχιτεκτονικής',
@@ -2166,7 +2168,7 @@ const el: Messages = {
       ' είναι μωρουδίστικα ή ανούσιες λέξεις. Χρησιμοποιεί πραγματική γραμματική και λεξιλόγιο, με υψηλότερο τόνο, πιο αργό ρυθμό και έντονα φωνήεντα («Γειιιά σου μωρό μου!»).',
   },
   tummyTime: {
-    title: 'Σωματική Βελτιστοποίηση: Καθημερινός Χρόνος Μπρούμυτα',
+    title: 'Χρόνος Μπρούμυτα ανά Ηλικία',
     description:
       'Ο εποπτευόμενος χρόνος μπρούμυτα σε κατάσταση εγρήγορσης είναι απαραίτητος για τη δύναμη του αυχένα, της πλάτης και των ώμων, την εξέλιξη των κινητικών οροσήμων και την πρόληψη των πλατυκεφαλιών (πλαγιοκεφαλία).',
     chartTitle: 'Στόχος Εξέλιξης Χρόνου Μπρούμυτα',
@@ -2203,7 +2205,7 @@ const el: Messages = {
     ],
   },
   routine: {
-    title: '📅 Αρχιτεκτονική Καθημερινής Ρουτίνας (Φροντιστής & Βρέφος)',
+    title: 'Η Καθημερινή Ρουτίνα',
     description:
       'Ένας προβλέψιμος αλλά προσαρμόσιμος ρυθμός που ισορροπεί την άμεση αλληλεπίδραση, τις σωματικές συνεδρίες μπρούμυτα, την αισθητηριακή ρύθμιση και την ανάκαμψη του φροντιστή.',
     nowLink: 'Δείτε τι συμβαίνει τώρα',
@@ -2260,7 +2262,7 @@ const el: Messages = {
     ],
   },
   environment: {
-    title: 'Αρχιτεκτονική Περιβάλλοντος: Έλλειμμα Οθόνης vs. Ζωντανή Αλληλεπίδραση',
+    title: 'Οθόνες & Ζωντανή Αλληλεπίδραση',
     description:
       'Ο εγκέφαλος του βρέφους δεν μπορεί να μεταφέρει τα δισδιάστατα ερεθίσματα της οθόνης σε κατανόηση του πραγματικού κόσμου—ένα φαινόμενο γνωστό στην αναπτυξιακή ψυχολογία ως «Φαινόμενο Ελλείμματος Βίντεο».',
     reasonsTitle: 'Γιατί οι Οθόνες Αποτυγχάνουν στη Νευρική Καλωδίωση του Νεογέννητου',
@@ -2288,7 +2290,7 @@ const el: Messages = {
       '* Βασισμένο σε λόγους ισχύος θήτα/βήτα σε EEG και μελέτες εξοικείωσης με παρακολούθηση βλέμματος στη βιβλιογραφία της βρεφικής ψυχολογίας.',
   },
   summary: {
-    title: '💡 Σύνοψη Βασικών Ενεργειών για Φροντιστές',
+    title: 'Βασικές Ενέργειες για Φροντιστές',
     description:
       'Διαδραστική κύρια λίστα ελέγχου για να παρακολουθείτε την καθημερινή εφαρμογή επιστημονικά τεκμηριωμένων πρακτικών βρεφικής ανάπτυξης.',
     items: [
@@ -2354,7 +2356,6 @@ const el: Messages = {
       { age: '18–24 μηνών', window: '5–6 ώρες', play: 'Συμβολικό παιχνίδι, απλές οδηγίες, φράσεις δύο λέξεων, τρέξιμο και μεταφορά.' },
       { age: '2–3 ετών', window: '5–7 ώρες', play: 'Παιχνίδι ρόλων, ζωγραφική, παιδικές χαρές, πραγματικός διάλογος δύο ή περισσότερων εναλλαγών, μικρές επιλογές.' },
     ],
-    togetherTitle: 'Μαζί ή μόνο του',
     togetherNote:
       'Καμία οδηγία δεν ορίζει ημερήσια ποσόστωση λεπτών ένας-προς-έναν — μετρά η ανταπόκριση στα παράθυρα εγρήγορσης, και το μεγαλύτερο μέρος εντάσσεται στο τάισμα, την αλλαγή και το μπάνιο αντί να προστίθεται από πάνω. Αυτά που έχουν αριθμό: απάντηση σε 1–4 δευτ., 15+ λεπτά ανάγνωσης, 2–3 συνεδρίες μπρούμυτα, καθόλου οθόνες. Οι παρακάτω τιμές για μόνο του είναι τυπικές αφετηρίες, όχι στόχοι: ο ευχάριστος χρόνος μόνο του χτίζει προσοχή και αυτορρύθμιση, και γίνεται πάντα με εσάς στο δωμάτιο.',
     togetherLabel: 'Μαζί σας',
