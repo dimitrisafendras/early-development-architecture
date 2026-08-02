@@ -960,7 +960,14 @@ function Timeline({
                     </div>
                     <div
                       className={cn(
-                        'min-w-0 rounded-xl transition-[background-color,box-shadow,padding,margin] duration-300',
+                        // A hairline on every card, not just the focused one:
+                        // the rest were bare text beside the rail, so a row only
+                        // looked like a card once you had already picked it. It
+                        // is a real `border` rather than the inset ring the
+                        // focused card used to carry, so both states are the same
+                        // box and selecting one cannot nudge its contents by a
+                        // pixel.
+                        'min-w-0 rounded-xl border transition-[background-color,border-color,box-shadow,padding,margin] duration-300',
                         // In the strip the card sits *under* its mark and owns the
                         // cell's width; in the column it sits beside the mark and
                         // takes what is left.
@@ -975,7 +982,7 @@ function Timeline({
                         // Size and air are the axes nothing else here uses.
                         isSelected
                           ? cn('bg-card px-4 py-3.5', !horizontal && 'my-2')
-                          : 'px-3 py-2 group-hover:bg-muted/70',
+                          : 'border-border/70 px-3 py-2 group-hover:bg-muted/70',
                       )}
                       // **The focused row is the only card in the list that is
                       // materially raised.** It was a translucent wash in the
@@ -995,7 +1002,8 @@ function Timeline({
                       style={
                         isSelected
                           ? {
-                              boxShadow: `inset 0 0 0 1px ${a.accent}59, 0 12px 32px -12px ${a.accent}66`,
+                              borderColor: `${a.accent}59`,
+                              boxShadow: `0 12px 32px -12px ${a.accent}66`,
                             }
                           : undefined
                       }
