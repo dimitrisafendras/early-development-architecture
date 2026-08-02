@@ -506,9 +506,12 @@ function Timeline({
               </GlassButton>
             </div>
           )}
+        {/* `proximity`, never `mandatory`: rows settle onto the centre line when
+            you let go — the carousel dial — but browsing the day freely, and the
+            programmatic `centerChild` behind "jump to now", are both left alone. */}
         <GlassScrollArea
           ref={areaRef}
-          className="max-h-[21rem] lg:max-h-none"
+          className="max-h-[21rem] snap-y snap-proximity lg:max-h-none"
         >
           <ol className="relative px-1.5">
             {schedule.map((slot, i) => {
@@ -518,18 +521,36 @@ function Timeline({
               const isNow = i === currentSlot
               const isPast = i < currentSlot
               const isSelected = i === activeIdx
-              const nextAccent = dayActivityMeta[schedule[(i + 1) % schedule.length].type].accent
-              // The one thing the old rail never said: how much of the day is
-              // behind you. Segments before NOW are filled solid, the segment
-              // leaving NOW fills live, everything after stays unlit.
-              const fill = isPast ? 100 : isNow ? livePct : 0
+              // `%` no more: on the last row there is no next slot, and wrapping
+              // to the first one gradiented a rail that is never drawn toward the
+              // wrong end of the day.
+              const nextAccent = last ? a.accent : dayActivityMeta[schedule[i + 1].type].accent
+              const prevAccent = i === 0 ? a.accent : dayActivityMeta[schedule[i - 1].type].accent
+              /**
+               * How much of the segment *leaving* row j is behind us: solid for
+               * every segment before NOW, live for the one leaving it, unlit
+               * after. The rail says the one thing the old flat line never did —
+               * how much of the day is done.
+               */
+              const segFill = (j: number) => (j < currentSlot ? 100 : j === currentSlot ? livePct : 0)
+              // A segment spans two rows: the bottom half of the row it leaves and
+              // the top half of the row it arrives at. So each half fills over its
+              // own half of the segment's range — the first 50% drains into the
+              // bottom half, the rest into the next row's top half.
+              const bottomFill = Math.min(100, segFill(i) * 2)
+              const topFill = Math.max(0, segFill(i - 1) * 2 - 100)
+              // The hue at a segment's midpoint, which is where the two halves
+              // meet — so the handover reads as one gradient down the whole day
+              // rather than restarting at every dot.
+              const midBelow = `color-mix(in oklab, ${a.accent}, ${nextAccent})`
+              const midAbove = `color-mix(in oklab, ${prevAccent}, ${a.accent})`
               return (
                 <li
                   key={`${slot.time}-${i}`}
                   ref={(el) => {
                     itemRefs.current[i] = el
                   }}
-                  className="group relative flex gap-3.5 pb-6 last:pb-1"
+                  className="group relative flex snap-center gap-3.5 pb-8 last:pb-1"
                 >
                   {/* **The row's control is an overlay, not a wrapper.** The
                       focused card carries a real `<Link>` into the Wiki now, and
@@ -539,7 +560,12 @@ function Timeline({
                       Hit area and behaviour are unchanged; the link sits above it
                       and takes its own clicks back with `pointer-events-auto`.
                       The accessible name moves to an `sr-only` copy of the title,
-                      since the button no longer contains the text. */}
+                      since the button no longer contains the text.
+
+                      The trade: `pointer-events-none` on the content layer means
+                      the rows' text cannot be selected. Acceptable for a stepper
+                      whose every row is a control, but it is a real loss and not
+                      an accident. */}
                   <button
                     type="button"
                     onClick={() => onSelect(i)}
@@ -550,56 +576,52 @@ function Timeline({
                     <span className="sr-only">{slot.title}</span>
                   </button>
                   <div className="pointer-events-none flex flex-1 items-stretch gap-3.5">
-                    {/* **The dot is centred on its row, and the rail is anchored
-                        to the dot.** Both used to be pinned to the row's *top* —
-                        the dot by `items-start`, the rail by a hand-measured
-                        `top-[3.25rem]` that assumed it. That held while every row
-                        was the same two lines; the focused row is now half again
-                        as tall, and its dot sat up by the title with the rail
-                        cutting through it.
+                    {/* **Each row owns half of the segment above it and half of
+                        the segment below it.** The rail used to be one span per
+                        row that started at the mark's bottom edge and deliberately
+                        overran into the next row, because the next mark's centre
+                        depends on that row's height and this row cannot know it —
+                        so it overshot and let the next mark cover the excess.
 
-                        `self-stretch` + `items-center` puts the dot at the row's
-                        middle whatever the row's height, and the rail starts from
-                        `50% + 1.5rem` — the dot's own bottom edge — so it follows
-                        rather than guesses. It runs long deliberately (past the
-                        gap and into the next row) because the next dot's centre
-                        moves too: overshooting and letting the dot cover it is
-                        the only version that holds for every pair of heights.
-                        Which is why the dot now carries an opaque `bg-card`
-                        backing — the activity tints are translucent, and the rail
-                        used to show straight through them. */}
-                    <div className="relative flex w-16 shrink-0 items-center justify-center self-stretch">
-                      {!last && (
+                        That was correct by concealment. It cost three families of
+                        linked magic numbers (the overshoot encoded the row's
+                        padding, the start offsets encoded every mark diameter, the
+                        diameters encoded the halo), it required marks to stay
+                        opaque for ever, and it was 0.7px from failing: a wrapped
+                        title on the focused card — one long Greek moment name —
+                        would have opened a visible gap in the rail directly above
+                        the most prominent row in the list.
+
+                        Two flex halves instead. The bottom half ends at this row's
+                        bottom, which *is* the next row's top, which is where its
+                        top half begins — so every join is exact for any pair of
+                        row heights, for ever. The one fixed number left is the
+                        `-bottom-8` that carries the bottom half across the row's
+                        own `pb-8`, and it sits next to the padding it mirrors.
+
+                        It also makes the fill honest. Only ~45% of the old rail
+                        was ever visible, the rest hidden behind the next mark, so
+                        a live segment looked complete at 45% of the slot — and by
+                        a different fraction on every row, since it depended on the
+                        height of whatever came next. Here 100% lands exactly on
+                        the next mark. */}
+                    <div className="relative flex w-18 shrink-0 flex-col items-center self-stretch">
+                      {/* The tail of the segment arriving from the row above. */}
+                      <span
+                        aria-hidden
+                        className={cn(
+                          'relative w-[3px] flex-1 overflow-hidden bg-border',
+                          i === 0 && 'invisible',
+                        )}
+                      >
                         <span
-                          aria-hidden
-                          className={cn(
-                            'pointer-events-none absolute left-1/2 -bottom-16 w-[3px] -translate-x-1/2 overflow-hidden rounded-full bg-border/70',
-                            // The dot's own bottom edge — 24px of radius plus 4px
-                            // of air, or 28px + 4px once the focused step grows.
-                            isSelected ? 'top-[calc(50%+2rem)]' : 'top-[calc(50%+1.75rem)]',
-                          )}
-                        >
-                          <span
-                            className="block w-full rounded-full transition-[height] duration-700 ease-out"
-                            style={{
-                              height: `${fill}%`,
-                              // Hands over from this activity's hue to the next
-                              // one, so the rail reads as one continuous gradient
-                              // down the day.
-                              backgroundImage: `linear-gradient(180deg, ${a.accent}, ${nextAccent})`,
-                              boxShadow: fill > 0 ? `0 0 8px ${a.accent}80` : undefined,
-                            }}
-                          />
-                        </span>
-                      )}
-                      {/* A ring of card colour around every mark, so the rail
-                          always breaks against it. Below a mark the rail already
-                          started 4px clear; *above* one it did not — the previous
-                          row's rail deliberately overshoots and passes underneath,
-                          which hid it but left the line running flush into the
-                          circle's top edge. An opaque halo gives the same 4px of
-                          air on both sides without either row needing to know the
-                          other's height. */}
+                          className="absolute inset-x-0 bottom-0 transition-[height] duration-700 ease-out"
+                          style={{
+                            height: `${topFill}%`,
+                            backgroundImage: `linear-gradient(180deg, ${midAbove}, ${a.accent})`,
+                          }}
+                        />
+                      </span>
                       <span className="relative z-10 rounded-full bg-card p-1">
                       {isNow ? (
                         // Identity + live progress in one 48px mark: the arc is how
@@ -614,7 +636,7 @@ function Timeline({
                         >
                           <span
                             className={cn(
-                              'inline-flex items-center justify-center rounded-full bg-card transition-all duration-300',
+                              'inline-flex items-center justify-center rounded-full bg-card',
                               isSelected ? 'size-11' : 'size-9',
                             )}
                           >
@@ -631,13 +653,18 @@ function Timeline({
                       ) : (
                         <span
                           className={cn(
-                            'relative z-10 inline-flex items-center justify-center rounded-full bg-card transition-all duration-300 group-hover:scale-105',
+                            'relative z-10 inline-flex items-center justify-center rounded-full bg-card',
                             // The focused step grows with its card — the mark and
                             // the moment it belongs to are one thing, so scaling
                             // only the card left the dot looking like a different
                             // row's.
+                            // No hover scale: the row already lights up on hover,
+                            // and on the focused mark the scaled circle ate the
+                            // halo's air. No `transition-all` either — it animated
+                            // width and height, which reflows every row in the
+                            // list for 300ms and left `centerChild` measuring a
+                            // position the row had not finished moving to.
                             isSelected ? 'size-14' : 'size-12',
-                            isPast && 'opacity-60',
                           )}
                         >
                           {/* The activity tint is a *separate* layer over an
@@ -646,28 +673,54 @@ function Timeline({
                               onto one class list drops one of them — and the one
                               that survived was the translucent tint, which let the
                               rail run visibly through every dot. */}
+                          {/* The dimming belongs to the *tint*, not to the mark.
+                              On the whole mark it also faded the done badge — so
+                              every green check the app has ever shown rendered at
+                              60%, against a colour whose whole job is to be read
+                              as semantic. */}
                           <span
                             className={cn(
                               'inline-flex size-full items-center justify-center rounded-full',
                               a.dot,
+                              isPast && 'opacity-60',
                             )}
                           >
                             <Icon className={isSelected ? 'size-6' : 'size-5'} />
                           </span>
-                          {/* Done marker. Small, semantic green, ringed in the card
-                              colour so it reads as a badge on the dot. */}
+                          {/* Done marker, on the rim. At `-bottom-0.5 -right-0.5`
+                              its centre sat *outside* the circle — more than half
+                              the badge on the halo's padding, where its `ring-card`
+                              was invisible against the halo's own card colour. */}
                           {isPast && (
-                            <span className="absolute -bottom-0.5 -right-0.5 grid size-4 place-items-center rounded-full bg-success text-success-foreground ring-2 ring-card">
+                            <span className="absolute bottom-0 right-0 grid size-4 place-items-center rounded-full bg-success text-success-foreground ring-2 ring-card">
                               <Check className="size-2.5" strokeWidth={3} />
                             </span>
                           )}
                         </span>
                       )}
                       </span>
+                      {/* The head of the segment leaving this row. The inner span
+                          is absolute so it can reach `-bottom-8` — exactly the
+                          `<li>`'s own `pb-8` — and meet the next row's top half
+                          with no seam. */}
+                      <span
+                        aria-hidden
+                        className={cn('relative w-[3px] flex-1', last && 'invisible')}
+                      >
+                        <span className="absolute inset-x-0 top-0 -bottom-8 overflow-hidden bg-border">
+                          <span
+                            className="block w-full transition-[height] duration-700 ease-out"
+                            style={{
+                              height: `${bottomFill}%`,
+                              backgroundImage: `linear-gradient(180deg, ${a.accent}, ${midBelow})`,
+                            }}
+                          />
+                        </span>
+                      </span>
                     </div>
                     <div
                       className={cn(
-                        'min-w-0 flex-1 rounded-xl transition-all duration-300',
+                        'min-w-0 flex-1 rounded-xl transition-[background-color,box-shadow,padding,margin] duration-300',
                         // The focused card is bigger, and it pushes its
                         // neighbours away: a picker's centre cell, not a list
                         // row that happens to be tinted. The tint and the ring
@@ -676,20 +729,27 @@ function Timeline({
                         // eight hues, one per kind — so the selected row read as
                         // "another blue thing" rather than as the one in focus.
                         // Size and air are the axes nothing else here uses.
-                        isSelected
-                          ? 'my-2 scale-[1.02] px-4 py-3.5'
-                          : 'px-3 py-2 group-hover:bg-muted/70',
+                        isSelected ? 'my-2 bg-card px-4 py-3.5' : 'px-3 py-2 group-hover:bg-muted/70',
                       )}
-                      // The selected row lights up in its own activity hue instead
-                      // of a flat primary tint, so selection and identity are the
-                      // same signal. Inset ring rather than `ring-*`: it keeps the
-                      // 1px edge inside the row's own box, which is what stopped
-                      // the highlight nudging the text on select.
+                      // **The focused row is the only card in the list that is
+                      // materially raised.** It was a translucent wash in the
+                      // activity's hue — but hue is the axis this list already
+                      // spends on identity, eight of them, one per kind, so a
+                      // tinted row read as "another blue thing" rather than as the
+                      // one in focus. And the lift under it (`0 8px 24px -18px`)
+                      // collapsed to almost nothing.
+                      //
+                      // Opaque, lifted, with the accent kept to a 1px inset edge
+                      // and the mark beside it. A surface that is actually off the
+                      // page reads as the lens of a carousel at a glance; a tint
+                      // reads as a hover state. `scale-[1.02]` is gone with it —
+                      // six pixels on a 300px box, invisible as size, but as a
+                      // transform it rasterised the text at a fractional scale for
+                      // the whole 300ms and softened every selection.
                       style={
                         isSelected
                           ? {
-                              backgroundImage: `linear-gradient(100deg, ${a.accent}26, ${a.accent}0d 55%, transparent)`,
-                              boxShadow: `inset 0 0 0 1px ${a.accent}59, 0 8px 24px -18px ${a.accent}`,
+                              boxShadow: `inset 0 0 0 1px ${a.accent}59, 0 12px 32px -12px ${a.accent}66`,
                             }
                           : undefined
                       }
